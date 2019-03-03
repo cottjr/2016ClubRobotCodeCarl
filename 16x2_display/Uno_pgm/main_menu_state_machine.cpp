@@ -136,9 +136,9 @@ MENU_STATES main_menu_state_machine(EVENTS event)
 		case SPLASH_SCREEN:
 		lcd.clear();
 		lcd.setCursor(0,0);
-		lcd.print("DPRG Club Robot");
+		lcd.print("ClubCar DonkyBot");
 		lcd.setCursor(0,1);
-		lcd.print("Owner: Doug P.");
+		lcd.print("Mashup by Carl");
 		break;
 		
 		case SYS_CHKS_MENU:

@@ -1,0 +1,42 @@
+Planning Notes.txt
+Thoughts and plans for "ClubCar DonkeyBot"
+
+2019 March 2
+- solder & swap out Monster Motor Shield
+    verify symmetrical encoder behavior
+- Mega: load & run club_robot_nav1.ino
+    verify console log output as expected
+    verify move() task performs as expected
+        task_def.cpp
+        wpt_funcs.cpp
+- Uno: load & run club_robot_display-16x2.ino
+    verify console log output as expected
+    verify display & button behavior as expected
+    hack out / clean up stuff that behaves poorly when serial port not connected
+        =>  perhaps add a 'heartbeat' broadcast on Mega, around 1 Hz
+            detect lack of 'heartbeat' on Uno and console log: 
+                "Mega: no heartbeat from serial port"
+                "rPi: no heartbeat from serial port"
+            maybe also display 'Mega: NoHartBeat' (maybe add to health check menu pick?)
+- Robot - Base Logic
+    think about onboard display UI
+        2 line display
+        6 buttons (left / right / up / down / select / ???)
+    Main Menu
+        Start / Stop        // start / stop currently selected run mode
+        Select Run Mode     // keep multiple scripts available onboard, e.g.
+                                    Out and Back
+                                    4 corner
+                                    Donkey Car
+                                    Line Follower
+        Test Subsystems     // exercise actuators, read sensors
+        Health Monitor      // details e.g. Mega or rPi communication links down
+- Robot Mechanical
+    screw down lift blocks & paint the 'lift stand'
+    add mount for rPi and Camera 
+        (maybe account for / plan for future upgrade to camera tilt or pan/tilt?)
+    add structure to lay on it's top w/o any special stand
+- Raspberry Pi - Donkey Car
+    select communication path   (serial port / 2-wire / or measure servo signals)
+    add output from rPi
+    add listener to Mega
