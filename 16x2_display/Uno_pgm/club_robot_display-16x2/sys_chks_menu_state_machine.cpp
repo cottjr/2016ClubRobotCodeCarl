@@ -184,33 +184,33 @@ SYS_CHKS_STATES sys_chks_menu_state_machine(EVENTS event)
 	switch (sys_chks_state)
 	{
 		case SONAR_TEST:
-			lcd.clear();
+//			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("Sonar Test");
+			lcd.print("Sonar Test      ");
 			lcd.setCursor(0,1);
 			lcd.print("                ");   // clear line
 		break;
 				
 		case SCOOP_SEN_TEST:
-			lcd.clear();
+//			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("Scoop Sen Test");
+			lcd.print("Scoop Sen Test  ");
 			lcd.setCursor(0,1);
 			lcd.print("                ");   // clear line
 		break;
 		
 		case GATE_SERVO_TEST:
-		lcd.clear();
+//		lcd.clear();
 		lcd.setCursor(0,0);
-		lcd.print("Gate Servo Test");
+		lcd.print("Gate Servo Test ");
 		lcd.setCursor(0,1);
 		lcd.print("                ");   // clear line
 		break;
 		
 		case CAMERA_TEST:
-			lcd.clear();
+//			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("Camera Test");
+			lcd.print("Camera Test     ");
 			lcd.setCursor(0,1);
 			lcd.print("                ");   // clear line
 		break;
@@ -223,7 +223,7 @@ SYS_CHKS_STATES sys_chks_menu_state_machine(EVENTS event)
 		break;
 		
 		case EXIT_SYS_CHKS:
-			lcd.clear();
+//			lcd.clear();
 			lcd.setCursor(0,0);
 			lcd.print("Back to Menu    ");
 			lcd.setCursor(0,1);

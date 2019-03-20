@@ -134,17 +134,19 @@ MENU_STATES main_menu_state_machine(EVENTS event)
 	switch (menu_state)
 	{
 		case SPLASH_SCREEN:
-		lcd.clear();
+//		lcd.clear();
 		lcd.setCursor(0,0);
 		lcd.print("ClubCar DonkyBot");
 		lcd.setCursor(0,1);
-		lcd.print("Mashup by Carl");
+		lcd.print("-Mashup by Carl-");
 		break;
 		
 		case SYS_CHKS_MENU:
-		lcd.clear();
+//		lcd.clear();
 		lcd.setCursor(0,0);
 		lcd.print("System Chk Menu ");
+    lcd.setCursor(0,1);
+    lcd.print("                ");
 		break;
 		/*
 		case CONFIG_MENU:
@@ -157,9 +159,11 @@ MENU_STATES main_menu_state_machine(EVENTS event)
 		break;
 		*/
 		case RUN_MENU:
-		lcd.clear();
+//		lcd.clear();
 		lcd.setCursor(0,0);
 		lcd.print("Run Menu        ");
+    lcd.setCursor(0,1);
+    lcd.print("                ");
 		break;
 		default:
 		break;
