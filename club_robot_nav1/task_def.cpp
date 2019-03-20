@@ -15,6 +15,7 @@ int us_sem; // semaphore for sensor task (used with the ultrasonics)
 
 void cpu_idle(ASIZE ignored)
 {
+    Serial.println("\ntask_def.cpp cpu_idle...\n");
     unsigned long t;
     unsigned long cnt;
 
@@ -30,6 +31,7 @@ void cpu_idle(ASIZE ignored)
 
 void claw(ASIZE delay)
 {
+    Serial.println("\ntask_def.cpp claw...\n");
     unsigned long cnt;
     float trip_dist = 5.0;
     uint8_t fail_cntr = 0;
@@ -57,6 +59,7 @@ void claw(ASIZE delay)
 
 void sensors(ASIZE delay)
 {
+    Serial.println("\ntask_def.cpp sensors...\n");
     unsigned long cnt;
     uint8_t fail_cntr_us = 0;
     uint8_t fail_limit_us = 4; //11;  // may need to be adjusted depending on # of bad us readings
@@ -200,6 +203,7 @@ void sensors(ASIZE delay)
 
 void move(ASIZE delay)
 {
+    Serial.println("\ntask_def.cpp move...\n");
     unsigned long cnt;
     //------------------------------Required when using PERIOD instead of WAIT
     TSIZE t;
@@ -361,6 +365,7 @@ void move(ASIZE delay)
 
 void stats_task(ASIZE delay)
 {
+    Serial.println("\ntask_def.cpp stats_task...\n");
     TSIZE t;
     t = sysclock + delay;
 
@@ -382,6 +387,7 @@ void stats_task(ASIZE delay)
 
 void signon(ASIZE version)
 {
+    Serial.println("\ntask_def.cpp signon...\n");
     PRINTF(VERSION);
     wake_after(2000);
     PRINTF("# SIGNON Messages signing off!\n");
