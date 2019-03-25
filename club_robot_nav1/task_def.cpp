@@ -221,11 +221,24 @@ void move(ASIZE delay)
 
     init_pids();
 
+    Serial.println("...after init_pids()");
+
     if (start_to_run_task == 0)
     {
+    Serial.println("...before semaphore_obtain(&us_sem)");
 	semaphore_obtain(&us_sem);
 	start_to_run_task = 1;
+    Serial.println("...after set start_to_run_task = 1");
     }
+
+
+
+//    Serial.println("   waypoint_x[wayptnum]: %f", waypoint_x[wayptnum]);
+//    Serial.println("   waypoint_y: %f",waypoint_y);
+//    Serial.println("   sizeof(wayptnum): %d, sizeof(waypoint_x) %d\n",sizeof(wayptnum), sizeof(waypoint_x));
+      Serial.println(wayptnum);
+
+    Serial.println("...before while(1)");
 
     while (1)
     {
