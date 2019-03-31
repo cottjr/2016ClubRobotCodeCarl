@@ -30,3 +30,4 @@
 # VS Code files
 *.db
 *.browse.VC.db-wal
+*.vscode/ipch
