@@ -31,6 +31,8 @@ typedef struct loc_t
     float y_pos;
     int encoder_interval_cnt_R_mtr; // motor 0
     int encoder_interval_cnt_L_mtr; // motor 1
+    int encoderCountRight; // raw encoder count
+    int encoderCountLeft;  // raw encoder count
 } location;
 
 typedef struct targ_t

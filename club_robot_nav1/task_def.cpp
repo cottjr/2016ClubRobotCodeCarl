@@ -1,3 +1,4 @@
+
 /******************************************************************
 *
 *  task_def.cpp
@@ -220,42 +221,82 @@ void move(ASIZE delay)
     uint8_t start_to_run_task = 0;
 
     init_pids();
-
     Serial.println("...after init_pids()");
 
     if (start_to_run_task == 0)
     {
     Serial.println("...before semaphore_obtain(&us_sem)");
-	semaphore_obtain(&us_sem);
+//	semaphore_obtain(&us_sem);
 	start_to_run_task = 1;
     Serial.println("...after set start_to_run_task = 1");
     }
 
+ 
+  for (int whichOne = 0; whichOne < 16; whichOne++) {
+      Serial.print("...wayptnum ");
+      Serial.print(whichOne);
 
+      Serial.print("\t x ");
+      Serial.print(waypoint_x[whichOne], 3);
+      Serial.print("\t y ");
+      Serial.println(waypoint_y[whichOne], 3);
+        }
 
-//    Serial.println("   waypoint_x[wayptnum]: %f", waypoint_x[wayptnum]);
-//    Serial.println("   waypoint_y: %f",waypoint_y);
-//    Serial.println("   sizeof(wayptnum): %d, sizeof(waypoint_x) %d\n",sizeof(wayptnum), sizeof(waypoint_x));
-      Serial.println(wayptnum);
+  Serial.println();
+  
+  odometer(ptr_loc);
+  locate_target(ptr_targ, ptr_loc);
+  
+    Serial.print("...ptr_loc->encoderCountLeft ");
+    Serial.print(ptr_loc->encoderCountLeft, DEC);
+    Serial.print("\t\t\t ptr_loc->encoderCountRight ");
+    Serial.println(ptr_loc->encoderCountRight, DEC);
 
-    Serial.println("...before while(1)");
+    Serial.print("...ptr_targ->x_target ");
+    Serial.print(ptr_targ->x_target, 4);
+    Serial.print("\t\t\t ptr_targ->y_target ");
+    Serial.println(ptr_targ->y_target, 4);
+
+  Serial.print("...entering wayptnum \t");
+  Serial.println(wayptnum);
 
     while (1)
     {
 	segNav = delta_target(ptr_targ, ptr_temp_wpt, waypoint_x[wayptnum], waypoint_y[wayptnum], 15.0);
 
+//    Serial.print("...segNav: ");
+//    Serial.println(segNav);
 	if (segNav == 1)
 	{ // no temp_wpt in play
 	    wayptnum++;
+      Serial.println();
+      Serial.print("...>>> incremented wayptnum, now heading towards wayptnum ");
+      Serial.println(wayptnum);
+
+      Serial.print("...ptr_loc->encoderCountLeft ");
+      Serial.print(ptr_loc->encoderCountLeft, DEC);
+      Serial.print("\t\t\t ptr_loc->encoderCountRight ");
+      Serial.println(ptr_loc->encoderCountRight, DEC);
+
+      Serial.print("...ptr_targ->x_target ");
+      Serial.print(ptr_targ->x_target, 4);
+      Serial.print("\t\t\t ptr_targ->y_target ");
+      Serial.println(ptr_targ->y_target, 4);
+ 	    
 	    if (waypoint_x[wayptnum] == LAST_ELEM)
 	    { // end of route
 		stop_movement_flg = 1;
+    Serial.println("...>>>>>> reached end of waypoint list. All done...");
 		Serial3.println("end");
 	    }
 	}
 
 	if (segNav == 2)
 	{ // no temp_wpt in play
+
+    Serial.print("...entering (if segNav == 2), with wayptnum ");
+    Serial.println(wayptnum);
+   
 	    waypoint_x[wayptnum] = ptr_temp_wpt->orig_x_target;
 	    waypoint_y[wayptnum] = ptr_temp_wpt->orig_y_target;
 
@@ -268,9 +309,27 @@ void move(ASIZE delay)
 	odometer(ptr_loc);
 	locate_target(ptr_targ, ptr_loc);
 
+
+
+//  Serial.println("...made it past locate_target()");
+
+//  Serial.println();
+//  Serial.println();
+//
+//  Serial.print("...ballistic_turn_flg ");
+//  Serial.print(ballistic_turn_flg);
+//  Serial.print("\t (turnin place?) ena ");
+//  Serial.print(ena); 
+//  Serial.print("\t stop_movement_flg ");
+//  Serial.print(stop_movement_flg, BIN);
+//  Serial.print("\t rotate_in_place_flg ");
+//  Serial.println(rotate_in_place_flg);
+
 	if ((ballistic_turn_flg == ON) && (ena == ON))
 	{
 	    rotate_in_place_flg = determine_rotate_in_place_flg(ptr_targ);
+//      Serial.print("...just set rotate_in_place_flg to ");
+//      Serial.println(rotate_in_place_flg);
 	}
 
 	if (stop_movement_flg == 0)
@@ -283,11 +342,15 @@ void move(ASIZE delay)
 		//sum_deg_heading_error = 0;
 		if (ptr_targ->heading_error > 0) // need to turn right   (>)
 		{
+        Serial.print("...turning right, heading error ");
+        Serial.println(ptr_targ->heading_error, 4);
 		    motorGo(R_MTR, CW, turn_speed); // ballistic turn
 		    motorGo(L_MTR, CCW, turn_speed);
 		}
 		else if (ptr_targ->heading_error < 0) // need to turn left   (<)
 		{
+        Serial.print("...turning left, heading error ");
+        Serial.println(ptr_targ->heading_error, 4);
 		    motorGo(R_MTR, CCW, turn_speed);
 		    motorGo(L_MTR, CW, turn_speed);
 		}
@@ -313,6 +376,33 @@ void move(ASIZE delay)
 
 		setpoint[R_MTR] = (double)slew_val + ((double)ptr_targ->deg_heading_error); // p controller for rotation
 		setpoint[L_MTR] = (double)slew_val - ((double)ptr_targ->deg_heading_error);
+//
+//    Serial.println();
+//
+//    Serial.print("...ptr_loc->encoderCountLeft ");
+//    Serial.print(ptr_loc->encoderCountLeft, DEC);
+//    Serial.print("\t\t\t ptr_loc->encoderCountRight ");
+//    Serial.println(ptr_loc->encoderCountRight, DEC);
+//
+//    Serial.print("...ptr_targ->x_target ");
+//    Serial.print(ptr_targ->x_target, 4);
+//    Serial.print("\t\t\t ptr_targ->y_target ");
+//    Serial.println(ptr_targ->y_target, 4);
+//
+//    Serial.print("...ptr_targ->target_distance ");
+//    Serial.print(ptr_targ->target_distance, 4);
+//    Serial.print("\t\t ptr_targ->deg_target_bearing ");
+//    Serial.println(ptr_targ->deg_target_bearing, 4);
+//
+//    Serial.print("...setpoint[L_MTR] ");
+//    Serial.print(setpoint[L_MTR],4);
+//    Serial.print("\t\t\t setpoint[R_MTR] ");
+//    Serial.println(setpoint[R_MTR],4);
+//   
+//    Serial.print("...ptr_loc->encoder_interval_cnt_L_mtr ");
+//    Serial.print(ptr_loc->encoder_interval_cnt_L_mtr,4);
+//    Serial.print("\t ptr_loc->encoder_interval_cnt_R_mtr ");
+//    Serial.println(ptr_loc->encoder_interval_cnt_R_mtr,4);
 
 		pid_input[R_MTR] = (double)ptr_loc->encoder_interval_cnt_R_mtr;
 		pid_input[L_MTR] = (double)ptr_loc->encoder_interval_cnt_L_mtr;
@@ -320,12 +410,18 @@ void move(ASIZE delay)
 		right_mtr_pid.Compute();
 		left_mtr_pid.Compute();
 
+//    Serial.print("...sending>>> pid_output[L_MTR] ");
+//    Serial.print(pid_output[L_MTR],4);
+//    Serial.print("\t\t sending>>> pid_output[R_MTR] ");
+//    Serial.println(pid_output[R_MTR],4);
+    
 		motorGo(R_MTR, CW, pid_output[R_MTR]);
-		motorGo(L_MTR, CW, pid_output[L_MTR]);
+		motorGo(L_MTR, CCW, pid_output[L_MTR]);
 	    }
 	}
 	else
 	{
+//    Serial.println("...>>> turning motors off");
 	    motorOff(R_MTR);
 	    motorOff(L_MTR);
 	}

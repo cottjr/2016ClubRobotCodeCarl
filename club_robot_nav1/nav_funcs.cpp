@@ -16,10 +16,10 @@ float toDeg(float dir_in_rad);
 
 // Variables
 location loc;
-location *ptr_loc = &loc;
+location *ptr_loc = &loc;   // Carl-> appears to be unused
 
 target targ;
-target *ptr_targ = &targ;
+target *ptr_targ = &targ;   // Carl-> appears to be unused
 
 long prev_enc_cnts[2];
 
@@ -29,11 +29,14 @@ void calc_encoder_interval_cnts(location *ptr_location)
 {
     long current_enc_cnts[2];
     current_enc_cnts[R_MTR] = encRight.read();
-    current_enc_cnts[L_MTR] = -encLeft.read();
-    long delta_enc_cnts[2];
+    current_enc_cnts[L_MTR] = -encLeft.read();     // original code was -encLeft.read();
+    ptr_location->encoderCountRight = current_enc_cnts[R_MTR];
+    ptr_location->encoderCountLeft = current_enc_cnts[L_MTR];
 
+    long delta_enc_cnts[2];
     delta_enc_cnts[R_MTR] = current_enc_cnts[R_MTR] - prev_enc_cnts[R_MTR];
     delta_enc_cnts[L_MTR] = current_enc_cnts[L_MTR] - prev_enc_cnts[L_MTR];
+
     prev_enc_cnts[R_MTR] = current_enc_cnts[R_MTR];
     prev_enc_cnts[L_MTR] = current_enc_cnts[L_MTR];
 

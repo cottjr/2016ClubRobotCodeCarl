@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:\\Users\\carlo\\OneDrive\\My Downloads\\Arduino\\Arduino 1.6.9\\arduino-1.6.9\\hardware\\tools\\avr\\avr\\include"
             ],
             "defines": [
                 "_DEBUG",

@@ -30,8 +30,14 @@ uint8_t slow_movement_flg = OFF;
 //float waypoint_x[16] = {0.0,  0.0,100.0,100.0,0.0,100.0,    0,0,100.0,0,LAST_ELEM};   //complex pattern
 //float waypoint_y[16] = {0.0,100.0,100.0,  0.0,0.0,100.0,100.0,0,  0.0,0,LAST_ELEM};
 
-float waypoint_x[16] = {0.0, 0.0, 100.0, 100.0, 0.0, LAST_ELEM}; // CCW 1 meter sq
-float waypoint_y[16] = {0.0, 100.0, 100.0, 0.0, 0.0, LAST_ELEM};
+// Baseline 1 meter square
+//float waypoint_x[16] = {0.0, 0.0, 100.0, 100.0, 0.0, LAST_ELEM}; // CCW 1 meter sq
+//float waypoint_y[16] = {0.0, 100.0, 100.0, 0.0, 0.0, LAST_ELEM};
+
+// out and back allegedly 1 meter, just to run motors much longer than 1 meter, to verify orientation sense...
+float waypoint_x[16] = {0.0, 0.0, 0.0, LAST_ELEM};
+float waypoint_y[16] = {0.0, 100.0, 0.0, LAST_ELEM};
+
 
 //float waypoint_x[16] = {0.0,  0.0,200.0,200.0,0.0,LAST_ELEM};   // CCW 2 meter sq
 //float waypoint_y[16] = {0.0,200.0,200.0,  0.0,0.0,LAST_ELEM};

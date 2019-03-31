@@ -37,6 +37,13 @@ void printkbuf(char *s) {
 // system_init
 void system_init(void)
 {
+  Serial.begin(57600);    // Serial:  0(RX), 1(TX) 
+  Serial3.begin(57600);   // => ToDo - Set This up for communication to the Display
+                          // Serial3:  15(RX), 14(TX)
+                          // https://www.arduino.cc/reference/en/language/functions/communication/serial/
+                          // https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
+                          // https://www.arduino.cc/reference/en/language/functions/communication/serial/write/#howtouse
+
   Serial.println("\nStarting system_init:\n");
 	#if ((MACHINE == MACH_AVR) || (MACHINE == MACH_ARM))
 		/* AVR & ARM Teesy3.1  */
@@ -50,7 +57,7 @@ void system_init(void)
 		init_claw();
   Serial.println("...before init_temp_waypoint");
 		init_temp_waypoint(ptr_temp_wpt);
-		Serial3.begin(57600);   
+
 	#endif
 }
 
@@ -65,7 +72,6 @@ void setup()
 int main()
 #endif
 {
-    Serial.begin(9600);
 
     system_init();
     printv = printkbuf;
@@ -79,8 +85,10 @@ int main()
     pid_count = 0; current = 0;
 
     Serial.println("Starting Tasks:\n");
-    Serial.println("...before create_task 'SENSORS'");
-	create_task("SENSORS",sensors,20,MINSTACK * 2);  //40
+
+//CAUTION: When no sensors are installed, the ultrasonic sensor hits a "fail_cntr_bump > fail_limit_bump" threshold, and sets stop_movement_flg |= (0x04) => shuts down movement...    
+//  Serial.println("...before create_task 'SENSORS'");
+//	create_task("SENSORS",sensors,20,MINSTACK * 2);  //40
 
     Serial.println("...before create_task 'CLAW'");
 	create_task("CLAW",claw,45,MINSTACK);        //45
