@@ -93,8 +93,12 @@ int main()
     Serial.println("...before create_task 'CLAW'");
 	create_task("CLAW",claw,45,MINSTACK);        //45
 
-    Serial.println("...before create_task 'MOVE'");
-	create_task("MOVE",move,10,MINSTACK*2);        //25 //20
+//    Serial.println("...before create_task 'MOVE'");
+//	create_task("MOVE",move,10,MINSTACK*2);        //25 //20
+
+// move forward 3 seconds. wait 3 seconds. move backwards 3 seconds
+    Serial.println("...before create_task 'motorTest'");
+    create_task("motorTest",motorTest,10,MINSTACK*2);        //25 //20
 
     Serial.println("...before create_task 'IDLE'");
     create_task("IDLE",cpu_idle,0,MINSTACK);

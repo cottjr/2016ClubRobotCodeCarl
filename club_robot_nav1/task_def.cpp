@@ -202,6 +202,47 @@ void sensors(ASIZE delay)
     }
 }
 
+// move forward 3 seconds. wait 3 seconds. move backwards 3 seconds
+void motorTest(ASIZE delay)
+{ 
+  Serial.println("\ntask_def.cpp motorTest...\n");
+  int turn_speed = 30;
+
+  WAIT(3000);
+  Serial.println("...going Ballistic -> move forward for 3 seconds");
+  motorGo(R_MTR, CW, turn_speed);
+  motorGo(L_MTR, CCW, turn_speed);
+  WAIT(3000);
+
+  Serial.println("...turning motors off for 3 seconds");  
+  motorOff(R_MTR);
+  motorOff(L_MTR);
+  WAIT(3000);
+
+  Serial.println("...going backwards for 3 seconds");
+  motorGo(R_MTR, CCW, turn_speed);
+  motorGo(L_MTR, CW, turn_speed);
+  WAIT(3000);
+
+  Serial.println("...turning motors off");  
+  motorOff(R_MTR);
+  motorOff(L_MTR);
+  Serial.println("...how did that do???");
+  Serial.println();
+  Serial.println();
+  Serial.println(); 
+  WAIT(3000);
+
+//  ToDo: figure out how to set up the PIDs. Bypass the clutter and global variables where possible
+//  Serial.println();
+//  Serial.println("...>>>now we try again but under PID control"); 
+//
+//  init_pids();
+//  Serial.println("...after init_pids()");
+//  odometer(ptr_loc);
+  
+}
+
 void move(ASIZE delay)
 {
     Serial.println("\ntask_def.cpp move...\n");

@@ -38,6 +38,7 @@ void cpu_idle(ASIZE ignored);
 void claw(ASIZE delay);
 void sensors(ASIZE delay);
 void move(ASIZE delay);
+void motorTest(ASIZE delay);
 void stats_task(ASIZE delay);
 void signon(ASIZE version);
 
