@@ -19,10 +19,9 @@
 
 #include "motor_funcs.h"
 
-Encoder encRight(2, 3);  // Mega INT4 and INT5
+Encoder encRight(2, 3); // Mega INT4 and INT5
 // Encoder encLeft(21, 20); // Mega INT0 and INT1   (Standard Club Pin Assignment)
-Encoder encLeft(19,18);   // Mega INT2 and INT3   (Carl Wiring Pin Assignment)
-
+Encoder encLeft(19, 18); // Mega INT2 and INT3   (Carl Wiring Pin Assignment)
 
 //  VNH2SP30 pin definitions
 int inApin[2] = {7, 4}; // INA: Clockwise input
