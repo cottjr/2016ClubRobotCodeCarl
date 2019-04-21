@@ -1,0 +1,220 @@
+club_robot_nav1.ino => executing system_init()...
+
+...before init_motor_driver_shield
+...before sysclock_init
+...before initialzeMotorTasks()
+
+now running initializeMotorTasks()...
+
+...after initialzeMotorTasks()
+
+... Completed system_init...
+
+... Starting kludge (?) delay to allow libtask sysclock to start running:
+
+... Completed kludge (?) delay to allow libtask sysclock to start running:
+
+... Starting libtask Tasks:
+
+... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds
+
+Launching scheduler...
+
+
+
+Starting measureMinMaxMotorSpeeds()
+
+
+... >> velocityLoopStart()
+
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 0
+... leftPWM is 0... rightPWM is 0
+... left motor off... right motor off
+
+
+
+Maximum Forward Speeds, with a sample period of 50ms
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 100
+... leftPWM is -255... rightPWM is 255
+... left motor CCW... right motor CW
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 0
+... leftPWM is 0... rightPWM is 0
+... left motor off... right motor off
+
+sample 1: 52 ms, 195 left ticks, 228 right ticks, 
+sample 2: 53 ms, 315 left ticks, 340 right ticks, 
+sample 3: 53 ms, 420 left ticks, 445 right ticks, 
+sample 4: 52 ms, 488 left ticks, 516 right ticks, 
+sample 5: 52 ms, 516 left ticks, 544 right ticks, 
+sample 6: 54 ms, 536 left ticks, 562 right ticks, 
+sample 7: 52 ms, 543 left ticks, 568 right ticks, 
+sample 8: 53 ms, 547 left ticks, 571 right ticks, 
+sample 9: 52 ms, 549 left ticks, 572 right ticks, 
+sample 10: 53 ms, 550 left ticks, 573 right ticks, 
+sample 11: 53 ms, 551 left ticks, 575 right ticks, 
+sample 12: 52 ms, 552 left ticks, 575 right ticks, 
+sample 13: 52 ms, 549 left ticks, 572 right ticks, 
+sample 14: 54 ms, 552 left ticks, 575 right ticks, 
+sample 15: 52 ms, 553 left ticks, 576 right ticks, 
+sample 16: 53 ms, 552 left ticks, 576 right ticks, 
+sample 17: 52 ms, 554 left ticks, 580 right ticks, 
+sample 18: 52 ms, 551 left ticks, 576 right ticks, 
+sample 19: 54 ms, 552 left ticks, 576 right ticks, 
+sample 20: 52 ms, 553 left ticks, 577 right ticks, 
+sample 21: 52 ms, 552 left ticks, 577 right ticks, 
+sample 22: 53 ms, 553 left ticks, 579 right ticks, 
+sample 23: 53 ms, 552 left ticks, 578 right ticks, 
+sample 24: 53 ms, 551 left ticks, 578 right ticks, 
+sample 25: 52 ms, 554 left ticks, 579 right ticks, 
+sample 26: 52 ms, 551 left ticks, 580 right ticks, 
+sample 27: 54 ms, 554 left ticks, 578 right ticks, 
+sample 28: 52 ms, 554 left ticks, 579 right ticks, 
+sample 29: 53 ms, 555 left ticks, 580 right ticks, 
+sample 30: 52 ms, 554 left ticks, 578 right ticks, 
+
+
+
+Maximum Reverse Speeds, with a sample period of 50ms
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is -100
+... leftPWM is 255... rightPWM is -255
+... left motor CW... right motor CCW
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 0
+... leftPWM is 0... rightPWM is 0
+... left motor off... right motor off
+
+sample 1: 52 ms, -191 left ticks, -226 right ticks, 
+sample 2: 52 ms, -310 left ticks, -336 right ticks, 
+sample 3: 54 ms, -414 left ticks, -442 right ticks, 
+sample 4: 52 ms, -481 left ticks, -513 right ticks, 
+sample 5: 52 ms, -512 left ticks, -541 right ticks, 
+sample 6: 53 ms, -531 left ticks, -559 right ticks, 
+sample 7: 53 ms, -536 left ticks, -564 right ticks, 
+sample 8: 53 ms, -540 left ticks, -571 right ticks, 
+sample 9: 53 ms, -542 left ticks, -572 right ticks, 
+sample 10: 52 ms, -541 left ticks, -571 right ticks, 
+sample 11: 53 ms, -542 left ticks, -570 right ticks, 
+sample 12: 53 ms, -542 left ticks, -572 right ticks, 
+sample 13: 52 ms, -543 left ticks, -571 right ticks, 
+sample 14: 53 ms, -543 left ticks, -573 right ticks, 
+sample 15: 52 ms, -542 left ticks, -572 right ticks, 
+sample 16: 53 ms, -544 left ticks, -573 right ticks, 
+sample 17: 53 ms, -542 left ticks, -571 right ticks, 
+sample 18: 52 ms, -543 left ticks, -572 right ticks, 
+sample 19: 52 ms, -543 left ticks, -572 right ticks, 
+sample 20: 54 ms, -542 left ticks, -574 right ticks, 
+sample 21: 52 ms, -543 left ticks, -573 right ticks, 
+sample 22: 52 ms, -544 left ticks, -574 right ticks, 
+sample 23: 52 ms, -543 left ticks, -575 right ticks, 
+sample 24: 54 ms, -544 left ticks, -572 right ticks, 
+sample 25: 52 ms, -542 left ticks, -574 right ticks, 
+sample 26: 52 ms, -546 left ticks, -575 right ticks, 
+sample 27: 53 ms, -545 left ticks, -575 right ticks, 
+sample 28: 52 ms, -546 left ticks, -576 right ticks, 
+sample 29: 54 ms, -546 left ticks, -575 right ticks, 
+sample 30: 52 ms, -546 left ticks, -576 right ticks, 
+
+
+
+Minimum Forward Speeds, with a sample period of 50ms
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 8
+... leftPWM is -20... rightPWM is 20
+... left motor CCW... right motor CW
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 0
+... leftPWM is 0... rightPWM is 0
+... left motor off... right motor off
+
+sample 1: 52 ms, 34 left ticks, 32 right ticks, 
+sample 2: 52 ms, 46 left ticks, 49 right ticks, 
+sample 3: 52 ms, 58 left ticks, 59 right ticks, 
+sample 4: 52 ms, 64 left ticks, 69 right ticks, 
+sample 5: 52 ms, 71 left ticks, 75 right ticks, 
+sample 6: 52 ms, 76 left ticks, 81 right ticks, 
+sample 7: 52 ms, 79 left ticks, 84 right ticks, 
+sample 8: 53 ms, 82 left ticks, 89 right ticks, 
+sample 9: 52 ms, 84 left ticks, 92 right ticks, 
+sample 10: 52 ms, 87 left ticks, 95 right ticks, 
+sample 11: 51 ms, 88 left ticks, 97 right ticks, 
+sample 12: 53 ms, 89 left ticks, 98 right ticks, 
+sample 13: 52 ms, 92 left ticks, 101 right ticks, 
+sample 14: 52 ms, 91 left ticks, 102 right ticks, 
+sample 15: 52 ms, 92 left ticks, 103 right ticks, 
+sample 16: 52 ms, 93 left ticks, 103 right ticks, 
+sample 17: 53 ms, 93 left ticks, 105 right ticks, 
+sample 18: 52 ms, 94 left ticks, 105 right ticks, 
+sample 19: 52 ms, 94 left ticks, 105 right ticks, 
+sample 20: 51 ms, 94 left ticks, 106 right ticks, 
+sample 21: 53 ms, 94 left ticks, 106 right ticks, 
+sample 22: 52 ms, 95 left ticks, 107 right ticks, 
+sample 23: 52 ms, 95 left ticks, 107 right ticks, 
+sample 24: 52 ms, 94 left ticks, 107 right ticks, 
+sample 25: 52 ms, 96 left ticks, 107 right ticks, 
+sample 26: 53 ms, 95 left ticks, 107 right ticks, 
+sample 27: 52 ms, 96 left ticks, 107 right ticks, 
+sample 28: 51 ms, 96 left ticks, 106 right ticks, 
+sample 29: 52 ms, 96 left ticks, 104 right ticks, 
+sample 30: 53 ms, 96 left ticks, 104 right ticks, 
+
+
+
+Minimum Reverse Speeds, with a sample period of 50ms
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is -8
+... leftPWM is 20... rightPWM is -20
+... left motor CW... right motor CCW
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 0
+... leftPWM is 0... rightPWM is 0
+... left motor off... right motor off
+
+sample 1: 52 ms, -34 left ticks, -34 right ticks, 
+sample 2: 52 ms, -47 left ticks, -47 right ticks, 
+sample 3: 53 ms, -57 left ticks, -57 right ticks, 
+sample 4: 52 ms, -65 left ticks, -67 right ticks, 
+sample 5: 52 ms, -70 left ticks, -75 right ticks, 
+sample 6: 51 ms, -75 left ticks, -80 right ticks, 
+sample 7: 53 ms, -79 left ticks, -85 right ticks, 
+sample 8: 52 ms, -81 left ticks, -87 right ticks, 
+sample 9: 52 ms, -83 left ticks, -89 right ticks, 
+sample 10: 52 ms, -85 left ticks, -90 right ticks, 
+sample 11: 52 ms, -88 left ticks, -94 right ticks, 
+sample 12: 53 ms, -87 left ticks, -95 right ticks, 
+sample 13: 52 ms, -89 left ticks, -98 right ticks, 
+sample 14: 51 ms, -90 left ticks, -100 right ticks, 
+sample 15: 52 ms, -91 left ticks, -100 right ticks, 
+sample 16: 53 ms, -92 left ticks, -103 right ticks, 
+sample 17: 52 ms, -92 left ticks, -103 right ticks, 
+sample 18: 52 ms, -93 left ticks, -105 right ticks, 
+sample 19: 52 ms, -93 left ticks, -105 right ticks, 
+sample 20: 52 ms, -93 left ticks, -107 right ticks, 
+sample 21: 53 ms, -93 left ticks, -107 right ticks, 
+sample 22: 52 ms, -94 left ticks, -108 right ticks, 
+sample 23: 51 ms, -93 left ticks, -108 right ticks, 
+sample 24: 52 ms, -94 left ticks, -109 right ticks, 
+sample 25: 53 ms, -94 left ticks, -109 right ticks, 
+sample 26: 52 ms, -94 left ticks, -110 right ticks, 
+sample 27: 52 ms, -94 left ticks, -110 right ticks, 
+sample 28: 52 ms, -94 left ticks, -109 right ticks, 
+sample 29: 52 ms, -94 left ticks, -111 right ticks, 
+sample 30: 53 ms, -94 left ticks, -110 right ticks, 
+
+... >> velocityLoopStop()
+
+
+motorTasks.cpp - setMotorVelocity()
+... clamped: turnVelocity is 0... throttle is 0
