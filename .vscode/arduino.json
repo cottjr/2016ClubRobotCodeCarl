@@ -1,0 +1,6 @@
+{
+    "port": "COM3",
+    "board": "arduino:avr:mega",
+    "configuration": "cpu=atmega2560",
+    "sketch": "club_robot_nav1\\club_robot_nav1.ino"
+}
