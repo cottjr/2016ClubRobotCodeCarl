@@ -51,9 +51,11 @@ extern location *ptr_loc;
 extern target *ptr_targ;
 
 // func prototypes -- available to other files
+void clearLocationValues(location *ptr_location);
 void calc_encoder_interval_cnts(location *ptr_location);
 //int delta_target(target *ptr_target, float waypoint_x, float waypoint_y);
-void odometer(location *ptr_location);
+void odometer(location *ptr_location);      // read encoders. 
+void getOdometer(location *ptr_location);
 void locate_target(target *ptr_target, location *ptr_location);
 int determine_rotate_in_place_flg(target *ptr_target);
 

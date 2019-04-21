@@ -30,10 +30,10 @@ int pwmpin[2] = {5, 6}; // PWM input
 int cspin[2] = {2, 3};  // CS: Current sense ANALOG input (note: CS is ~0.13 V/A)
 int enpin[2] = {0, 1};  // EN: Status of switches output (Analog pin)
 
-// PID setup
-double setpoint[2] = {55, 55};
-double pid_input[2];
-double pid_output[2];
+// PID Controls
+double setpoint[2] = {0, 0};  // setpoint to PID loop summing node // {55, 55};  // original club robot code had default setpoint of a midrange speed
+double pid_input[2];          // feedback to PID loop summing node
+double pid_output[2];         // PID loop control output 
 
 double kp[2] = {3, 3}; // these are not optimized
 double ki[2] = {5, 5};

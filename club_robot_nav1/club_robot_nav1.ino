@@ -1,3 +1,4 @@
+
 /*******************************************************
 *  club_robot_nav1.ino
 *
@@ -113,8 +114,12 @@ int main()
   // Serial.println("...before create_task 'motorTest'");
   // create_task("motorTest",motorTest,10,MINSTACK*2);        //25 //20
 
-  Serial.println("... time to try motorTasks.cpp, launching task testMotorTasks");
-  create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2); //25 //20
+
+//   Serial.println("... time to try motorTasks.cpp, launching task testMotorTasks");
+//   create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
+
+  Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
+  create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
 
   // => seems used only by logging for libtask?
   // Serial.println("...before create_task 'IDLE'");

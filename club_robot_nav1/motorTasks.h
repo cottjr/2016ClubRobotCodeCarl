@@ -19,14 +19,10 @@
 #include <sysclock.h>
 
 #include "commonTypes.h"
-#include "motor_funcs.h"     // needs also helpful_defines.h     // ToDo, add #include helpful_defines.h to motor_funcs.h due to it's obvious dependency?
-#include "helpful_defines.h" // needed for defines used also in motor_funcs.h, like R_MTR
+#include "motor_funcs.h"      // provides access to motor motor drivers.  needs also helpful_defines.h     // ToDo, add #include helpful_defines.h to motor_funcs.h due to it's obvious dependency?
+#include "nav_funcs.h"        // provides access encoder functions
+#include "helpful_defines.h"  // common defines used also in motor_funcs.h, like R_MTR
 
-//ToDo - simply replace DPRG club robot WAIT() with libtask library native wake_after()
-#define WAIT(d)    \
-  {                \
-    wake_after(d); \
-  }
 
 // ToDo - decide whether to keep & use this
 // need / used by libtask logging functions?
@@ -34,6 +30,17 @@
 #define PRINTF Serial3.println
 #define SPRINTF sprintf
 #endif
+
+
+typedef struct encoderMeasurementsStruct
+{
+    unsigned long msTimestamp;    // timestamp in milliseconds
+    int encoderCountRight;        // raw encoder count
+    int encoderCountLeft;         // raw encoder count
+    unsigned long msDeltaToPrior; // ms difference from this sample to prior
+    int encoderDeltaToPriorRight; // encoder difference from this sample to prior
+    int encoderDeltaToPriorLeft;  // encoder difference from this sample to prior
+};
 
 // class MotorLoops         // initial failed attempt to do this as an elegant class...
 // {
@@ -46,6 +53,8 @@ bool velocityLoopStop();
 bool setMotorVelocity(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
+
+void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
 void testMotorTasks(ASIZE);
 
 //  ToDo - need to dump these

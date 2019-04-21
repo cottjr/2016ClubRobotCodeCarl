@@ -16,15 +16,42 @@ float toDeg(float dir_in_rad);
 
 // Variables
 location loc;
-location *ptr_loc = &loc;   // Carl-> appears to be unused
+location *ptr_loc = &loc;   // absolute YUK -> defined here 'globally', but used in task_def.cpp
 
 target targ;
-target *ptr_targ = &targ;   // Carl-> appears to be unused
+target *ptr_targ = &targ;   // absolute YUK -> defined here 'globally', but used in task_def.cpp
 
 long prev_enc_cnts[2];
 
 //************************ Functions *************************************
 
+// Purpose: 
+//  - initialize all values of a location structure to zero
+// Input:
+//  - pointer to a location structure variable
+// Output:
+//  - updated properties of a current location structure
+void clearLocationValues(location *ptr_location)
+{
+    ptr_location->theta = 0;
+    ptr_location->deg_theta = 0;
+    ptr_location->x_pos = 0;
+    ptr_location->y_pos = 0;    
+    ptr_location->encoder_interval_cnt_R_mtr = 0;
+    ptr_location->encoder_interval_cnt_L_mtr = 0;
+    ptr_location->encoderCountRight = 0;
+    ptr_location->encoderCountLeft = 0;
+}
+
+// Purpose: 
+//  - fetch current encoder counts
+//  - calculate encoder delta to prior sample
+// Input:
+//  - encoder library as wired to hardware and interrupts per motor_funcs.h / motor_funcs.cpp
+//  - history of the most recent encoder sample
+//  - pointer to a location structure variable
+// Output:
+//  - updated properties of a current location structure
 void calc_encoder_interval_cnts(location *ptr_location)
 {
     long current_enc_cnts[2];
@@ -44,10 +71,44 @@ void calc_encoder_interval_cnts(location *ptr_location)
     ptr_location->encoder_interval_cnt_L_mtr = delta_enc_cnts[L_MTR];
 }
 
+// Purpose: 
+//  - fetch current encoder counts and delta to prior encoder count sample
+// Input:
+//  - pointer to a location structure variable
+// Processing:
+//  - convert encoder values to a cm scale
+//  - calculate accumulated absolute heading angle and x/y position for this sample
+// Output:
+//  - updated properties of a current location structure
+void getOdometer(location *ptr_location)
+{
+    calc_encoder_interval_cnts(ptr_location);
+
+    // convert longs to floats and ticks to cm
+    float right_cm = (float)ptr_location->encoder_interval_cnt_R_mtr / R_MTR_CLICKS_PER_CM;
+    float left_cm = (float)ptr_location->encoder_interval_cnt_L_mtr / L_MTR_CLICKS_PER_CM; // Left motor going fwd is neg
+
+    // calculate distance we have traveled since last sampling
+    float cm = (left_cm + right_cm) / 2;
+
+    // accumulate total rotation around our center
+    ptr_location->theta += (left_cm - right_cm) / WHEEL_BASE;
+
+    // and clip the rotation to plus or minus 360 degrees
+    ptr_location->theta = ptr_location->theta - (float)(TWOPI * ((int)(ptr_location->theta / TWOPI)));
+
+    ptr_location->deg_theta = (360 / TWOPI) * ptr_location->theta;
+
+    // calculate and accumulate our position in cm (note: using movement in Y as going straight forward)
+    ptr_location->x_pos += cm * sin(ptr_location->theta);
+    ptr_location->y_pos += cm * cos(ptr_location->theta);
+}
+
 void odometer(location *ptr_location)
 {
     calc_encoder_interval_cnts(ptr_location);
 
+    // ToDo -> note that this original code cross wires left and right calculations
     // convert longs to floats and ticks to cm
     float left_cm = (float)ptr_location->encoder_interval_cnt_R_mtr / R_MTR_CLICKS_PER_CM;
     float right_cm = (float)ptr_location->encoder_interval_cnt_L_mtr / L_MTR_CLICKS_PER_CM; // Left motor going fwd is neg
