@@ -50,6 +50,7 @@ void system_init(void)
   /* AVR & ARM Teesy3.1  */
   Serial.println("...before init_motor_driver_shield");
   init_motor_driver_shield();
+  clearRobotOdometerTicks();
 
   Serial.println("...before sysclock_init");
   sysclock_init();
@@ -80,8 +81,8 @@ void setup()
 int main()
 #endif
 {
-//  Serial.println("\n\nclub_robot_nav1.ino => main():\n");
-//  Serial.println("... starting system_init()");
+  //  Serial.println("\n\nclub_robot_nav1.ino => main():\n");
+  //  Serial.println("... starting system_init()");
   system_init();
   // printv = printkbuf;
 
@@ -89,8 +90,8 @@ int main()
 
 #if ((MACHINE == MACH_AVR) || (MACHINE == MACH_ARM)) /* ARM is Teensy3.1 */
   Serial.println("... Starting kludge (?) delay to allow libtask sysclock to start running:\n");
-  delay(1500);  // uses a fully blocking - Arduino native hardware delay, sysclock not running yet - what good does this really do?
-                // https://learn.adafruit.com/multi-tasking-the-arduino-part-1/ditch-the-delay
+  delay(1500); // uses a fully blocking - Arduino native hardware delay, sysclock not running yet - what good does this really do?
+               // https://learn.adafruit.com/multi-tasking-the-arduino-part-1/ditch-the-delay
   Serial.println("... Completed kludge (?) delay to allow libtask sysclock to start running:\n");
 #endif
 
@@ -114,12 +115,28 @@ int main()
   // Serial.println("...before create_task 'motorTest'");
   // create_task("motorTest",motorTest,10,MINSTACK*2);        //25 //20
 
+    Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
+  int testMotorTasks_ProcessID = -1;
+  Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
+  testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
+  Serial.print("... testMotorTasks_ProcessID is ");
+  Serial.println(testMotorTasks_ProcessID);
+  if (testMotorTasks_ProcessID == -1)
+  {
+    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
+  }
+  create_task("printTaskStats", printTaskStats, testMotorTasks_ProcessID, MINSTACK);
 
-//   Serial.println("... time to try motorTasks.cpp, launching task testMotorTasks");
-//   create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
-
-  Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
-  create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
+  // int measureMinMaxMotorSpeeds_ProcessID = -1;
+  // Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
+  // measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
+  // Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
+  // Serial.println(measureMinMaxMotorSpeeds_ProcessID);
+  //   if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  // {
+  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  // }
+  // create_task("printTaskStats", printTaskStats, measureMinMaxMotorSpeeds_ProcessID, MINSTACK);
 
   // => seems used only by logging for libtask?
   // Serial.println("...before create_task 'IDLE'");

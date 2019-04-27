@@ -9,6 +9,7 @@
 #include <arduino.h>
 #include <Encoder.h>
 #include <PID_v1.h>
+#include "helpful_defines.h"
 
 // Motor shield setup
 #define BRAKEVCC 0
@@ -27,6 +28,21 @@ extern int enpin[2];  // EN: Status of switches output (Analog pin
 extern Encoder encRight; // Mega INT4 and INT5
 extern Encoder encLeft;  // Mega INT0 and INT1
 
+typedef struct robotEncoderTicksType
+{
+    long leftMotor;
+    long rightMotor;
+};
+
+typedef struct robotEncoderVelocityType
+{
+    double leftMotor;
+    double rightMotor;
+};
+
+extern robotEncoderTicksType robotOdometerTicks; // cumulative odometer in robot coordinates in units of encoder ticks
+extern robotEncoderVelocityType robotOdometerVelocity; // most recent motor velocity between most recent encoder samples
+
 extern double r_setpoint, r_pid_input, r_pid_output;
 extern double l_setpoint, l_pid_input, l_pid_output;
 extern double setpoint[];
@@ -43,6 +59,8 @@ extern PID left_mtr_pid;
 // function prototypes
 void init_pids();
 void init_motor_driver_shield();
+void clearRobotOdometerTicks();
+void updateRobotOdometerTicks();
 void motorOff(int motor);
 void motorGo(uint8_t motor, uint8_t direct, uint8_t pwm);
 int clip(int val, int min, int max);

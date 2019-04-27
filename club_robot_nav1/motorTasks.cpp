@@ -11,24 +11,38 @@
 
 #include "motorTasks.h"
 
+// These values belong in a HAL layer file -> leaving here for now
 // by definition of motor_funcs.cpp, the maximum motor speed is 255
-#define maxPWM 255     // maximum speed for either motor
-#define maxTurnPWM 80  // maximum allowed robot pivot speed
-#define minLeftPWM 20  // slowest speed for the left motor, below this value motor stalls
-#define minRightPWM 20 // slowest speed for the right motor, below this value motor stalls
+#define maxPWM 255    // maximum speed for either motor
+#define maxTurnPWM 80 // maximum allowed robot pivot speed
+// calibration factors specific to a particular instance of the 2016 Club Robot
+//  => determined empirically
+#define minLeftPWM 20               // slowest speed for the left motor, below this value motor stalls
+#define minRightPWM 20              // slowest speed for the right motor, below this value motor stalls
+#define minEncoderVelocityTicks 15  // abs(steady state # encoder ticks) per 10 ms when motor at minPWM,           \
+                                    // defined as the bigger of left or right motor value in forward or backwards, \
+                                    // to ensure that both motors can achieve the lowest speed.                    \
+                                    // measured over 100 ms
+#define maxEncoderVelocityTicks 100 // abs(steady state # encoder ticks) per 10 ms when motor at minPWM,            \
+                                    // defined as the smaller of left or right motor value in forward or backwards, \
+                                    // to ensure that both motors can achieve the highest speed                     \
+                                    // measured over 100 ms
 
 bool velocityLoopEnabled = false;
 bool positionLoopEnabled = false;
 
+int velocityLoopProcessID = -1; // handle for the libtask library process ID
+// int positionLoopProcessID = -1; // handle for the libtask library process ID
+
 bool runInitialTestOnce = true;
 
-location currentLocation; // location === structure defined in nav_funcs.h
+location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
 
 // Velocity loop PID variables
-// [0] == right, [1] == left
-double velocitySetpoint[2] = {0, 0}; // setpoint to PID loop summing node // {55, 55};  // original club robot code had default setpoint of a midrange speed
-double velocityActual[2] = {0, 0};   // feedback to PID loop summing node
-double velocityLoopOut[2] = {0, 0};  // PID loop control output
+double rightEncVelocitySetpoint = 0;
+double leftEncVelocitySetpoint = 0;
+double rightVelocityLoopOutPWM = 0;
+double leftVelocityLoopOutPWM = 0;
 
 // Aggressive and conservative Tuning Parameters
 // [0] == right, [1] == left
@@ -37,9 +51,88 @@ double conservativeVelocityKp[2] = {1, 1};
 double conservativeVelocityKi[2] = {0.05, 0.05};
 double conservativeVelocityKd[2] = {0.25, 0.25};
 
-//PID leftVelocityPID(&velocityActual[1], &velocityLoopOut[1], &velocitySetpoint[1], conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
-//PID rightVelocityPID(&velocityActual[0], &velocityLoopOut[0], &velocitySetpoint[0], conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
+PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
+PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
 
+// Purpose: Initialize the code in this module
+// Processing:
+//  - disable motor movement
+//  - reset the absolute odometer to zero
+//  - start PID loop sample rate tasks & leave them running whether needed or not
+//      => e.g., to provide a consistent mechanism for reading encoder values & sending motor commands
+//      => whether open loop or part of a control loop
+// Output:
+//  - updates process handles to spawned processes
+void initializeMotorTasks()
+{
+    Serial.println("\nnow running initializeMotorTasks()...\n");
+    velocityLoopEnabled = false;
+    positionLoopEnabled = false;
+    runInitialTestOnce = true;
+
+    setVelocityLoopSetpoints(0, 0);
+
+    Serial.println("... motorTasks.cpp -> launching task periodicSampleMotorShield()");
+    kill_process(velocityLoopProcessID); // cleanly restart this task in case an instance is already running
+    // start the task with a nominal 10ms period
+    velocityLoopProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 20);
+    Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
+}
+
+// Purpose: Periodic service to print values related to ongoing tasks
+void printTaskStats(ASIZE processID)
+{
+    TASK *taskPointer; // from libtask
+    taskPointer = findpid(processID);
+    while (1)
+    {
+        Serial.print("... -> printTaskStats() -> processID: ");
+        Serial.print(processID);
+        Serial.print(" name: ");
+        Serial.print(taskPointer->name);
+        Serial.print(" stack_usage(): ");
+        Serial.println(stack_usage(processID));
+        wake_after(200); // I give up, just do 5 / second
+    }
+}
+
+// Purpose: Periodic service to read and write motor shield values,
+//          and perform other synchronous tasks at e.g. PID loop sample intervals
+// Input:
+//  - uses motor velocity targets and an open/closed loop flag which are updated elsewhere in this module
+// Algorithm Assumptions
+//  - velocity is in units of encoder ticks
+//  - velocity commands global to this module are always maintained to reasonable values
+// Processing:
+//  - at each PID loop sample interval =>
+//  - request current encoder values from nav_funcs.cpp
+//  - calculate motor commands per PID loop calculations or open loop as appropriate
+// Output:
+//  - send resulting motor commands to the motor shield
+int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track execution timing and periodicity...
+void periodicSampleMotorShield(ASIZE msLoopPeriod)
+{
+    TSIZE t;
+    t = sysclock + msLoopPeriod;
+    while (1)
+    {
+        msOfCurrentPID = millis();
+        msBetweenPID = msOfCurrentPID - msOfPriorPID;
+        msOfPriorPID = msOfCurrentPID;
+
+        updateRobotOdometerTicks();
+
+        leftVelocityPID.Compute();
+        rightVelocityPID.Compute();
+
+        sendVelocityLoopPWMtoMotorShield();
+
+        msExecutePID = millis() - msOfCurrentPID;
+        PERIOD(&t, msLoopPeriod);
+    }
+}
+
+// ToDo - deprecate this, replace with new HAL layer stuff in motor_funcs.cpp
 // Purpose: Fetch curent encoder values
 // Processing:
 //  - request current encoder from nav_funcs.cpp
@@ -53,6 +146,7 @@ void sampleEncoders(encoderMeasurementsStruct *whichOnes)
     whichOnes->encoderCountLeft = currentLocation.encoderCountLeft;
 }
 
+// ToDo - deprecate this, replace with new HAL layer stuff in motor_funcs.cpp
 // Purpose: Calculate differences between encoder samples
 // Input:
 //  - pointers to two diferent encoder measurement structures
@@ -63,14 +157,6 @@ void calculateEncoderMeasurementDeltas(encoderMeasurementsStruct *prior, encoder
     currentMeasures->msDeltaToPrior = currentMeasures->msTimestamp - prior->msTimestamp;
     currentMeasures->encoderDeltaToPriorRight = currentMeasures->encoderCountRight - prior->encoderCountRight;
     currentMeasures->encoderDeltaToPriorLeft = currentMeasures->encoderCountLeft - prior->encoderCountLeft;
-}
-
-void initializeMotorTasks()
-{
-    Serial.println("\nnow running initializeMotorTasks()...\n");
-    velocityLoopEnabled = false;
-    positionLoopEnabled = false;
-    runInitialTestOnce = true;
 }
 
 // ToDo - define array [ left, right ]  // returns current absolute encoder values
@@ -86,6 +172,7 @@ bool velocityLoopStart()
     velocityLoopEnabled = true;
 
     setMotorVelocity(0, 0); // require that using code set motor velocity AFTER initializing this task
+    // setVelocityLoopSetpoints(0, 0);
 
     return true;
 }
@@ -97,6 +184,7 @@ bool velocityLoopStop()
     velocityLoopEnabled = false;
 
     setMotorVelocity(0, 0); // gracefully stop the motors when stopping this loop
+    // setVelocityLoopSetpoints(0, 0);
 
     return true;
 }
@@ -121,14 +209,123 @@ signed char clamp(signed char whatValue, signed char limitingValue)
 // robot move forward           left    CCW     right   CW
 // robot move backwards         left    CW      right   CCW
 
+// setVelocityLoopSetpoints()
+// Purpose: map heading and throttle commands to encoder velocity setpoints
+// Input:   accepts abstract speed and steering commands
+// Algorithm:   maps abstract command range into encoder speed value range
+//              limits values to provide more robust behavior
+// Output:
+//  - updates local storage encoder value domain velocity setpoints,
+//  - intended as reference signal for a PID loop
+bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle)
+{
+    signed char turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+    signed char throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
+    turnVelocity = clamp(TurnVelocity, 100); // keep this function tolerant of mimalformed input
+    throttle = clamp(Throttle, 100);         // keep this function tolerant of mimalformed input
+
+    // coding convention ->
+    //  Encoder values are signed Long...
+    //  + values => turn motor CW, - values => turn motor CCW
+    //  => positive turnVelocity => robot spins CW => turn both motors CCW
+    double rightEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxEncoderVelocityTicks;
+    double leftEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxEncoderVelocityTicks;
+
+    double limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(((double)turnVelocity) / 100 * maxEncoderVelocityTicks);
+
+    double rightEncFromThrottle = ((double)throttle) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
+    double leftEncFromThrottle = -1 * ((double)throttle) / 100 * limitedMaxVelocityTicks; // limit throttle for high rates of robot turn
+
+    // Serial.println("\nmotorTasks.cpp - setMotorVelocity()");
+
+    Serial.print("... setVelocityLoopSetpoints() ");
+    Serial.print("... clamped: turnVelocity is ");
+    Serial.print(turnVelocity);
+    Serial.print("... throttle is ");
+    Serial.print(throttle);
+    Serial.println();
+
+    rightEncVelocitySetpoint = (int)rightEncFromTurn + (int)rightEncFromThrottle;
+    leftEncVelocitySetpoint = (int)leftEncFromTurn + (int)leftEncFromThrottle;
+}
+
+// sendVelocityLoopPWMtoMotorShield()   // ToDo -> belongs in HAL layer ???
+// Purpose: map velocity PID loop output to  & send PWM commands to the motor shield
+// Input:   'signed PWM' domain velocity setpoints
+// Algorithm:
+//          limits values to provide more robust behavior
+// Output:  set robot motor PWM values and direction as commanded
+bool sendVelocityLoopPWMtoMotorShield()
+{
+    int leftPWM;
+    int rightPWM;
+    // PID  -> takes Encoder domain setpoint and feedback
+    //      -> outputs PWM
+
+    // coding convention ->
+    //  PWM values sent to motors must always be positive 0 .. 255
+    //  PID loop output uses a 'signed PWM' value to keep track of motor direction and provide smooth calculations through zero
+    //  + values => turn motor CW, - values => turn motor CCW
+    //  => positive turnVelocity => robot spins CW => turn both motors CCW
+
+    leftPWM = clamp(leftVelocityLoopOutPWM, maxPWM);
+    rightPWM = clamp(rightVelocityLoopOutPWM, maxPWM);
+
+    if (velocityLoopEnabled)
+    {
+        // set the left motor
+        if (abs(leftPWM) < minLeftPWM) // define the left motor deadband
+        {
+            Serial.print("... left motor off");
+            motorOff(L_MTR);
+        }
+        if (leftPWM > 0)
+        {
+            Serial.print("... left motor CW");
+            motorGo(L_MTR, CW, leftPWM);
+        }
+        if (leftPWM < 0)
+        {
+            Serial.print("... left motor CCW");
+            motorGo(L_MTR, CCW, -leftPWM);
+        }
+
+        // set the right motor
+        if (abs(rightPWM) < minRightPWM) // define the right motor deadband
+        {
+            Serial.println("... right motor off");
+            motorOff(R_MTR);
+        }
+        if (rightPWM > 0)
+        {
+            Serial.println("... right motor CW");
+            motorGo(R_MTR, CW, rightPWM);
+        }
+        if (rightPWM < 0)
+        {
+            Serial.println("... right motor CCW");
+            motorGo(R_MTR, CCW, -rightPWM);
+        }
+    }
+    else // stop the motors
+    {
+        motorOff(R_MTR);
+        motorOff(L_MTR);
+        setVelocityLoopSetpoints(0, 0);
+    }
+
+    return true;
+}
+
 // setMotorVelocity()
+// Purpose: compute & set motor velocity using motor PWM domain values
 // Input:   accepts abstract speed and steering commands
 // Algorithm:   maps abstract command range into motor PWM value range
 //              limits values to provide more robust behavior
 //              Initial implementation - open loop
-//              Target implementation - closed loop
+//              Target implementation - closed loop (but then based on what feedback?)
 // Output:  set robot motors according to speed and sterering commands
-// bool motor::setMotorVelocity(signed char TurnVelocity, signed char Throttle)
 bool setMotorVelocity(signed char TurnVelocity, signed char Throttle)
 {
     signed char turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
@@ -263,12 +460,12 @@ void printEncoderMeasurements(encoderMeasurementsStruct measurementsPointer[], i
 // Output:
 //  - console logs and motor movement
 //  - an estimate of the maximum rotational speed for each motor
-void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder)
+void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
 {
-    int const numSamples = 30;            // note: sample window has a considerable impact on libtask stacksize requirements in club_robot_nav1
-                                          // e.g. going from numSamples === 10 to numSamples === 30 required updating in club_robot_nav1.ino
-                                          // (MINSTACK * 10) to something <= 20, ie. create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
-    int const msSampleWindow = 50;
+    int const numSamples = 30; // note: sample window has a considerable impact on libtask stacksize requirements in club_robot_nav1
+                               // e.g. going from numSamples === 10 to numSamples === 30 required updating in club_robot_nav1.ino
+                               // (MINSTACK * 10) to something <= 20, ie. create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
+    int const msSampleWindow = 100;
     int const pauseBetweenTests = 3000;
     encoderMeasurementsStruct maxForwardMeasurements[numSamples + 1];
     encoderMeasurementsStruct maxBackwardsMeasurements[numSamples + 1];
@@ -350,7 +547,6 @@ void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder)
         setMotorVelocity(0, 0);
         printEncoderMeasurements(minBackwardsMeasurements, numSamples);
 
-
         velocityLoopStop();
         semaphore_obtain(&haltMeasurementSemaphore); // stop this task, but don't kill it
     }
@@ -364,7 +560,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder)
 //  - none
 // Output:
 //  - console logs and motor movement
-void testMotorTasks(ASIZE dummyPlaceholder)
+void testMotorTasks(ASIZE dummyArgumentPlaceholder)
 {
     while (1)
     {

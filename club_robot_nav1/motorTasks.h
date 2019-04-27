@@ -20,6 +20,7 @@
 
 #include "commonTypes.h"
 #include "motor_funcs.h"      // provides access to motor motor drivers.  needs also helpful_defines.h     // ToDo, add #include helpful_defines.h to motor_funcs.h due to it's obvious dependency?
+#include <PID_v1.h>
 #include "nav_funcs.h"        // provides access encoder functions
 #include "helpful_defines.h"  // common defines used also in motor_funcs.h, like R_MTR
 
@@ -42,33 +43,27 @@ typedef struct encoderMeasurementsStruct
     int encoderDeltaToPriorLeft;  // encoder difference from this sample to prior
 };
 
-// class MotorLoops         // initial failed attempt to do this as an elegant class...
-// {
+extern int VelocityLoopProcessID;
 
-//   public:
 void initializeMotorTasks();
-// encoderValues getEncoders(); // ToDo - define array [ left, right ]  // returns current absolute encoder values
+void periodicSampleMotorShield(ASIZE msLoopPeriod);
 bool velocityLoopStart();
 bool velocityLoopStop();
 bool setMotorVelocity(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
+bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle);
+bool sendVelocityLoopPWMtoMotorShield();
+
+void printTaskStats(ASIZE processID);
 
 void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
 void testMotorTasks(ASIZE);
 
-//  ToDo - need to dump these
-//    void motorTest(ASIZE);
-//    void move(ASIZE);
-
-// private:
-//bool velocityLoopEnabled;
-//bool positionLoopEnabled;
 
 // clamp input whatValue to +/- limitingValue
 signed char clamp(signed char, signed char);
 
-// }; // end class motor
 
 // end pragma alternative: ensure the C pre-processor only reads this file once
 #endif
