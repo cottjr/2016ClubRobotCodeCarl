@@ -115,28 +115,28 @@ int main()
   // Serial.println("...before create_task 'motorTest'");
   // create_task("motorTest",motorTest,10,MINSTACK*2);        //25 //20
 
-    Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
-  int testMotorTasks_ProcessID = -1;
-  Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
-  testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
-  Serial.print("... testMotorTasks_ProcessID is ");
-  Serial.println(testMotorTasks_ProcessID);
-  if (testMotorTasks_ProcessID == -1)
-  {
-    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
-  }
-  create_task("printTaskStats", printTaskStats, testMotorTasks_ProcessID, MINSTACK);
-
-  // int measureMinMaxMotorSpeeds_ProcessID = -1;
-  // Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
-  // measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
-  // Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
-  // Serial.println(measureMinMaxMotorSpeeds_ProcessID);
-  //   if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  //   Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
+  // int testMotorTasks_ProcessID = -1;
+  // Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
+  // testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
+  // Serial.print("... testMotorTasks_ProcessID is ");
+  // Serial.println(testMotorTasks_ProcessID);
+  // if (testMotorTasks_ProcessID == -1)
   // {
-  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
   // }
-  // create_task("printTaskStats", printTaskStats, measureMinMaxMotorSpeeds_ProcessID, MINSTACK);
+  // create_task("printTaskStats", printTaskStats, testMotorTasks_ProcessID, MINSTACK);
+
+  int measureMinMaxMotorSpeeds_ProcessID = -1;
+  Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
+  measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
+  Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
+  Serial.println(measureMinMaxMotorSpeeds_ProcessID);
+    if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  {
+    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  }
+  create_task("printTaskStats", printTaskStats, measureMinMaxMotorSpeeds_ProcessID, MINSTACK);
 
   // => seems used only by logging for libtask?
   // Serial.println("...before create_task 'IDLE'");
