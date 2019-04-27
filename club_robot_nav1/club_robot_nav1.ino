@@ -129,7 +129,7 @@ int main()
 
   int measureMinMaxMotorSpeeds_ProcessID = -1;
   Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
-  measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 14);
+  measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 5);
   Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
   Serial.println(measureMinMaxMotorSpeeds_ProcessID);
     if (measureMinMaxMotorSpeeds_ProcessID == -1)

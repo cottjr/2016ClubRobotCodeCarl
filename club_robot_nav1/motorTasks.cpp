@@ -467,10 +467,8 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
                                // (MINSTACK * 10) to something <= 20, ie. create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
     int const msSampleWindow = 100;
     int const pauseBetweenTests = 3000;
-    encoderMeasurementsStruct maxForwardMeasurements[numSamples + 1];
-    encoderMeasurementsStruct maxBackwardsMeasurements[numSamples + 1];
-    encoderMeasurementsStruct minForwardMeasurements[numSamples + 1];
-    encoderMeasurementsStruct minBackwardsMeasurements[numSamples + 1];
+
+    encoderMeasurementsStruct tempMeasurements[numSamples + 1];
     int i;
     int haltMeasurementSemaphore;
 
@@ -486,15 +484,15 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         Serial.println("ms");
         setMotorVelocity(0, 100);
         wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
-        sampleEncoders(&maxForwardMeasurements[0]);
+        sampleEncoders(&tempMeasurements[0]);
         for (i = 1; i <= numSamples; i++)
         {
             wake_after(msSampleWindow);
-            sampleEncoders(&maxForwardMeasurements[i]);
-            calculateEncoderMeasurementDeltas(&maxForwardMeasurements[i - 1], &maxForwardMeasurements[i]);
+            sampleEncoders(&tempMeasurements[i]);
+            calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
         }
         setMotorVelocity(0, 0);
-        printEncoderMeasurements(maxForwardMeasurements, numSamples);
+        printEncoderMeasurements(tempMeasurements, numSamples);
 
         // Next - measure Max Backwards speed
         wake_after(pauseBetweenTests);
@@ -503,15 +501,15 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         Serial.println("ms");
         setMotorVelocity(0, -100);
         wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
-        sampleEncoders(&maxBackwardsMeasurements[0]);
+        sampleEncoders(&tempMeasurements[0]);
         for (i = 1; i <= numSamples; i++)
         {
             wake_after(msSampleWindow);
-            sampleEncoders(&maxBackwardsMeasurements[i]);
-            calculateEncoderMeasurementDeltas(&maxBackwardsMeasurements[i - 1], &maxBackwardsMeasurements[i]);
+            sampleEncoders(&tempMeasurements[i]);
+            calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
         }
         setMotorVelocity(0, 0);
-        printEncoderMeasurements(maxBackwardsMeasurements, numSamples);
+        printEncoderMeasurements(tempMeasurements, numSamples);
 
         // Next - measure Min Forward speed
         wake_after(pauseBetweenTests);
@@ -520,15 +518,15 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         Serial.println("ms");
         setMotorVelocity(0, 8);
         wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
-        sampleEncoders(&minForwardMeasurements[0]);
+        sampleEncoders(&tempMeasurements[0]);
         for (i = 1; i <= numSamples; i++)
         {
             wake_after(msSampleWindow);
-            sampleEncoders(&minForwardMeasurements[i]);
-            calculateEncoderMeasurementDeltas(&minForwardMeasurements[i - 1], &minForwardMeasurements[i]);
+            sampleEncoders(&tempMeasurements[i]);
+            calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
         }
         setMotorVelocity(0, 0);
-        printEncoderMeasurements(minForwardMeasurements, numSamples);
+        printEncoderMeasurements(tempMeasurements, numSamples);
 
         // Next - measure Min Backwards speed
         wake_after(pauseBetweenTests);
@@ -537,15 +535,15 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         Serial.println("ms");
         setMotorVelocity(0, -8);
         wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
-        sampleEncoders(&minBackwardsMeasurements[0]);
+        sampleEncoders(&tempMeasurements[0]);
         for (i = 1; i <= numSamples; i++)
         {
             wake_after(msSampleWindow);
-            sampleEncoders(&minBackwardsMeasurements[i]);
-            calculateEncoderMeasurementDeltas(&minBackwardsMeasurements[i - 1], &minBackwardsMeasurements[i]);
+            sampleEncoders(&tempMeasurements[i]);
+            calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
         }
         setMotorVelocity(0, 0);
-        printEncoderMeasurements(minBackwardsMeasurements, numSamples);
+        printEncoderMeasurements(tempMeasurements, numSamples);
 
         velocityLoopStop();
         semaphore_obtain(&haltMeasurementSemaphore); // stop this task, but don't kill it
