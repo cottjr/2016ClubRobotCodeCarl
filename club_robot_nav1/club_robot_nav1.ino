@@ -62,11 +62,6 @@ void system_init(void)
   // Serial.println("...before init_temp_waypoint");
   // init_temp_waypoint(ptr_temp_wpt);
 
-  Serial.println("...before initialzeMotorTasks()");
-  initializeMotorTasks();
-
-  Serial.println("...after initialzeMotorTasks()");
-
 #endif
 }
 
@@ -95,27 +90,24 @@ int main()
   Serial.println("... Completed kludge (?) delay to allow libtask sysclock to start running:\n");
 #endif
 
+  // ToDo - figure out why this legacy initialization is here!
+  //  -> it seems awefully rude to set these values of libtask like this, with no explaination...
+  //  -> what are the odds that initialization actually orphans any resources for tasks which were created before this...?
+  //  -> plus, it's not obvious that you probably shouldn't launch any libtask tasks BEFORE doing this...
   pid_count = 0;
   current = 0;
 
   Serial.println("... Starting libtask Tasks:\n");
 
-  //CAUTION: When no sensors are installed, the ultrasonic sensor hits a "fail_cntr_bump > fail_limit_bump" threshold, and sets stop_movement_flg |= (0x04) => shuts down movement...
-  //  Serial.println("...before create_task 'SENSORS'");
-  //	create_task("SENSORS",sensors,20,MINSTACK * 2);  //40
-
-  // Claw doesn't hang the system, but we'll disable it as there's no need to complicate things
-  //   Serial.println("...before create_task 'CLAW'");
-  // create_task("CLAW",claw,45,MINSTACK);        //45
-
-  //    Serial.println("...before create_task 'MOVE'");
-  //	create_task("MOVE",move,10,MINSTACK*2);        //25 //20
+  Serial.println("...before initialzeMotorTasks()");
+  initializeMotorTasks();
+  Serial.println("...after initialzeMotorTasks()");
 
   // move forward 3 seconds. wait 3 seconds. move backwards 3 seconds
   // Serial.println("...before create_task 'motorTest'");
   // create_task("motorTest",motorTest,10,MINSTACK*2);        //25 //20
 
-  //   Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
+  // Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
   // int testMotorTasks_ProcessID = -1;
   // Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
   // testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
@@ -126,15 +118,15 @@ int main()
   //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
   // }
 
-  int measureMinMaxMotorSpeeds_ProcessID = -1;
-  Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
-  measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 5);
-  Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
-  Serial.println(measureMinMaxMotorSpeeds_ProcessID);
-  if (measureMinMaxMotorSpeeds_ProcessID == -1)
-  {
-    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
-  }
+  // int measureMinMaxMotorSpeeds_ProcessID = -1;
+  // Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
+  // measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 5);
+  // Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
+  // Serial.println(measureMinMaxMotorSpeeds_ProcessID);
+  // if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  // {
+  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  // }
 
   // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
   int monitorCPUidle_ProcessID = -1;
@@ -142,6 +134,18 @@ int main()
 
   int monitorResourcesForAllTasks_ProcessID = -1;
   monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK);
+
+  // ToDo - remove these obsolete tasks from the original 2016 Club Robot codebase
+  //CAUTION: When no sensors are installed, the ultrasonic sensor hits a "fail_cntr_bump > fail_limit_bump" threshold, and sets stop_movement_flg |= (0x04) => shuts down movement...
+  //  Serial.println("...before create_task 'SENSORS'");
+  //	create_task("SENSORS",sensors,20,MINSTACK * 2);  //40
+
+  // Claw doesn't hang the system, but we'll disable it as there's no need to complicate things
+  //   Serial.println("...before create_task 'CLAW'");
+  // create_task("CLAW",claw,45,MINSTACK);        //45
+
+  //    Serial.println("...before create_task 'MOVE'");
+  //	create_task("MOVE",move,10,MINSTACK*2);        //25 //20
 
   //create_task("STATS",stats_task,10000,MINSTACK*4);
   //create_task("SIGNON",signon,1,MINSTACK*4);

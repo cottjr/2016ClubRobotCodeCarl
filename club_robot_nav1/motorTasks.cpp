@@ -31,7 +31,7 @@
 bool velocityLoopEnabled = false;
 bool positionLoopEnabled = false;
 
-int velocityLoopProcessID = -1; // handle for the libtask library process ID
+int periodicSampleMotorShield_ProcessID = -1; // handle for the libtask library process ID
 // int positionLoopProcessID = -1; // handle for the libtask library process ID
 
 bool runInitialTestOnce = true;
@@ -70,13 +70,22 @@ void initializeMotorTasks()
     positionLoopEnabled = false;
     runInitialTestOnce = true;
 
-    setVelocityLoopSetpoints(0, 0);
+    setVelocityLoopSetpoints(0, 0, true);
 
     Serial.println("... motorTasks.cpp -> launching task periodicSampleMotorShield()");
-    kill_process(velocityLoopProcessID); // cleanly restart this task in case an instance is already running
+    // kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
     // start the task with a nominal 10ms period
-    velocityLoopProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 20);
-    Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
+    periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 2);
+    Serial.print("... periodicSampleMotorShield_ProcessID is ");
+    Serial.println(periodicSampleMotorShield_ProcessID);
+    if (periodicSampleMotorShield_ProcessID == -1)
+    {
+        Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(periodicSampleMotorShield)");
+    }
+    else
+    {
+        Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
+    }
 }
 
 TSIZE idleCPUcountPerSec; // crude count of CPU idle cycles available for use
@@ -152,6 +161,14 @@ void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
         Serial.print(idleCPUcountPerSec);
         Serial.print(", freeBytesOfRAM: ");
         Serial.println(freeBytesOfRAM());
+
+        Serial.print("... msOfCurrentPID: ");
+        Serial.print(msOfCurrentPID);
+        Serial.print("... msBetweenPID: ");
+        Serial.print(msBetweenPID);
+        Serial.print("... msExecutePID: ");
+        Serial.println(msExecutePID);
+
         iterate_tasks(printTaskStatsByTaskPointer, 0);
         PERIOD(&t, msLoopPeriod);
     }
@@ -170,7 +187,7 @@ void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
 //  - calculate motor commands per PID loop calculations or open loop as appropriate
 // Output:
 //  - send resulting motor commands to the motor shield
-int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track execution timing and periodicity...
+int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
 void periodicSampleMotorShield(ASIZE msLoopPeriod)
 {
     TSIZE t;
@@ -233,7 +250,7 @@ bool velocityLoopStart()
     velocityLoopEnabled = true;
 
     setMotorVelocity(0, 0); // require that using code set motor velocity AFTER initializing this task
-    // setVelocityLoopSetpoints(0, 0);
+    // setVelocityLoopSetpoints(0, 0, true);
 
     return true;
 }
@@ -245,7 +262,7 @@ bool velocityLoopStop()
     velocityLoopEnabled = false;
 
     setMotorVelocity(0, 0); // gracefully stop the motors when stopping this loop
-    // setVelocityLoopSetpoints(0, 0);
+    // setVelocityLoopSetpoints(0, 0, true);
 
     return true;
 }
@@ -278,7 +295,7 @@ signed char clamp(signed char whatValue, signed char limitingValue)
 // Output:
 //  - updates local storage encoder value domain velocity setpoints,
 //  - intended as reference signal for a PID loop
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle)
+bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings)
 {
     signed char turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
     signed char throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
@@ -300,15 +317,22 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle)
 
     // Serial.println("\nmotorTasks.cpp - setMotorVelocity()");
 
-    Serial.print("... setVelocityLoopSetpoints() ");
-    Serial.print("... clamped: turnVelocity is ");
-    Serial.print(turnVelocity);
-    Serial.print("... throttle is ");
-    Serial.print(throttle);
-    Serial.println();
-
     rightEncVelocitySetpoint = (int)rightEncFromTurn + (int)rightEncFromThrottle;
     leftEncVelocitySetpoint = (int)leftEncFromTurn + (int)leftEncFromThrottle;
+
+    if (printNewSettings)
+    {
+        Serial.print("... setVelocityLoopSetpoints() ");
+        Serial.print(" clamped turnVelocity: ");
+        Serial.print(turnVelocity);
+        Serial.print(" clamped throttle: ");
+        Serial.print(throttle);
+        Serial.print("... leftEncVelocitySetpoint: ");
+        Serial.print(leftEncVelocitySetpoint);
+        Serial.print(" rightEncVelocitySetpoint: ");
+        Serial.print(rightEncVelocitySetpoint);
+        Serial.println();
+    }
 }
 
 // sendVelocityLoopPWMtoMotorShield()   // ToDo -> belongs in HAL layer ???
@@ -373,7 +397,7 @@ bool sendVelocityLoopPWMtoMotorShield()
     {
         motorOff(R_MTR);
         motorOff(L_MTR);
-        setVelocityLoopSetpoints(0, 0);
+        setVelocityLoopSetpoints(0, 0, false);
     }
 
     return true;
@@ -605,7 +629,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
 
     velocityLoopStop();
 
-    terminate();    // end this libtask task -> free up RAM and CPU resource
+    terminate(); // end this libtask task -> free up RAM and CPU resource
 }
 
 // Purpose:

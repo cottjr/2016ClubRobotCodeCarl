@@ -43,7 +43,7 @@ typedef struct encoderMeasurementsStruct
     int encoderDeltaToPriorLeft;  // encoder difference from this sample to prior
 };
 
-extern int VelocityLoopProcessID;
+extern int periodicSampleMotorShield_ProcessID;
 
 void initializeMotorTasks();
 
@@ -53,12 +53,15 @@ void monitorCPUidle(ASIZE ignored);
 void printTaskStatsByProcessID(ASIZE processID);
 void monitorResourcesForAllTasks(ASIZE msLoopPeriod);
 void periodicSampleMotorShield(ASIZE msLoopPeriod);
+
+extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
+
 bool velocityLoopStart();
 bool velocityLoopStop();
 bool setMotorVelocity(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle);
+bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
 bool sendVelocityLoopPWMtoMotorShield();
 
 void printTaskStats(ASIZE processID);
