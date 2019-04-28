@@ -90,40 +90,33 @@ int main()
   Serial.println("... Completed kludge (?) delay to allow libtask sysclock to start running:\n");
 #endif
 
-  // ToDo - figure out why this legacy initialization is here!
-  //  -> it seems awefully rude to set these values of libtask like this, with no explaination...
-  //  -> what are the odds that initialization actually orphans any resources for tasks which were created before this...?
-  //  -> plus, it's not obvious that you probably shouldn't launch any libtask tasks BEFORE doing this...
-  pid_count = 0;
-  current = 0;
 
-  Serial.println("... Starting libtask Tasks:\n");
+  Serial.println("... Starting tasks using the libtask library ...\n");
 
-  Serial.println("...before initialzeMotorTasks()");
   initializeMotorTasks();
-  Serial.println("...after initialzeMotorTasks()");
 
-  // Run really basic open loop testMotorTasks() -> move forward for fixed time. wait. move backwards, etc...
-  Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
-  int testMotorTasks_ProcessID = -1;
-  Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
-  testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
-  Serial.print("... testMotorTasks_ProcessID is ");
-  Serial.println(testMotorTasks_ProcessID);
-  if (testMotorTasks_ProcessID == -1)
-  {
-    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
-  }
-
-  // int measureMinMaxMotorSpeeds_ProcessID = -1;
-  // Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
-  // measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 5);
-  // Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
-  // Serial.println(measureMinMaxMotorSpeeds_ProcessID);
-  // if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  // // Run really basic open loop testMotorTasks() -> move forward for fixed time. wait. move backwards, etc...
+  // Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
+  // int testMotorTasks_ProcessID = -1;
+  // Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
+  // testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
+  // Serial.print("... testMotorTasks_ProcessID is ");
+  // Serial.println(testMotorTasks_ProcessID);
+  // if (testMotorTasks_ProcessID == -1)
   // {
-  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
   // }
+
+  // Run a basic open loop measurement / calibration task: measureMinMaxMotorSpeeds() -> Obtain data used to map min & max PWM values to min & max encoder velocities...
+  int measureMinMaxMotorSpeeds_ProcessID = -1;
+  Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
+  measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 6);
+  Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
+  Serial.println(measureMinMaxMotorSpeeds_ProcessID);
+  if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  {
+    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  }
 
   // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
   int monitorCPUidle_ProcessID = -1;

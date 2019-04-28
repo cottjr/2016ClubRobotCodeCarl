@@ -241,7 +241,7 @@ bool periodicSampleMotorShield_Start()
     }
     else
     {
-        Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
+        Serial.println("... motorTasks.cpp -> periodicSampleMotorShield() => completed");
         return true;
     }
 }
