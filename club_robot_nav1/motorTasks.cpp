@@ -123,6 +123,25 @@ void printTaskStatsByTaskPointer(TASK *t, int dummyArgumentPlaceholder)
     Serial.println(stack_usage(t->pid));
 }
 
+// freeBytesOfRAM()
+// Purpose: determine how much RAM is available
+// Algorithm
+//  - followed this guide https://jeelabs.org/2011/05/22/atmega-memory-use/?utm_source=rb-community&utm_medium=forum&utm_campaign=arduino-memory-usage
+//  -- relies on 'At any point in time, there is a highest point in RAM occupied by the heap. This value can be found in a system variable called __brkval'
+//  -- and uses another system variable __heap_start
+//  - note additional resource
+//  -- https://learn.adafruit.com/memories-of-an-arduino/measuring-free-memory
+//  .. https://github.com/McNeight/MemoryFree/blob/master/MemoryFree.cpp
+// Output:
+//  - number of unused bytes, ie. the number of bytes between the heap and the stack
+int freeBytesOfRAM()
+{
+    // => doesn't seem to work on ATmega2560 with this program, always returns -173
+    extern int __heap_start, *__brkval;
+    int v;
+    return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
+}
+
 void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
 {
     TSIZE t;
@@ -130,7 +149,9 @@ void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
     while (1)
     {
         Serial.print("\n\n... motorTasks.cpp -> monitorResourcesForAllTasks() -> idleCPUcountPerSec: ");
-        Serial.println(idleCPUcountPerSec);
+        Serial.print(idleCPUcountPerSec);
+        Serial.print(", freeBytesOfRAM: ");
+        Serial.println(freeBytesOfRAM());
         iterate_tasks(printTaskStatsByTaskPointer, 0);
         PERIOD(&t, msLoopPeriod);
     }
