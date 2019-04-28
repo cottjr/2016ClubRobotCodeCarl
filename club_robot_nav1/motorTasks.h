@@ -46,6 +46,12 @@ typedef struct encoderMeasurementsStruct
 extern int VelocityLoopProcessID;
 
 void initializeMotorTasks();
+
+extern TSIZE idleCPUcountPerSec;  // crude count of CPU idle cycles available for use
+void monitorCPUidle(ASIZE ignored);
+
+void printTaskStatsByProcessID(ASIZE processID);
+void monitorResourcesForAllTasks(ASIZE msLoopPeriod);
 void periodicSampleMotorShield(ASIZE msLoopPeriod);
 bool velocityLoopStart();
 bool velocityLoopStop();

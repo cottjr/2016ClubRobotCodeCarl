@@ -125,22 +125,23 @@ int main()
   // {
   //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
   // }
-  // create_task("printTaskStats", printTaskStats, testMotorTasks_ProcessID, MINSTACK);
 
   int measureMinMaxMotorSpeeds_ProcessID = -1;
   Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
   measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 5);
   Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
   Serial.println(measureMinMaxMotorSpeeds_ProcessID);
-    if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  if (measureMinMaxMotorSpeeds_ProcessID == -1)
   {
     Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
   }
-  create_task("printTaskStats", printTaskStats, measureMinMaxMotorSpeeds_ProcessID, MINSTACK);
 
-  // => seems used only by logging for libtask?
-  // Serial.println("...before create_task 'IDLE'");
-  // create_task("IDLE",cpu_idle,0,MINSTACK);            // apparently needed by libtask? Left as-is in task_def.cpp
+  // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
+  int monitorCPUidle_ProcessID = -1;
+  monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
+
+  int monitorResourcesForAllTasks_ProcessID = -1;
+  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK);
 
   //create_task("STATS",stats_task,10000,MINSTACK*4);
   //create_task("SIGNON",signon,1,MINSTACK*4);

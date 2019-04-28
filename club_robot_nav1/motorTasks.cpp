@@ -79,20 +79,60 @@ void initializeMotorTasks()
     Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
 }
 
-// Purpose: Periodic service to print values related to ongoing tasks
-void printTaskStats(ASIZE processID)
+TSIZE idleCPUcountPerSec; // crude count of CPU idle cycles available for use
+// Purpose: track CPU idle cycles available e.g. for use by additional tasks
+// Algorithm:
+//	- once per second
+//	- trap the current value of the libtask library proc_counter
+// Output: update global variable idleCPUcountPerSec with sampled proc_counter
+void monitorCPUidle(ASIZE dummyPlaceholder)
+{
+    TSIZE t;
+    t = sysclock + 1000;
+    while (1)
+    {
+        idleCPUcountPerSec = proc_counter;
+        proc_counter = 0;
+        PERIOD(&t, 1000);
+    }
+}
+
+// Purpose: print values related to a specific task
+//          this version requires that you provide a known processID
+void printTaskStatsByProcessID(ASIZE processID)
 {
     TASK *taskPointer; // from libtask
     taskPointer = findpid(processID);
+    Serial.print("... -> printTaskStatsByProcessID() -> processID: ");
+    Serial.print(processID);
+    Serial.print(" name: ");
+    Serial.print(taskPointer->name);
+    Serial.print(" stack_usage(): ");
+    Serial.println(stack_usage(processID));
+}
+
+// Purpose: print values related to a specific task
+//          this version requires that you provide pointer to a TASK structure
+void printTaskStatsByTaskPointer(TASK *t, int dummyArgumentPlaceholder)
+{
+    Serial.print("... -> printTaskStatsByTaskPointer() -> processID: ");
+    Serial.print(t->pid);
+    Serial.print(" name: ");
+    Serial.print(t->name);
+    Serial.print(" stack_usage(): ");
+    Serial.println(stack_usage(t->pid));
+}
+
+void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
+{
+    TSIZE t;
+    t = sysclock + msLoopPeriod;
     while (1)
     {
-        Serial.print("... -> printTaskStats() -> processID: ");
-        Serial.print(processID);
-        Serial.print(" name: ");
-        Serial.print(taskPointer->name);
-        Serial.print(" stack_usage(): ");
-        Serial.println(stack_usage(processID));
-        wake_after(200); // I give up, just do 5 / second
+        Serial.print("\n\n... motorTasks.cpp -> monitorResourcesForAllTasks() -> idleCPUcountPerSec: ");
+        Serial.println(idleCPUcountPerSec);
+        iterate_tasks(printTaskStatsByTaskPointer, 0);
+        PERIOD(&t, msLoopPeriod);
     }
 }
 

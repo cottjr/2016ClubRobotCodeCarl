@@ -2,33 +2,15 @@
 /******************************************************************
 *
 *  task_def.cpp
-*  version: 20161020-0           Doug Paradis
+*  based on original version: 20161020-0           Doug Paradis
 *  task definitions for DPRG Club Robot 2016.
 *
 ******************************************************************/
 
 #include "task_def.h"
 
-// global variables
-unsigned long idle_cnt;
-
 int us_sem; // semaphore for sensor task (used with the ultrasonics)
 
-void cpu_idle(ASIZE ignored)
-{
-	Serial.println("\ntask_def.cpp cpu_idle...\n");
-	unsigned long t;
-	unsigned long cnt;
-
-	t = sysclock + 1000;
-	while (1)
-	{
-		idle_cnt = proc_counter;
-		proc_counter = 0;
-		// WAIT(1000);
-		PERIOD(&t, 1000);
-	}
-}
 
 void claw(ASIZE delay)
 {
@@ -510,24 +492,24 @@ void move(ASIZE delay)
 	}
 }
 
-void stats_task(ASIZE delay)
-{
-	Serial.println("\ntask_def.cpp stats_task...\n");
-	TSIZE t;
-	t = sysclock + delay;
+// void stats_task(ASIZE delay)
+// {
+// 	Serial.println("\ntask_def.cpp stats_task...\n");
+// 	TSIZE t;
+// 	t = sysclock + delay;
 
-	while (1)
-	{
-		// WAIT(delay);
-		PERIOD(&t, delay);
-		PRINTF("");
-		SPRINTF(sbuf, "# Sysclock\t%ld\tSampleclock\t%ld\tIdleHz\t%ld",
-				sysclock, sampleclock, idle_cnt);
-		PRINTF(sbuf);
-		PRINTF("");
-		print_llist(1);
-	}
-}
+// 	while (1)
+// 	{
+// 		// WAIT(delay);
+// 		PERIOD(&t, delay);
+// 		PRINTF("");
+// 		SPRINTF(sbuf, "# Sysclock\t%ld\tSampleclock\t%ld\tIdleHz\t%ld",
+// 				sysclock, sampleclock, idleCPUcountPerSec);
+// 		PRINTF(sbuf);
+// 		PRINTF("");
+// 		print_llist(1);
+// 	}
+// }
 
 /* ----------------------------------------- */
 /* Create signon and terminate task */
