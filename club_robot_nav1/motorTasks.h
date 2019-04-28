@@ -56,9 +56,9 @@ void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
 extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
 
-bool velocityLoopStart();
-bool velocityLoopStop();
-bool setMotorVelocity(signed char, signed char); // turnVelocity, throttle.
+bool periodicSampleMotorShield_Start();
+bool periodicSampleMotorShield_Stop();
+bool setMotorVelocityByPWM(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
 bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);

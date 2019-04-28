@@ -103,20 +103,17 @@ int main()
   initializeMotorTasks();
   Serial.println("...after initialzeMotorTasks()");
 
-  // move forward 3 seconds. wait 3 seconds. move backwards 3 seconds
-  // Serial.println("...before create_task 'motorTest'");
-  // create_task("motorTest",motorTest,10,MINSTACK*2);        //25 //20
-
-  // Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
-  // int testMotorTasks_ProcessID = -1;
-  // Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
-  // testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
-  // Serial.print("... testMotorTasks_ProcessID is ");
-  // Serial.println(testMotorTasks_ProcessID);
-  // if (testMotorTasks_ProcessID == -1)
-  // {
-  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
-  // }
+  // Run really basic open loop testMotorTasks() -> move forward for fixed time. wait. move backwards, etc...
+  Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
+  int testMotorTasks_ProcessID = -1;
+  Serial.println("... motorTasks.cpp -> launching task testMotorTasks");
+  testMotorTasks_ProcessID = create_task("testMotorTasks", testMotorTasks, 10, MINSTACK * 2);
+  Serial.print("... testMotorTasks_ProcessID is ");
+  Serial.println(testMotorTasks_ProcessID);
+  if (testMotorTasks_ProcessID == -1)
+  {
+    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
+  }
 
   // int measureMinMaxMotorSpeeds_ProcessID = -1;
   // Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");

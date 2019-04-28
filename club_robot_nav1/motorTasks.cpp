@@ -34,8 +34,6 @@ bool positionLoopEnabled = false;
 int periodicSampleMotorShield_ProcessID = -1; // handle for the libtask library process ID
 // int positionLoopProcessID = -1; // handle for the libtask library process ID
 
-bool runInitialTestOnce = true;
-
 location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
 
 // Velocity loop PID variables
@@ -65,27 +63,11 @@ PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM
 //  - updates process handles to spawned processes
 void initializeMotorTasks()
 {
-    Serial.println("\nnow running initializeMotorTasks()...\n");
+    Serial.println("\n... motorTasks.cpp -> initializeMotorTasks()...\n");
     velocityLoopEnabled = false;
     positionLoopEnabled = false;
-    runInitialTestOnce = true;
 
     setVelocityLoopSetpoints(0, 0, true);
-
-    Serial.println("... motorTasks.cpp -> launching task periodicSampleMotorShield()");
-    // kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
-    // start the task with a nominal 10ms period
-    periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 2);
-    Serial.print("... periodicSampleMotorShield_ProcessID is ");
-    Serial.println(periodicSampleMotorShield_ProcessID);
-    if (periodicSampleMotorShield_ProcessID == -1)
-    {
-        Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(periodicSampleMotorShield)");
-    }
-    else
-    {
-        Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
-    }
 }
 
 TSIZE idleCPUcountPerSec; // crude count of CPU idle cycles available for use
@@ -162,7 +144,7 @@ void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
         Serial.print(", freeBytesOfRAM: ");
         Serial.println(freeBytesOfRAM());
 
-        Serial.print("... msOfCurrentPID: ");
+        Serial.print("...velocityPIDloop -> msOfCurrentPID: ");
         Serial.print(msOfCurrentPID);
         Serial.print("... msBetweenPID: ");
         Serial.print(msBetweenPID);
@@ -237,32 +219,43 @@ void calculateEncoderMeasurementDeltas(encoderMeasurementsStruct *prior, encoder
     currentMeasures->encoderDeltaToPriorLeft = currentMeasures->encoderCountLeft - prior->encoderCountLeft;
 }
 
-// ToDo - define array [ left, right ]  // returns current absolute encoder values
-// encoderValues motor::getEncoders();
-// {
-//     return curentMotorEncoderValues;
-// }
-
 // bool motor::velocityLoopTaskStart()
-bool velocityLoopStart()
+bool periodicSampleMotorShield_Start()
 {
-    Serial.println("\n... >> velocityLoopStart()\n");
+    Serial.println("\n... >> periodicSampleMotorShield_Start()\n");
     velocityLoopEnabled = true;
 
-    setMotorVelocity(0, 0); // require that using code set motor velocity AFTER initializing this task
-    // setVelocityLoopSetpoints(0, 0, true);
+    setMotorVelocityByPWM(0, 0); // require that using code set motor velocity AFTER initializing this task
+    setVelocityLoopSetpoints(0, 0, true);
 
-    return true;
+    Serial.println("... motorTasks.cpp -> launching task periodicSampleMotorShield()");
+    kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
+    // start the task with a nominal 10ms period
+    periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 2);
+    Serial.print("... periodicSampleMotorShield_ProcessID is ");
+    Serial.println(periodicSampleMotorShield_ProcessID);
+    if (periodicSampleMotorShield_ProcessID == -1)
+    {
+        Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(periodicSampleMotorShield)");
+        return false;
+    }
+    else
+    {
+        Serial.println("... motorTasks.cpp -> initializeMotorTasks() => completed");
+        return true;
+    }
 }
 
 // bool motor::velocityLoopTaskStop()
-bool velocityLoopStop()
+bool periodicSampleMotorShield_Stop()
 {
-    Serial.println("\n... >> velocityLoopStop()\n");
+    Serial.println("\n... >> periodicSampleMotorShield_Stop()\n");
     velocityLoopEnabled = false;
 
-    setMotorVelocity(0, 0); // gracefully stop the motors when stopping this loop
-    // setVelocityLoopSetpoints(0, 0, true);
+    setMotorVelocityByPWM(0, 0); // gracefully stop the motors when stopping this loop
+    setVelocityLoopSetpoints(0, 0, true);
+    Serial.println("... motorTasks.cpp -> killing task periodicSampleMotorShield()");
+    kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
 
     return true;
 }
@@ -314,8 +307,6 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
 
     double rightEncFromThrottle = ((double)throttle) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
     double leftEncFromThrottle = -1 * ((double)throttle) / 100 * limitedMaxVelocityTicks; // limit throttle for high rates of robot turn
-
-    // Serial.println("\nmotorTasks.cpp - setMotorVelocity()");
 
     rightEncVelocitySetpoint = (int)rightEncFromTurn + (int)rightEncFromThrottle;
     leftEncVelocitySetpoint = (int)leftEncFromTurn + (int)leftEncFromThrottle;
@@ -403,15 +394,18 @@ bool sendVelocityLoopPWMtoMotorShield()
     return true;
 }
 
-// setMotorVelocity()
-// Purpose: compute & set motor velocity using motor PWM domain values
+// setMotorVelocityByPWM()
+// Purpose: compute & set motor velocity using motor Open Loop by directly sending PWM domain values
+// Assumptions:
+//  - this function assumes that no other tasks are sending PWM commands to the motor shield.
+//  - e.g. unpredictable results will likely occur if motor PID loops are running when this function is called
 // Input:   accepts abstract speed and steering commands
 // Algorithm:   maps abstract command range into motor PWM value range
 //              limits values to provide more robust behavior
 //              Initial implementation - open loop
 //              Target implementation - closed loop (but then based on what feedback?)
 // Output:  set robot motors according to speed and sterering commands
-bool setMotorVelocity(signed char TurnVelocity, signed char Throttle)
+bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
 {
     signed char turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
     signed char throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
@@ -432,7 +426,7 @@ bool setMotorVelocity(signed char TurnVelocity, signed char Throttle)
     double rightPWMfromThrottle = ((double)throttle) / 100 * limitedMaxPWM;     // limit throttle for high rates of robot turn
     double leftPWMfromThrottle = -1 * ((double)throttle) / 100 * limitedMaxPWM; // limit throttle for high rates of robot turn
 
-    Serial.println("\nmotorTasks.cpp - setMotorVelocity()");
+    Serial.println("\nmotorTasks.cpp - setMotorVelocityByPWM()");
 
     Serial.print("... clamped: turnVelocity is ");
     Serial.print(turnVelocity);
@@ -459,54 +453,45 @@ bool setMotorVelocity(signed char TurnVelocity, signed char Throttle)
     int rightPWM = (int)rightPWMfromTurn + (int)rightPWMfromThrottle;
     int leftPWM = (int)leftPWMfromTurn + (int)leftPWMfromThrottle;
 
-    if (velocityLoopEnabled)
+    //        Serial.println("\nmotorTasks.cpp - setMotorVelocityByPWM() - velocityLoopEnabled === true...");
+    Serial.print("... leftPWM is ");
+    Serial.print(leftPWM);
+    Serial.print("... rightPWM is ");
+    Serial.print(rightPWM);
+    Serial.println();
+
+    // set the left motor
+    if (abs(leftPWM) < minLeftPWM) // define the left motor deadband
     {
-
-        //        Serial.println("\nmotorTasks.cpp - setMotorVelocity() - velocityLoopEnabled === true...");
-        Serial.print("... leftPWM is ");
-        Serial.print(leftPWM);
-        Serial.print("... rightPWM is ");
-        Serial.print(rightPWM);
-        Serial.println();
-
-        // set the left motor
-        if (abs(leftPWM) < minLeftPWM) // define the left motor deadband
-        {
-            Serial.print("... left motor off");
-            motorOff(L_MTR);
-        }
-        if (leftPWM > 0)
-        {
-            Serial.print("... left motor CW");
-            motorGo(L_MTR, CW, leftPWM);
-        }
-        if (leftPWM < 0)
-        {
-            Serial.print("... left motor CCW");
-            motorGo(L_MTR, CCW, -leftPWM);
-        }
-
-        // set the right motor
-        if (abs(rightPWM) < minRightPWM) // define the right motor deadband
-        {
-            Serial.println("... right motor off");
-            motorOff(R_MTR);
-        }
-        if (rightPWM > 0)
-        {
-            Serial.println("... right motor CW");
-            motorGo(R_MTR, CW, rightPWM);
-        }
-        if (rightPWM < 0)
-        {
-            Serial.println("... right motor CCW");
-            motorGo(R_MTR, CCW, -rightPWM);
-        }
-    }
-    else // stop the motors
-    {
-        motorOff(R_MTR);
+        Serial.print("... left motor off");
         motorOff(L_MTR);
+    }
+    if (leftPWM > 0)
+    {
+        Serial.print("... left motor CW");
+        motorGo(L_MTR, CW, leftPWM);
+    }
+    if (leftPWM < 0)
+    {
+        Serial.print("... left motor CCW");
+        motorGo(L_MTR, CCW, -leftPWM);
+    }
+
+    // set the right motor
+    if (abs(rightPWM) < minRightPWM) // define the right motor deadband
+    {
+        Serial.println("... right motor off");
+        motorOff(R_MTR);
+    }
+    if (rightPWM > 0)
+    {
+        Serial.println("... right motor CW");
+        motorGo(R_MTR, CW, rightPWM);
+    }
+    if (rightPWM < 0)
+    {
+        Serial.println("... right motor CCW");
+        motorGo(R_MTR, CCW, -rightPWM);
     }
 
     return true;
@@ -556,15 +541,16 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     encoderMeasurementsStruct tempMeasurements[numSamples + 1];
     int i;
 
-    Serial.println("\nStarting measureMinMaxMotorSpeeds()\n");
+    Serial.println("\n\nStarting measureMinMaxMotorSpeeds()\n");
 
-    velocityLoopStart();
+    Serial.println("\n... running open loop, hence -> periodicSampleMotorShield_Stop()\n");
+    periodicSampleMotorShield_Stop();
 
     // First - measure Max Forward speed
     Serial.print("\n\n\nMaximum Forward Speeds, with a sample period of ");
     Serial.print(msSampleWindow);
     Serial.println("ms");
-    setMotorVelocity(0, 100);
+    setMotorVelocityByPWM(0, 100);
     wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
     for (i = 1; i <= numSamples; i++)
@@ -573,7 +559,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         sampleEncoders(&tempMeasurements[i]);
         calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
     }
-    setMotorVelocity(0, 0);
+    setMotorVelocityByPWM(0, 0);
     printEncoderMeasurements(tempMeasurements, numSamples);
 
     // Next - measure Max Backwards speed
@@ -581,7 +567,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print("\n\n\nMaximum Reverse Speeds, with a sample period of ");
     Serial.print(msSampleWindow);
     Serial.println("ms");
-    setMotorVelocity(0, -100);
+    setMotorVelocityByPWM(0, -100);
     wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
     for (i = 1; i <= numSamples; i++)
@@ -590,7 +576,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         sampleEncoders(&tempMeasurements[i]);
         calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
     }
-    setMotorVelocity(0, 0);
+    setMotorVelocityByPWM(0, 0);
     printEncoderMeasurements(tempMeasurements, numSamples);
 
     // Next - measure Min Forward speed
@@ -598,7 +584,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print("\n\n\nMinimum Forward Speeds, with a sample period of ");
     Serial.print(msSampleWindow);
     Serial.println("ms");
-    setMotorVelocity(0, 8);
+    setMotorVelocityByPWM(0, 8);
     wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
     for (i = 1; i <= numSamples; i++)
@@ -607,7 +593,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         sampleEncoders(&tempMeasurements[i]);
         calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
     }
-    setMotorVelocity(0, 0);
+    setMotorVelocityByPWM(0, 0);
     printEncoderMeasurements(tempMeasurements, numSamples);
 
     // Next - measure Min Backwards speed
@@ -615,7 +601,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print("\n\n\nMinimum Reverse Speeds, with a sample period of ");
     Serial.print(msSampleWindow);
     Serial.println("ms");
-    setMotorVelocity(0, -8);
+    setMotorVelocityByPWM(0, -8);
     wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
     for (i = 1; i <= numSamples; i++)
@@ -624,10 +610,12 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
         sampleEncoders(&tempMeasurements[i]);
         calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
     }
-    setMotorVelocity(0, 0);
+    setMotorVelocityByPWM(0, 0);
     printEncoderMeasurements(tempMeasurements, numSamples);
 
-    velocityLoopStop();
+    // ToDo - decide whether to presume or test ahead of time, and restart the PID loops. For now, just leave it off after this task...
+    // Serial.println("\n... finished running open loop, start periodic sampling again -> periodicSampleMotorShield_Start()\n");
+    // periodicSampleMotorShield_Start();
 
     terminate(); // end this libtask task -> free up RAM and CPU resource
 }
@@ -642,54 +630,55 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
 //  - console logs and motor movement
 void testMotorTasks(ASIZE dummyArgumentPlaceholder)
 {
-    while (1)
-    {
-        if (runInitialTestOnce)
-        {
-            Serial.println("\nmotorTasks.cpp -> testMotorTasks() -> runInitialTestOnce == true => let's go...\n");
-            Serial.println("\n... velocityLoopStart()\n");
-            velocityLoopStart();
-            Serial.println("... Pivot CW -> setMotorVelocity(0,50) for 2 seconds");
-            setMotorVelocity(0, 50);
 
-            wake_after(2000);
-            Serial.println("... setMotorVelocity(0,0) for 1 second");
-            setMotorVelocity(0, 0);
+    Serial.println("\nmotorTasks.cpp -> testMotorTasks() => let's go...\n");
 
-            wake_after(1000);
-            Serial.println("... Go Forwards -> setMotorVelocity(50,0) for 2 seconds");
-            setMotorVelocity(50, 0);
+    Serial.println("\n... running open loop, hence -> periodicSampleMotorShield_Stop()\n");
+    periodicSampleMotorShield_Stop();
 
-            wake_after(2000);
-            Serial.println("... setMotorVelocity(0,0) for 1 second");
-            setMotorVelocity(0, 0);
+    Serial.println("\n\n... Pivot CW -> setMotorVelocityByPWM(0,50) for 2 seconds");
+    setMotorVelocityByPWM(0, 50);
 
-            wake_after(1000);
-            Serial.println("... Go Backwards -> setMotorVelocity(0,-90) for 2 seconds");
-            setMotorVelocity(0, -90);
+    wake_after(2000);
+    Serial.println("... setMotorVelocityByPWM(0,0) for 1 second");
+    setMotorVelocityByPWM(0, 0);
 
-            wake_after(2000);
-            Serial.println("... setMotorVelocity(0,0) for 1 second");
-            setMotorVelocity(0, 0);
+    wake_after(1000);
+    Serial.println("... Go Forwards -> setMotorVelocityByPWM(50,0) for 2 seconds");
+    setMotorVelocityByPWM(50, 0);
 
-            wake_after(1000);
-            Serial.println("... Pivot CCW -> setMotorVelocity(-50,0) for 2 seconds");
-            setMotorVelocity(-50, 0);
+    wake_after(2000);
+    Serial.println("... setMotorVelocityByPWM(0,0) for 1 second");
+    setMotorVelocityByPWM(0, 0);
 
-            wake_after(2000);
-            Serial.println("... setMotorVelocity(0,0) for 1 second");
-            setMotorVelocity(0, 0);
+    wake_after(1000);
+    Serial.println("... Go Backwards -> setMotorVelocityByPWM(0,-90) for 2 seconds");
+    setMotorVelocityByPWM(0, -90);
 
-            wake_after(1000);
-            Serial.println("... forward & Pivot CW -> setMotorVelocity(50,100) for 2 seconds");
-            setMotorVelocity(50, 100);
+    wake_after(2000);
+    Serial.println("... setMotorVelocityByPWM(0,0) for 1 second");
+    setMotorVelocityByPWM(0, 0);
 
-            wake_after(2000);
-            Serial.println("\n... velocityLoopStop()\n");
-            velocityLoopStop();
-            runInitialTestOnce = false;
-            Serial.println("... completed testMotorTasks() and set runInitialTestOnce = false");
-            Serial.println("... testMotorTasks() will now sit and loop with nothing to do in the libtask scheduler()...");
-        };
-    };
+    wake_after(1000);
+    Serial.println("... Pivot CCW -> setMotorVelocityByPWM(-50,0) for 2 seconds");
+    setMotorVelocityByPWM(-50, 0);
+
+    wake_after(2000);
+    Serial.println("... setMotorVelocityByPWM(0,0) for 1 second");
+    setMotorVelocityByPWM(0, 0);
+
+    wake_after(1000);
+    Serial.println("... forward & Pivot CW -> setMotorVelocityByPWM(50,100) for 2 seconds");
+    setMotorVelocityByPWM(50, 100);
+
+    wake_after(2000);
+    Serial.println("... shut down tihs test - setMotorVelocityByPWM(0,0) and leave it there...");
+    setMotorVelocityByPWM(0, 0);
+
+    // ToDo - decide whether to presume or test ahead of time, and restart the PID loops. For now, just leave it off after this task...
+    // Serial.println("\n... finished running open loop, start periodic sampling again -> periodicSampleMotorShield_Start()\n");
+    // periodicSampleMotorShield_Start();
+
+    Serial.println("... completed testMotorTasks() stopping this task with terminate()");
+    terminate();
 }
