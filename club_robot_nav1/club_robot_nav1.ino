@@ -90,8 +90,17 @@ int main()
   Serial.println("... Completed kludge (?) delay to allow libtask sysclock to start running:\n");
 #endif
 
-
   Serial.println("... Starting tasks using the libtask library ...\n");
+
+  // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
+  Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
+  int monitorCPUidle_ProcessID = -1;
+  monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
+
+  // keep an eye to the list of running tasks and their stack utilization
+  int monitorResourcesForAllTasks_ProcessID = -1;
+  Serial.println("... motorTasks.cpp -> launching task monitorResourcesForAllTasks");
+  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK);
 
   initializeMotorTasks();
 
@@ -107,23 +116,32 @@ int main()
   //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testMotorTasks)");
   // }
 
+  // // Run a basic open loop measurement / calibration task: measureMinMaxMotorSpeeds() -> Obtain data used to map min & max PWM values to min & max encoder velocities...
+  // int measureMinMaxMotorSpeeds_ProcessID = -1;
+  // Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
+  // measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 6);
+  // Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
+  // Serial.println(measureMinMaxMotorSpeeds_ProcessID);
+  // if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  // {
+  //   Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+  // }
+
   // Run a basic open loop measurement / calibration task: measureMinMaxMotorSpeeds() -> Obtain data used to map min & max PWM values to min & max encoder velocities...
-  int measureMinMaxMotorSpeeds_ProcessID = -1;
-  Serial.println("... motorTasks.cpp -> launching task measureMinMaxMotorSpeeds");
-  measureMinMaxMotorSpeeds_ProcessID = create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 6);
-  Serial.print("... measureMinMaxMotorSpeeds_ProcessID is ");
-  Serial.println(measureMinMaxMotorSpeeds_ProcessID);
-  if (measureMinMaxMotorSpeeds_ProcessID == -1)
+  // First launch the periodic sampler
+  Serial.println("\nmotorTasks.cpp -> testVelocityPIDloop()...\n");
+  periodicSampleMotorShield_Start();
+
+  // then launch the task which runs the test
+  int testVelocityPIDloop_ProcessID = -1;
+  Serial.println("\n... motorTasks.cpp -> launching task testVelocityPIDloop");
+  testVelocityPIDloop_ProcessID = create_task("testVelocityPIDloop", testVelocityPIDloop, 10, MINSTACK * 2);
+  Serial.print("... testVelocityPIDloop_ProcessID is ");
+  Serial.println(testVelocityPIDloop_ProcessID);
+  if (testVelocityPIDloop_ProcessID == -1)
   {
-    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(measureMinMaxMotorSpeeds)");
+    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testVelocityPIDloop)");
   }
-
-  // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
-  int monitorCPUidle_ProcessID = -1;
-  monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
-
-  int monitorResourcesForAllTasks_ProcessID = -1;
-  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK);
 
   // ToDo - remove these obsolete tasks from the original 2016 Club Robot codebase
   //CAUTION: When no sensors are installed, the ultrasonic sensor hits a "fail_cntr_bump > fail_limit_bump" threshold, and sets stop_movement_flg |= (0x04) => shuts down movement...

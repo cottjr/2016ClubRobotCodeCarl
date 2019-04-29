@@ -56,18 +56,22 @@ void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
 extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
 
-bool periodicSampleMotorShield_Start();
-bool periodicSampleMotorShield_Stop();
+void periodicSampleMotorShield_Start();
+void periodicSampleMotorShield_Stop();
 bool setMotorVelocityByPWM(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
+
 bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
+extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
+extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();
 
 void printTaskStats(ASIZE processID);
 
+void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
 void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
-void testMotorTasks(ASIZE);
+void testMotorTasks(ASIZE dummyArgumentPlaceholder);
 
 
 // clamp input whatValue to +/- limitingValue
