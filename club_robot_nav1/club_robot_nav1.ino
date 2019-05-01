@@ -44,15 +44,17 @@ void system_init(void)
                         // https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
                         // https://www.arduino.cc/reference/en/language/functions/communication/serial/write/#howtouse
 
-  Serial.println("\n\n\nclub_robot_nav1.ino => executing system_init()...\n");
+  Serial.println("\nsystem_init()");
+  Serial.print(" freeBytesOfRAM: ");
+  Serial.println(freeBytesOfRAM());
 
 #if ((MACHINE == MACH_AVR) || (MACHINE == MACH_ARM))
   /* AVR & ARM Teesy3.1  */
-  Serial.println("...before init_motor_driver_shield");
+  // Serial.println("\n\n...before init_motor_driver_shield");
   init_motor_driver_shield();
   clearRobotOdometerTicks();
 
-  Serial.println("...before sysclock_init");
+  // Serial.println("...before sysclock_init");
   sysclock_init();
   // Serial.println("...before ultrasonic-bumper-claw");
   // 	init_ultrasonic (ptr_us_R,ptr_us_L);
@@ -81,28 +83,32 @@ int main()
   system_init();
   // printv = printkbuf;
 
-  Serial.println("\n... Completed system_init...\n");
+  // Serial.println("\n... Completed system_init...\n");
 
 #if ((MACHINE == MACH_AVR) || (MACHINE == MACH_ARM)) /* ARM is Teensy3.1 */
-  Serial.println("... Starting kludge (?) delay to allow libtask sysclock to start running:\n");
+  // Serial.println("... Starting kludge (?) delay to allow libtask sysclock to start running:\n");
   delay(1500); // uses a fully blocking - Arduino native hardware delay, sysclock not running yet - what good does this really do?
                // https://learn.adafruit.com/multi-tasking-the-arduino-part-1/ditch-the-delay
-  Serial.println("... Completed kludge (?) delay to allow libtask sysclock to start running:\n");
+  // Serial.println("... Completed kludge (?) delay to allow libtask sysclock to start running:\n");
 #endif
 
-  Serial.println("... Starting tasks using the libtask library ...\n");
-
   // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
-  Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
+  // Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
   int monitorCPUidle_ProcessID = -1;
-  monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
+  // monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
 
   // keep an eye to the list of running tasks and their stack utilization
   int monitorResourcesForAllTasks_ProcessID = -1;
-  Serial.println("... motorTasks.cpp -> launching task monitorResourcesForAllTasks");
-  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK);
+
+  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK * 2);
+  Serial.println("launched monitorResourcesForAllTasks");
+  Serial.print("freeBytesOfRAM: ");
+  Serial.println(freeBytesOfRAM());
 
   initializeMotorTasks();
+  Serial.println("finished initializeMotorTasks");
+  Serial.print("freeBytesOfRAM: ");
+  Serial.println(freeBytesOfRAM());
 
   // // Run really basic open loop testMotorTasks() -> move forward for fixed time. wait. move backwards, etc...
   // Serial.println("... time to try motorTasks.cpp, launching open loop motor test -> task testMotorTasks");
@@ -129,18 +135,24 @@ int main()
 
   // Run a basic open loop measurement / calibration task: measureMinMaxMotorSpeeds() -> Obtain data used to map min & max PWM values to min & max encoder velocities...
   // First launch the periodic sampler
-  Serial.println("\nmotorTasks.cpp -> testVelocityPIDloop()...\n");
-  periodicSampleMotorShield_Start();
+  // Serial.println("\nperiodicSampleMotorShield_Start()...\n");
+  // periodicSampleMotorShield_Start();
+  // Serial.println("launched periodicSampleMotorShield_Start");
+  Serial.print("freeBytesOfRAM: ");
+  Serial.println(freeBytesOfRAM());
 
   // then launch the task which runs the test
   int testVelocityPIDloop_ProcessID = -1;
-  Serial.println("\n... motorTasks.cpp -> launching task testVelocityPIDloop");
-  testVelocityPIDloop_ProcessID = create_task("testVelocityPIDloop", testVelocityPIDloop, 10, MINSTACK * 2);
-  Serial.print("... testVelocityPIDloop_ProcessID is ");
-  Serial.println(testVelocityPIDloop_ProcessID);
+  // Serial.println("\nlaunching testVelocityPIDloop");
+  // testVelocityPIDloop_ProcessID = create_task("testVelocityPIDloop", testVelocityPIDloop, 10, MINSTACK * 3);
+  // Serial.println("launched testVelocityPIDloop");
+  Serial.print("freeBytesOfRAM: ");
+  Serial.println(freeBytesOfRAM());
+  // Serial.print(" testVelocityPIDloop_ProcessID is ");
+  // Serial.println(testVelocityPIDloop_ProcessID);
   if (testVelocityPIDloop_ProcessID == -1)
   {
-    Serial.println("... motorTasks.cpp -> OPPS -> error in create_task(testVelocityPIDloop)");
+    Serial.println("-> error in create_task(testVelocityPIDloop)");
   }
 
   // ToDo - remove these obsolete tasks from the original 2016 Club Robot codebase
@@ -158,9 +170,9 @@ int main()
   //create_task("STATS",stats_task,10000,MINSTACK*4);
   //create_task("SIGNON",signon,1,MINSTACK*4);
 
-  Serial.println("\nLaunching scheduler...\n\n");
+  Serial.println("\nLaunching scheduler\n\n");
   scheduler();
-  Serial.println("\n...after launch scheduler - should never get here...\n");
+  Serial.println("\nopps- scheduler fail\n");
 
   // PRINTF("Should never get here.");
 

@@ -44,6 +44,7 @@ typedef struct encoderMeasurementsStruct
 
 extern int periodicSampleMotorShield_ProcessID;
 
+void printVelocityLoopValues();
 void initializeMotorTasks();
 
 extern TSIZE idleCPUcountPerSec;  // crude count of CPU idle cycles available for use
@@ -67,7 +68,8 @@ extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorS
 bool sendVelocityLoopPWMtoMotorShield();
 
 void printTaskStats(ASIZE processID);
-
+int freeBytesOfRAM();
+void testVelocityLoopSetpointsMath();
 void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
 void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
 void testMotorTasks(ASIZE dummyArgumentPlaceholder);
