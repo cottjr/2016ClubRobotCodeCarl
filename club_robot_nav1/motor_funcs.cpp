@@ -110,6 +110,23 @@ void clearRobotOdometerTicks()
   robotOdometerVelocity.rightMotor = 0;
 }
 
+// Purpose: print current robot odometer values
+void printRobotOdometerTicks()
+{
+  Serial.println("\n.printRobotOdometerTicks() ");
+
+  Serial.print(" robotOdometerTicks.leftMotor: ");
+  Serial.print(robotOdometerTicks.leftMotor);
+  Serial.print(" robotOdometerTicks.rightMotor: ");
+  Serial.println(robotOdometerTicks.rightMotor);
+
+  Serial.print(" robotOdometerVelocity.leftMotor: ");
+  Serial.print(robotOdometerVelocity.leftMotor);
+  Serial.print(" robotOdometerVelocity.rightMotor: ");
+  Serial.print(robotOdometerVelocity.rightMotor);
+  Serial.println();
+}
+
 // New Function => Keep in motorHAL.cpp
 // Purpose: Read encoders and update odometer
 // Input:
@@ -133,8 +150,8 @@ void updateRobotOdometerTicks()
   robotOdometerTicks.rightMotor += deltaOdometerTicks.rightMotor;
   robotOdometerTicks.leftMotor += deltaOdometerTicks.leftMotor;
 
-  robotOdometerVelocity.leftMotor = (double) deltaOdometerTicks.leftMotor;
-  robotOdometerVelocity.rightMotor = (double) deltaOdometerTicks.rightMotor;
+  robotOdometerVelocity.leftMotor = (double)deltaOdometerTicks.leftMotor;
+  robotOdometerVelocity.rightMotor = (double)deltaOdometerTicks.rightMotor;
 
   priorEncoderSample.rightMotor = currentEncoderSample.rightMotor;
   priorEncoderSample.leftMotor = currentEncoderSample.leftMotor;
