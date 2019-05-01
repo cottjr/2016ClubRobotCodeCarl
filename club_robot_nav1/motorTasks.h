@@ -18,7 +18,6 @@
 #include <log.h>
 #include <sysclock.h>
 
-#include "commonTypes.h"
 #include "motor_funcs.h"      // provides access to motor motor drivers.  needs also helpful_defines.h     // ToDo, add #include helpful_defines.h to motor_funcs.h due to it's obvious dependency?
 #include <PID_v1.h>
 #include "nav_funcs.h"        // provides access encoder functions
