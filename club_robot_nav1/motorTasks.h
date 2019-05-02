@@ -42,8 +42,9 @@ typedef struct encoderMeasurementsStruct
     int encoderDeltaToPriorLeft;  // encoder difference from this sample to prior
 };
 
-extern int VelocityLoopProcessID;
+extern int periodicSampleMotorShield_ProcessID;
 
+void printVelocityLoopValues();
 void initializeMotorTasks();
 
 extern TSIZE idleCPUcountPerSec;  // crude count of CPU idle cycles available for use
@@ -52,18 +53,26 @@ void monitorCPUidle(ASIZE ignored);
 void printTaskStatsByProcessID(ASIZE processID);
 void monitorResourcesForAllTasks(ASIZE msLoopPeriod);
 void periodicSampleMotorShield(ASIZE msLoopPeriod);
-bool velocityLoopStart();
-bool velocityLoopStop();
-bool setMotorVelocity(signed char, signed char); // turnVelocity, throttle.
+
+extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
+
+void periodicSampleMotorShield_Start();
+void periodicSampleMotorShield_Stop();
+bool setMotorVelocityByPWM(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle);
+
+bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
+extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
+extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();
 
 void printTaskStats(ASIZE processID);
-
+int freeBytesOfRAM();
+void testVelocityLoopSetpointsMath();
+void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
 void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
-void testMotorTasks(ASIZE);
+void testMotorTasks(ASIZE dummyArgumentPlaceholder);
 
 
 // clamp input whatValue to +/- limitingValue
