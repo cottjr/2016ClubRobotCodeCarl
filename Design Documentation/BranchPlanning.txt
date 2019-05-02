@@ -6,5 +6,5 @@ Purpose:
 libtaskMemoryTest
     par back code to bare minimum with libtask library
     identify why it appears that Arduino heap size is positive and looks normal at first
-        -> but then goes to negative values after libtask scheduler() starts
+        -> but then goes to negative values after libtask scheduler() starts 
 
