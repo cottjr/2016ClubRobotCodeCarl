@@ -59,7 +59,6 @@ extern PID left_mtr_pid;
 // function prototypes
 void init_pids();
 void init_motor_driver_shield();
-void printRobotOdometerTicks();
 void clearRobotOdometerTicks();
 void updateRobotOdometerTicks();
 void motorOff(int motor);

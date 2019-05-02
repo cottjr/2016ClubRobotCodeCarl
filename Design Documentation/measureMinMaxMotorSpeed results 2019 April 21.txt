@@ -25,10 +25,10 @@ Launching scheduler...
 Starting measureMinMaxMotorSpeeds()
 
 
-... >> periodicSampleMotorShield_Start()
+... >> velocityLoopStart()
 
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 0
 ... leftPWM is 0... rightPWM is 0
 ... left motor off... right motor off
@@ -37,12 +37,12 @@ motorTasks.cpp - setMotorVelocityByPWM()
 
 Maximum Forward Speeds, with a sample period of 50ms
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 100
 ... leftPWM is -255... rightPWM is 255
 ... left motor CCW... right motor CW
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 0
 ... leftPWM is 0... rightPWM is 0
 ... left motor off... right motor off
@@ -82,12 +82,12 @@ sample 30: 52 ms, 554 left ticks, 578 right ticks,
 
 Maximum Reverse Speeds, with a sample period of 50ms
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is -100
 ... leftPWM is 255... rightPWM is -255
 ... left motor CW... right motor CCW
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 0
 ... leftPWM is 0... rightPWM is 0
 ... left motor off... right motor off
@@ -127,12 +127,12 @@ sample 30: 52 ms, -546 left ticks, -576 right ticks,
 
 Minimum Forward Speeds, with a sample period of 50ms
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 8
 ... leftPWM is -20... rightPWM is 20
 ... left motor CCW... right motor CW
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 0
 ... leftPWM is 0... rightPWM is 0
 ... left motor off... right motor off
@@ -172,12 +172,12 @@ sample 30: 53 ms, 96 left ticks, 104 right ticks,
 
 Minimum Reverse Speeds, with a sample period of 50ms
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is -8
 ... leftPWM is 20... rightPWM is -20
 ... left motor CW... right motor CCW
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 0
 ... leftPWM is 0... rightPWM is 0
 ... left motor off... right motor off
@@ -213,8 +213,8 @@ sample 28: 52 ms, -94 left ticks, -109 right ticks,
 sample 29: 52 ms, -94 left ticks, -111 right ticks, 
 sample 30: 53 ms, -94 left ticks, -110 right ticks, 
 
-... >> periodicSampleMotorShield_Stop()
+... >> velocityLoopStop()
 
 
-motorTasks.cpp - setMotorVelocityByPWM()
+motorTasks.cpp - setMotorVelocity()
 ... clamped: turnVelocity is 0... throttle is 0
