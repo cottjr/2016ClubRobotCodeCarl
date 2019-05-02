@@ -47,11 +47,6 @@ extern int periodicSampleMotorShield_ProcessID;
 void printVelocityLoopValues();
 void initializeMotorTasks();
 
-extern TSIZE idleCPUcountPerSec;  // crude count of CPU idle cycles available for use
-void monitorCPUidle(ASIZE ignored);
-
-void printTaskStatsByProcessID(ASIZE processID);
-void monitorResourcesForAllTasks(ASIZE msLoopPeriod);
 void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
 extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
@@ -67,8 +62,6 @@ extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorS
 extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();
 
-void printTaskStats(ASIZE processID);
-int freeBytesOfRAM();
 void testVelocityLoopSetpointsMath();
 void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
 void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);

@@ -1,0 +1,130 @@
+Baseline libtaskMemoryTest- Program Output - Memory Analyais 2019 May 1
+=> note:
+    * only the 'freeBytesOfRAM changed after "launched monitorResourcesForAllTasks"
+    * heap_end and stack_size look wrong after "Launching scheduler"
+    => because libtask author David Anderson said via email:
+
+        One other comment.  The "free memory" code you linked to keeps track of the amount of 
+        unused memory between the heap and the stack, which is the normal may things are arranged.
+
+        In LMX each task has it's own stack, allocated on the heap itself.   The system stack in 
+        high-memory is only used briefly by main() at start up,  before multi-tasking begins.  
+        Thereafter all that high-memory space is available for expansion of the heap.  
+
+
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =6520
++                +
++----------------+  heap_end      =8169
++----------------+  Current STACK =8685
++                +
++      stack     +  stack_size    =19
+ freeBytesOfRAM: 7036
+launched monitorResourcesForAllTasks
+
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =6520
++                +
++----------------+  heap_end      =8169
++----------------+  Current STACK =8685
++                +
++      stack     +  stack_size    =19
+ freeBytesOfRAM: 6624
+
+Launching scheduler
+
+
+
+
+idleCPUcountPerSec: 0
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =-122
++                +
++----------------+  heap_end      =1527
++----------------+  Current STACK =2043
++                +
++      stack     +  stack_size    =6661
+ freeBytesOfRAM: -174
+processID: 1 name: monitorResourcesForAllTasks stack_usage(): 65
+processID: 2 name: Null stack_usage(): 3
+
+
+idleCPUcountPerSec: 0
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =-122
++                +
++----------------+  heap_end      =1527
++----------------+  Current STACK =2043
++                +
++      stack     +  stack_size    =6661
+ freeBytesOfRAM: -174
+processID: 1 name: monitorResourcesForAllTasks stack_usage(): 65
+processID: 2 name: Null stack_usage(): 23
+
+
+idleCPUcountPerSec: 0
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =-122
++                +
++----------------+  heap_end      =1527
++----------------+  Current STACK =2043
++                +
++      stack     +  stack_size    =6661
+ freeBytesOfRAM: -174
+processID: 1 name: monitorResourcesForAllTasks stack_usage(): 65
+processID: 2 name: Null stack_usage(): 23
+
+
+idleCPUcountPerSec: 0
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =-122
++                +
++----------------+  heap_end      =1527
++----------------+  Current STACK =2043
++                +
++      stack     +  stack_size    =6661
+ freeBytesOfRAM: -174
+processID: 1 name: monitorResourcesForAllTasks stack_usage(): 65
+processID: 2 name: Null stack_usage(): 23
+
+
+idleCPUcountPerSec: 0
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =-122
++                +
++----------------+  heap_end      =1527
++----------------+  Current STACK =2043
++                +
++      stack     +  stack_size    =6661
+ freeBytesOfRAM: -174
+processID: 1 name: monitorResourcesForAllTasks stack_usage(): 65
+processID: 2 name: Null stack_usage(): 23
+
+
+idleCPUcountPerSec: 0
++----------------+  __bss_end     =1649
++----------------+  __heap_start  =1649
++                +
++       heap     +  heap_size     =-122
++                +
++----------------+  heap_end      =1527
++----------------+  Current STACK =2043
++                +
++      stack     +  stack_size    =6661
+ freeBytesOfRAM: -174
+processID: 1 name: monitorResourcesForAllTasks stack_usage(): 65
+processID: 2 name: Null stack_usage(): 23

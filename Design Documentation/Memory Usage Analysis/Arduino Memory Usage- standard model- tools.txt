@@ -1,0 +1,51 @@
+Arduino Memory Usage- standard model- tools
+
+http://www.avr-developers.com/mm/memoryusage.html
+
+http://forum.arduino.cc/index.php?topic=27536.0
+http://forum.arduino.cc/index.php?topic=27536.15
+
+https://web-engineering.info/node/30
+==> Use PROGMEM for "constant" data
+
+https://forum.arduino.cc/index.php?topic=72948.0
+
+https://blog.benoitblanchon.fr/arduino-code-size-and-assembly/
+
+search this for __brkval, name/concept comes from Unix...
+https://android.googlesource.com/toolchain/avr-libc/+/edcf5bc1c8da8cc4c8b560865d2a54b73c1b51d3/avr-libc-1.7.1/libc/stdlib/malloc.c#63
+
+
+set PATH=%PATH%;C:\Program Files (x86)\Arduino\hardware\tools\avr\bin\
+avr-nm --size-sort -C -r "<path-to-the-elf-file>"
+
+set PATH=%PATH%;C:\Program Files (x86)\Arduino\hardware\tools\avr\bin\
+avr-nm --size-sort -C -r -td "<path-to-the-elf-file>"
+
+
+
+I run this portable version:
+"C:\Users\carlo\OneDrive\My Downloads\Arduino\Arduino 1.6.9\arduino-1.6.9\arduino.exe"
+
+which places tools like avr-nm here:
+C:\Users\carlo\OneDrive\My Downloads\Arduino\Arduino 1.6.9\arduino-1.6.9\hardware\tools\avr\bin
+
+hence -> added to Windows 10 path (used edit environment variables)
+set PATH=%PATH%;C:\Users\carlo\OneDrive\My Downloads\Arduino\Arduino 1.6.9\arduino-1.6.9\hardware\tools\avr\bin
+
+avr-nm --size-sort -C -r -td "C:\Users\carlo\AppData\Local\Temp\builda1230ebdbb28b354aee008319e69ae8a.tmp/club_robot_nav1.ino.elf" > club_robot_nav1_memMap.txt
+
+"C:\Users\carlo\AppData\Local\Temp\builda1230ebdbb28b354aee008319e69ae8a.tmp/club_robot_nav1.ino.elf"
+
+
+on Linux
+https://arduino.stackexchange.com/questions/31190/detailed-analyse-of-memory-usage/
+
+avr-nm -Crtd --size-sort the_program.elf | grep -i ' [dbv] '
+
+avr-nm is the utility for displaying the symbol table. It is normally packaged with the Arduino IDE. It is invoked here with the following options:
+
+--size-sort is quite explicit
+-C means “demangle the C++ names”
+-r means “reverse sort”, i.e. sort from largest to smallest
+-td means “display numbers in decimal rather than hexadecimal”
