@@ -173,7 +173,7 @@ void periodicSampleMotorShield_Start()
     // Serial.println("launching periodicSampleMotorShield()");
     kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
     // start the task with a nominal 10ms period
-    periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 100, MINSTACK * 1);
+    periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 1);
     // Serial.print("periodicSampleMotorShield_ProcessID is ");
     // Serial.println(periodicSampleMotorShield_ProcessID);
     if (periodicSampleMotorShield_ProcessID == -1)
