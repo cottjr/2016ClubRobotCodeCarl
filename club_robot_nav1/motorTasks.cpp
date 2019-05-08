@@ -121,14 +121,14 @@ void periodicSampleMotorShield(ASIZE msLoopPeriod)
         msBetweenPID = msOfCurrentPID - msOfPriorPID;
         msOfPriorPID = msOfCurrentPID;
 
-        // updateRobotOdometerTicks();
+        updateRobotOdometerTicks();
         // printRobotOdometerTicks(); // ToDo - remove this at full loop speed
 
         leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
 
         // printVelocityLoopValues(); // ToDo - remove this at full loop speed
-        // sendVelocityLoopPWMtoMotorShield();
+        sendVelocityLoopPWMtoMotorShield();
 
         msExecutePID = millis() - msOfCurrentPID;
         PERIOD(&t, msLoopPeriod);
