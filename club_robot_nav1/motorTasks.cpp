@@ -53,7 +53,7 @@ double conservativeVelocityKi[2] = {0.05, 0.05};
 double conservativeVelocityKd[2] = {0.25, 0.25};
 
 PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
-// PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
+PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
 
 // Purpose: print current robot odometer values
 void printVelocityLoopValues()
@@ -125,7 +125,7 @@ void periodicSampleMotorShield(ASIZE msLoopPeriod)
         // printRobotOdometerTicks(); // ToDo - remove this at full loop speed
 
         leftVelocityPID.Compute();
-        // rightVelocityPID.Compute();
+        rightVelocityPID.Compute();
 
         // printVelocityLoopValues(); // ToDo - remove this at full loop speed
         sendVelocityLoopPWMtoMotorShield();
