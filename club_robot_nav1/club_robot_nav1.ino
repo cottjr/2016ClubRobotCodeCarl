@@ -87,6 +87,13 @@ int main()
   periodicSampleMotorShield_Start();
   printFreeBytesOfRAM();
 
+  // Run a simple test of the velocity PID loop for a limited time. Then stop the periodicSampleMotorShield task
+  int testVelocityPIDloop_ProcessID = -1;
+  testVelocityPIDloop_ProcessID = create_task("testVelocityPIDloop", testVelocityPIDloop, 0, MINSTACK * 3);
+  Serial.println("launched testVelocityPIDloop");
+  printFreeBytesOfRAM();
+
+
   initializeMotorTasks();
 
   Serial.println("\nLaunching scheduler\n\n");

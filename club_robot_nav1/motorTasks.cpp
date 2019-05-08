@@ -480,11 +480,11 @@ void printEncoderMeasurements(encoderMeasurementsStruct measurementsPointer[], i
 //  - baseline velocity PID loop verification test
 void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder)
 {
-    wake_after(500);
+    wake_after(5000);
     Serial.println("\n> testVelocityPIDloop() - start");
     setVelocityLoopSetpoints(0, 50, true);
 
-    wake_after(1500);
+    wake_after(2000);
     Serial.println("\n> testVelocityPIDloop() - stop");
     setVelocityLoopSetpoints(0, 0, true);
 
