@@ -82,6 +82,12 @@ int main()
   Serial.println("launched monitorResourcesForAllTasks");
   printFreeBytesOfRAM();
 
+  // periodically sample the motor shield & run PID loop(s)
+  int periodicSampleMotorShield_ProcessID = -1;
+  periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 1000, MINSTACK * 3);
+  Serial.println("launched periodicSampleMotorShield");
+  printFreeBytesOfRAM();
+
   initializeMotorTasks();
 
 
