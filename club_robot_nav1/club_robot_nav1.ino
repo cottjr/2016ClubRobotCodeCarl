@@ -16,6 +16,7 @@
 
 #include <task.h>
 #include "libtaskMemoryTest.h"
+#include "motorTasks.h"
 
 void printkbuf(char *s)
 {
@@ -69,16 +70,20 @@ int main()
 #endif
 
   // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
-  // Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
+  Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
   int monitorCPUidle_ProcessID = -1;
-  // monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
+  monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
+  Serial.println("launched monitorCPUidle");
+  printFreeBytesOfRAM();
 
   // keep an eye to the list of running tasks and their stack utilization
   int monitorResourcesForAllTasks_ProcessID = -1;
-
-  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 500, MINSTACK * 3);
+  monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 1000, MINSTACK * 3);
   Serial.println("launched monitorResourcesForAllTasks");
   printFreeBytesOfRAM();
+
+  initializeMotorTasks();
+
 
   Serial.println("\nLaunching scheduler\n\n");
   scheduler();
