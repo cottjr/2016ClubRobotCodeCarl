@@ -32,7 +32,7 @@ bool velocityLoopEnabled = false;
 bool positionLoopEnabled = false;
 
 int periodicSampleMotorShield_ProcessID = -1; // handle for the libtask library process ID
-int monitorVelocityLoop_ProcessID = -1; // handle for the libtask library process ID
+int monitorVelocityLoop_ProcessID = -1;       // handle for the libtask library process ID
 // int positionLoopProcessID = -1; // handle for the libtask library process ID
 
 location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
@@ -68,7 +68,7 @@ void printVelocityLoopValues()
 
     Serial.print(".robotOdometerVelocity.leftMotor: ");
     Serial.print(robotOdometerVelocity.leftMotor);
-    Serial.print(" .rightMotor: ");
+    Serial.print(" right: ");
     Serial.print(robotOdometerVelocity.rightMotor);
     Serial.println();
 
@@ -108,7 +108,6 @@ void initializeMotorTasks()
 
     setVelocityLoopSetpoints(0, 0, true);
 }
-
 
 // Purpose: Periodic service to read and write motor shield values,
 //          and perform other synchronous tasks at e.g. PID loop sample intervals
@@ -175,13 +174,20 @@ void calculateEncoderMeasurementDeltas(encoderMeasurementsStruct *prior, encoder
     currentMeasures->encoderDeltaToPriorLeft = currentMeasures->encoderCountLeft - prior->encoderCountLeft;
 }
 
-
 void periodicSampleMotorShield_Start()
 {
     Serial.println("\nperiodicSampleMotorShield_Start()");
     velocityLoopEnabled = true;
 
     setVelocityLoopSetpoints(0, 0, true);
+
+    //turn the PIDs on
+    leftVelocityPID.SetMode(AUTOMATIC);
+    rightVelocityPID.SetMode(AUTOMATIC);
+
+    //sample the PIDs at 50 Hz
+    leftVelocityPID.SetSampleTime(20);
+    rightVelocityPID.SetSampleTime(20);
 
     // Serial.println("launching periodicSampleMotorShield()");
     kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
@@ -194,14 +200,13 @@ void periodicSampleMotorShield_Start()
     }
 
     // start the task with a nominal 200ms period
-    monitorVelocityLoop_ProcessID = create_task("monitorVelocityLoop", monitorVelocityLoop, 200, MINSTACK *3);
+    monitorVelocityLoop_ProcessID = create_task("monitorVelocityLoop", monitorVelocityLoop, 200, MINSTACK * 3);
     Serial.println("launched monitorVelocityLoop");
     if (periodicSampleMotorShield_ProcessID == -1)
     {
         Serial.println("-> error in create_task(monitorVelocityLoop)");
     }
 }
-
 
 void periodicSampleMotorShield_Stop()
 {
@@ -211,9 +216,13 @@ void periodicSampleMotorShield_Stop()
     setMotorVelocityByPWM(0, 0); // gracefully stop the motors when stopping this loop
     setVelocityLoopSetpoints(0, 0, true);
 
+    //turn the PIDs off
+    leftVelocityPID.SetMode(MANUAL);
+    rightVelocityPID.SetMode(MANUAL);
+
     kill_process(periodicSampleMotorShield_ProcessID); // cleanly end this task
     Serial.println("killed periodicSampleMotorShield");
-    
+
     kill_process(monitorVelocityLoop_ProcessID); // cleanly end this task
     Serial.println("killed monitorVelocityLoop");
 }
