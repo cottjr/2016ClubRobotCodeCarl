@@ -541,7 +541,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print("\n\n\nMaximum Forward Speeds, with a sample period of ");
     Serial.print(msSampleWindow);
     Serial.println("ms");
-    setMotorVelocity(0, 100);
+    setMotorVelocity(6, 100);
     wake_after(runForwardBackwardMS); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
     // for (i = 1; i <= numSamples; i++)
@@ -558,7 +558,7 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print("\n\n\nMaximum Reverse Speeds, with a sample period of ");
     Serial.print(msSampleWindow);
     Serial.println("ms");
-    setMotorVelocity(0, -100);
+    setMotorVelocity(-7, -100);
     wake_after(runForwardBackwardMS); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
     // for (i = 1; i <= numSamples; i++)
