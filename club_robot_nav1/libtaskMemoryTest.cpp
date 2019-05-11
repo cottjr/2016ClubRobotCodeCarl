@@ -77,6 +77,7 @@ void printFreeBytesOfRAM()
 
     Serial.print(" freeBytesOfRAM: ");
     Serial.println(free_memory);
+    Serial.println();
 }
 
 void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
@@ -86,8 +87,8 @@ void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
     while (1)
     {
         Serial.print("\n\nidleCPUcountPerSec: ");
-        Serial.print(idleCPUcountPerSec);
-        printFreeBytesOfRAM();
+        Serial.println(idleCPUcountPerSec);
+        // printFreeBytesOfRAM();
 
         iterate_tasks(printTaskStatsByTaskPointer, 0);
         PERIOD(&t, msLoopPeriod);

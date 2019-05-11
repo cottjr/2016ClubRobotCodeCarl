@@ -70,22 +70,22 @@ int main()
 #endif
 
   // Sample available CPU cycles once per second, updates global idleCPUcountPerSec
-  Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
+  // Serial.println("... motorTasks.cpp -> launching task monitorCPUidle");
   int monitorCPUidle_ProcessID = -1;
   monitorCPUidle_ProcessID = create_task("monitorCPUidle", monitorCPUidle, 0, MINSTACK);
   Serial.println("launched monitorCPUidle");
-  printFreeBytesOfRAM();
+  // printFreeBytesOfRAM();
 
   // keep an eye to the list of running tasks and their stack utilization
   int monitorResourcesForAllTasks_ProcessID = -1;
   monitorResourcesForAllTasks_ProcessID = create_task("monitorResourcesForAllTasks", monitorResourcesForAllTasks, 1000, MINSTACK * 3);
   Serial.println("launched monitorResourcesForAllTasks");
-  printFreeBytesOfRAM();
+  // printFreeBytesOfRAM();
 
 
   // trigger launching a task to periodically sample the motor shield & run PID loop(s)
   periodicSampleMotorShield_Start();
-  printFreeBytesOfRAM();
+  // printFreeBytesOfRAM();
 
   // Run a simple test of the velocity PID loop for a limited time. Then stop the periodicSampleMotorShield task
   int testVelocityPIDloop_ProcessID = -1;

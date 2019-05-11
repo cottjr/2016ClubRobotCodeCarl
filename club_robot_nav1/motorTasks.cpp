@@ -174,8 +174,7 @@ void periodicSampleMotorShield_Start()
     kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
     // start the task with a nominal 10ms period
     periodicSampleMotorShield_ProcessID = create_task("periodicSampleMotorShield", periodicSampleMotorShield, 10, MINSTACK * 1);
-    // Serial.print("periodicSampleMotorShield_ProcessID is ");
-    // Serial.println(periodicSampleMotorShield_ProcessID);
+    Serial.println("launched periodicSampleMotorShield");
     if (periodicSampleMotorShield_ProcessID == -1)
     {
         Serial.println("-> error in create_task(periodicSampleMotorShield)");
@@ -190,8 +189,8 @@ void periodicSampleMotorShield_Stop()
 
     setMotorVelocityByPWM(0, 0); // gracefully stop the motors when stopping this loop
     setVelocityLoopSetpoints(0, 0, true);
-    Serial.println("-> killing periodicSampleMotorShield()");
     kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
+    Serial.println("killed periodicSampleMotorShield()");
 }
 
 // clamp input whatValue to +/- limitingValue
@@ -286,7 +285,7 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
         Serial.print(leftEncVelocitySetpoint);
         Serial.print(" rightEncVelocitySetpoint: ");
         Serial.print(rightEncVelocitySetpoint);
-        Serial.println();
+        Serial.println("\n");
     }
 }
 
@@ -480,7 +479,7 @@ void printEncoderMeasurements(encoderMeasurementsStruct measurementsPointer[], i
 //  - baseline velocity PID loop verification test
 void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder)
 {
-    wake_after(5000);
+    wake_after(2000);
     Serial.println("\n> testVelocityPIDloop() - start");
     setVelocityLoopSetpoints(0, 50, true);
 
