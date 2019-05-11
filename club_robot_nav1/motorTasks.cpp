@@ -32,6 +32,7 @@ bool velocityLoopEnabled = false;
 bool positionLoopEnabled = false;
 
 int periodicSampleMotorShield_ProcessID = -1; // handle for the libtask library process ID
+int monitorVelocityLoop_ProcessID = -1; // handle for the libtask library process ID
 // int positionLoopProcessID = -1; // handle for the libtask library process ID
 
 location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
@@ -79,7 +80,7 @@ void printVelocityLoopValues()
 }
 
 // Purpose: periodically print values related to the Velocity PID loop
-void monitorVelocityLoopValues(ASIZE msLoopPeriod)
+void monitorVelocityLoop(ASIZE msLoopPeriod)
 {
     TSIZE t;
     t = sysclock + msLoopPeriod;
@@ -174,7 +175,7 @@ void calculateEncoderMeasurementDeltas(encoderMeasurementsStruct *prior, encoder
     currentMeasures->encoderDeltaToPriorLeft = currentMeasures->encoderCountLeft - prior->encoderCountLeft;
 }
 
-// bool motor::velocityLoopTaskStart()
+
 void periodicSampleMotorShield_Start()
 {
     Serial.println("\nperiodicSampleMotorShield_Start()");
@@ -191,9 +192,17 @@ void periodicSampleMotorShield_Start()
     {
         Serial.println("-> error in create_task(periodicSampleMotorShield)");
     }
+
+    // start the task with a nominal 200ms period
+    monitorVelocityLoop_ProcessID = create_task("monitorVelocityLoop", monitorVelocityLoop, 200, MINSTACK *3);
+    Serial.println("launched monitorVelocityLoop");
+    if (periodicSampleMotorShield_ProcessID == -1)
+    {
+        Serial.println("-> error in create_task(monitorVelocityLoop)");
+    }
 }
 
-// bool motor::velocityLoopTaskStop()
+
 void periodicSampleMotorShield_Stop()
 {
     Serial.println("\nperiodicSampleMotorShield_Stop()");
@@ -201,8 +210,12 @@ void periodicSampleMotorShield_Stop()
 
     setMotorVelocityByPWM(0, 0); // gracefully stop the motors when stopping this loop
     setVelocityLoopSetpoints(0, 0, true);
-    kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running
-    Serial.println("killed periodicSampleMotorShield()");
+
+    kill_process(periodicSampleMotorShield_ProcessID); // cleanly end this task
+    Serial.println("killed periodicSampleMotorShield");
+    
+    kill_process(monitorVelocityLoop_ProcessID); // cleanly end this task
+    Serial.println("killed monitorVelocityLoop");
 }
 
 // clamp input whatValue to +/- limitingValue
