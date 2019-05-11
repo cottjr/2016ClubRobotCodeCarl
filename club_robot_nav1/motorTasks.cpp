@@ -527,7 +527,8 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
                                // e.g. going from numSamples === 10 to numSamples === 30 required updating in club_robot_nav1.ino
                                // (MINSTACK * 10) to something <= 20, ie. create_task("measureMinMaxMotorSpeeds", measureMinMaxMotorSpeeds, 10, MINSTACK * 20);
     int const msSampleWindow = 100;
-    int const pauseBetweenTests = 3000;
+    int const runForwardBackwardMS = 4404;  // see Planning Notes for "Out and Back / Quick Trip"
+    int const pauseBetweenTests = 1000;
 
     encoderMeasurementsStruct tempMeasurements[numSamples + 1];
     int i;
@@ -541,14 +542,14 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print(msSampleWindow);
     Serial.println("ms");
     setMotorVelocity(0, 100);
-    wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
+    wake_after(runForwardBackwardMS); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
-    for (i = 1; i <= numSamples; i++)
-    {
-        wake_after(msSampleWindow);
-        sampleEncoders(&tempMeasurements[i]);
-        calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
-    }
+    // for (i = 1; i <= numSamples; i++)
+    // {
+    //     wake_after(msSampleWindow);
+    //     sampleEncoders(&tempMeasurements[i]);
+    //     calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
+    // }
     setMotorVelocity(0, 0);
     printEncoderMeasurements(tempMeasurements, numSamples);
 
@@ -558,50 +559,50 @@ void measureMinMaxMotorSpeeds(ASIZE dummyArgumentPlaceholder)
     Serial.print(msSampleWindow);
     Serial.println("ms");
     setMotorVelocity(0, -100);
-    wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
+    wake_after(runForwardBackwardMS); // give ample time for motor speed to settle, or shrink to measure acceleration...
     sampleEncoders(&tempMeasurements[0]);
-    for (i = 1; i <= numSamples; i++)
-    {
-        wake_after(msSampleWindow);
-        sampleEncoders(&tempMeasurements[i]);
-        calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
-    }
+    // for (i = 1; i <= numSamples; i++)
+    // {
+    //     wake_after(msSampleWindow);
+    //     sampleEncoders(&tempMeasurements[i]);
+    //     calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
+    // }
     setMotorVelocity(0, 0);
     printEncoderMeasurements(tempMeasurements, numSamples);
 
-    // Next - measure Min Forward speed
-    wake_after(pauseBetweenTests);
-    Serial.print("\n\n\nMinimum Forward Speeds, with a sample period of ");
-    Serial.print(msSampleWindow);
-    Serial.println("ms");
-    setMotorVelocity(0, 8);
-    wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
-    sampleEncoders(&tempMeasurements[0]);
-    for (i = 1; i <= numSamples; i++)
-    {
-        wake_after(msSampleWindow);
-        sampleEncoders(&tempMeasurements[i]);
-        calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
-    }
-    setMotorVelocity(0, 0);
-    printEncoderMeasurements(tempMeasurements, numSamples);
+    // // Next - measure Min Forward speed
+    // wake_after(pauseBetweenTests);
+    // Serial.print("\n\n\nMinimum Forward Speeds, with a sample period of ");
+    // Serial.print(msSampleWindow);
+    // Serial.println("ms");
+    // setMotorVelocity(0, 8);
+    // wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
+    // sampleEncoders(&tempMeasurements[0]);
+    // for (i = 1; i <= numSamples; i++)
+    // {
+    //     wake_after(msSampleWindow);
+    //     sampleEncoders(&tempMeasurements[i]);
+    //     calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
+    // }
+    // setMotorVelocity(0, 0);
+    // printEncoderMeasurements(tempMeasurements, numSamples);
 
-    // Next - measure Min Backwards speed
-    wake_after(pauseBetweenTests);
-    Serial.print("\n\n\nMinimum Reverse Speeds, with a sample period of ");
-    Serial.print(msSampleWindow);
-    Serial.println("ms");
-    setMotorVelocity(0, -8);
-    wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
-    sampleEncoders(&tempMeasurements[0]);
-    for (i = 1; i <= numSamples; i++)
-    {
-        wake_after(msSampleWindow);
-        sampleEncoders(&tempMeasurements[i]);
-        calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
-    }
-    setMotorVelocity(0, 0);
-    printEncoderMeasurements(tempMeasurements, numSamples);
+    // // Next - measure Min Backwards speed
+    // wake_after(pauseBetweenTests);
+    // Serial.print("\n\n\nMinimum Reverse Speeds, with a sample period of ");
+    // Serial.print(msSampleWindow);
+    // Serial.println("ms");
+    // setMotorVelocity(0, -8);
+    // wake_after(msSampleWindow); // give ample time for motor speed to settle, or shrink to measure acceleration...
+    // sampleEncoders(&tempMeasurements[0]);
+    // for (i = 1; i <= numSamples; i++)
+    // {
+    //     wake_after(msSampleWindow);
+    //     sampleEncoders(&tempMeasurements[i]);
+    //     calculateEncoderMeasurementDeltas(&tempMeasurements[i - 1], &tempMeasurements[i]);
+    // }
+    // setMotorVelocity(0, 0);
+    // printEncoderMeasurements(tempMeasurements, numSamples);
 
     velocityLoopStop();
 

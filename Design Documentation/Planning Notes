@@ -25,7 +25,12 @@ Thoughts and plans for "ClubCar DonkeyBot"
     Main Menu
         Start / Stop        // start / stop currently selected run mode
         Select Run Mode     // keep multiple scripts available onboard, e.g.
-                                    Out and Back
+                                    Out and Back    => quick Trip  14.5 feet straight ahead and Back
+                                                    14.5 ft -> 442 cm
+                                                    Open Loop
+                                                    104.8 clicks/cm => 46,321.6 clicks
+                                                    106 ms / 1115 ticks (with onboard voltage reading 11.7)
+                                                    46,321.6 clicks * 106 ms / 1115 clicks = 4404 ms
                                     4 corner
                                     Donkey Car
                                     Line Follower
