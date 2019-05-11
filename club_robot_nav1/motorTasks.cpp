@@ -206,23 +206,6 @@ signed char clamp(signed char whatValue, signed char limitingValue)
         return whatValue;
 }
 
-// testVelocityLoopSetpointsMath()
-// Purpose: check the math
-void testVelocityLoopSetpointsMath()
-{
-    setVelocityLoopSetpoints(0, 50, true);
-    setVelocityLoopSetpoints(0, -50, true);
-
-    setVelocityLoopSetpoints(50, 0, true);
-    setVelocityLoopSetpoints(-50, 0, true);
-
-    setVelocityLoopSetpoints(20, 90, true);
-    setVelocityLoopSetpoints(20, -90, true);
-
-    setVelocityLoopSetpoints(90, 20, true);
-    setVelocityLoopSetpoints(-90, 20, true);
-}
-
 // Orientation Conventions
 // when looking down on robot    when looking from wheel towards motor
 // robot spin CW                left    CCW     right   CCW
@@ -454,6 +437,45 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
 }
 
 // Purpose:
+//  - baseline velocity PID loop verification test
+void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder)
+{
+    wake_after(2000);
+    Serial.println("\n> testVelocityPIDloop() - start");
+    setVelocityLoopSetpoints(0, 50, true);
+
+    wake_after(2000);
+    Serial.println("\n> testVelocityPIDloop() - stop");
+    setVelocityLoopSetpoints(0, 0, true);
+
+    periodicSampleMotorShield_Stop();
+    terminate();
+}
+
+// testVelocityLoopSetpointsMath()
+// Purpose: check the math
+// Algorithm:
+//  - simply set the loop to various values
+//  - manually inspect / verify the console log output
+void testVelocityLoopSetpointsMath()
+{
+    setVelocityLoopSetpoints(0, 50, true);
+    setVelocityLoopSetpoints(0, -50, true);
+
+    setVelocityLoopSetpoints(50, 0, true);
+    setVelocityLoopSetpoints(-50, 0, true);
+
+    setVelocityLoopSetpoints(20, 90, true);
+    setVelocityLoopSetpoints(20, -90, true);
+
+    setVelocityLoopSetpoints(90, 20, true);
+    setVelocityLoopSetpoints(-90, 20, true);
+
+    setVelocityLoopSetpoints(0, 0, true);
+}
+
+// Purpose:
+//  - used by measureMinMaxMotorSpeeds()
 //  - show values of an encoder measurement sample set
 void printEncoderMeasurements(encoderMeasurementsStruct measurementsPointer[], int maxIndex)
 // per http://www.c4learn.com/c-programming/c-passing-array-of-structure-to-function/
@@ -473,22 +495,6 @@ void printEncoderMeasurements(encoderMeasurementsStruct measurementsPointer[], i
         Serial.print(" right ticks, ");
         Serial.println();
     }
-}
-
-// Purpose:
-//  - baseline velocity PID loop verification test
-void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder)
-{
-    wake_after(2000);
-    Serial.println("\n> testVelocityPIDloop() - start");
-    setVelocityLoopSetpoints(0, 50, true);
-
-    wake_after(2000);
-    Serial.println("\n> testVelocityPIDloop() - stop");
-    setVelocityLoopSetpoints(0, 0, true);
-
-    periodicSampleMotorShield_Stop();
-    terminate();
 }
 
 // Purpose:
