@@ -45,11 +45,15 @@ typedef struct encoderMeasurementsStruct
 extern int periodicSampleMotorShield_ProcessID;
 
 void printVelocityLoopValues();
+void monitorVelocityLoopValues(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
 void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
 extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
+
+// clamp input whatValue to +/- limitingValue
+signed char clamp(signed char, signed char);
 
 void periodicSampleMotorShield_Start();
 void periodicSampleMotorShield_Stop();
@@ -62,14 +66,13 @@ extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorS
 extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();
 
-void testVelocityLoopSetpointsMath();
 void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
+void testVelocityLoopSetpointsMath();
 void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
 void testMotorTasks(ASIZE dummyArgumentPlaceholder);
 
 
-// clamp input whatValue to +/- limitingValue
-signed char clamp(signed char, signed char);
+
 
 
 // end pragma alternative: ensure the C pre-processor only reads this file once

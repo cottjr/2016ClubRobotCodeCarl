@@ -55,27 +55,39 @@ double conservativeVelocityKd[2] = {0.25, 0.25};
 PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
 PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
 
-// Purpose: print current robot odometer values
+// Purpose: print values related to the Velocity PID loop
 void printVelocityLoopValues()
 {
-    Serial.println("\n\nprintVelocityLoopValues() ");
+    Serial.println("\nprintVelocityLoopValues() ");
 
     Serial.print(".leftEncVelocitySetpoint: ");
     Serial.print(leftEncVelocitySetpoint);
-    Serial.print(" rightEncVelocitySetpoint: ");
+    Serial.print(" right: ");
     Serial.println(rightEncVelocitySetpoint);
 
     Serial.print(".robotOdometerVelocity.leftMotor: ");
     Serial.print(robotOdometerVelocity.leftMotor);
-    Serial.print(" robotOdometerVelocity.rightMotor: ");
+    Serial.print(" .rightMotor: ");
     Serial.print(robotOdometerVelocity.rightMotor);
     Serial.println();
 
     Serial.print(".leftVelocityLoopOutPWM: ");
     Serial.print(leftVelocityLoopOutPWM);
-    Serial.print(" rightVelocityLoopOutPWM: ");
+    Serial.print(" right: ");
     Serial.print(rightVelocityLoopOutPWM);
     Serial.println();
+}
+
+// Purpose: periodically print values related to the Velocity PID loop
+void monitorVelocityLoopValues(ASIZE msLoopPeriod)
+{
+    TSIZE t;
+    t = sysclock + msLoopPeriod;
+    while (1)
+    {
+        printVelocityLoopValues();
+        PERIOD(&t, msLoopPeriod);
+    }
 }
 
 // Purpose: Initialize the code in this module
@@ -444,7 +456,7 @@ void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder)
     Serial.println("\n> testVelocityPIDloop() - start");
     setVelocityLoopSetpoints(0, 50, true);
 
-    wake_after(2000);
+    wake_after(4000);
     Serial.println("\n> testVelocityPIDloop() - stop");
     setVelocityLoopSetpoints(0, 0, true);
 
