@@ -298,11 +298,13 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
         Serial.print(rightEncFromThrottle);
         Serial.println();
 
-        Serial.print(" leftEncVelocitySetpoint: ");
-        Serial.print(leftEncVelocitySetpoint);
-        Serial.print(" rightEncVelocitySetpoint: ");
-        Serial.print(rightEncVelocitySetpoint);
-        Serial.println("\n");
+        // Serial.print(" leftEncVelocitySetpoint: ");
+        // Serial.print(leftEncVelocitySetpoint);
+        // Serial.print(" rightEncVelocitySetpoint: ");
+        // Serial.print(rightEncVelocitySetpoint);
+        // Serial.println("\n");
+
+        printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
     }
 }
 
