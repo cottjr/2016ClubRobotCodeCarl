@@ -2,9 +2,38 @@ BranchPlanning
 Purpose:
     summarize intent for key branches
 
+master
+    this will eventually become the latest & greatest 'stable' code
+        with all included functions working as expected
+
+develop
+    starting 2019 June 15 => this will be the main branch for working code
+    ie. Work In Progress
 
 libtaskMemoryTest
+    Branch used to evaluate the Dave Anderson libtask library
     par back code to bare minimum with libtask library
     identify why it appears that Arduino heap size is positive and looks normal at first
         -> but then goes to negative values after libtask scheduler() starts 
+    also includes diagnostics code to better understand runtime memory usage
+    also includes initial changes to clean up RAM and console whitespace gobbling console.log messages
 
+openLoopQuickTrip
+    Simplest possible implementation of the DPRG Quick Trip contest
+    First prepared for 11 May 2019 DPRG RoboRama
+    Simply turns motors to their 'full but matched' values for a fixed time.
+        then reverses them.
+    Demonstrates that open loop 'can work' pretty well for steady state
+        ie. for a certain battery voltage & motor condition
+        => except that when accelerating, especially when starting out,
+            the motors show a significantly different acceleration
+            and hence the robot starts moving randomly to left or right,
+            then goes straight for a while,
+            then turns slightly as it slows down to a halt
+
+interruptScheme
+    given apparent issues in getting the libtask library to behave well,
+    this branch provides 'hello world' exercises for using interrupt service routines
+    credit to Dale Wheat and his "Arduino Internals" book
+    
+    
