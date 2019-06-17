@@ -25,6 +25,11 @@ ISR(TIMER1_OVF_vect) {
   bitSet(PINB, 7); // toggle ATMega2560 PB7/D13 LED pin state by writing to the input read register // per Dale Wheat - Arduino Internals page 145
 }
 
+// attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
+#define cpuStatusLEDredPin 51     // 325 ohm
+#define cpuStatusLEDgreenPin 52   // 1.2K ohm
+#define cpuStatusLEDbluePin 53    // 1K ohm
+
 
 void setup()
 {
@@ -41,6 +46,11 @@ void setup()
   TCCR1B = 1<<CS12;       // force overflow around once per second
   bitSet(TIMSK1, TOIE1);  // enable overflow interrupt
 
+  pinMode (cpuStatusLEDredPin, OUTPUT);
+  pinMode (cpuStatusLEDgreenPin, OUTPUT);
+  pinMode (cpuStatusLEDbluePin, OUTPUT);
+
+
   // initialize counters to keep approximate tabs on available CPU cycles between interrupts
   // cpuCycleHeadroom10ms = 0;
   // cpuCycleHeadroom10msIncrement = 0;
@@ -53,6 +63,40 @@ void setup()
 
 void loop()
 {
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, LOW);
+  delay(500);  
+  digitalWrite(cpuStatusLEDredPin, LOW);
+  digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  digitalWrite(cpuStatusLEDbluePin, LOW);  
+  delay(500);  
+  digitalWrite(cpuStatusLEDredPin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, LOW);
+  delay(500);  
+
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  digitalWrite(cpuStatusLEDbluePin, LOW);
+  delay(500);  
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, HIGH);
+  delay(500);  
+  digitalWrite(cpuStatusLEDredPin, LOW);
+  digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  digitalWrite(cpuStatusLEDbluePin, HIGH);
+  delay(500);  
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  digitalWrite(cpuStatusLEDbluePin, HIGH);
+  delay(500);  
+  digitalWrite(cpuStatusLEDredPin, LOW);
+  digitalWrite(cpuStatusLEDgreenPin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, LOW);
+  delay(500);  
+
 
   // cpuCycleHeadroom10msIncrement += 1;
   // cpuCycleHeadroom100msIncrement += 1;
