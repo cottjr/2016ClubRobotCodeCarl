@@ -14,6 +14,11 @@
 #include "motorTasks.h"
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
+// attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
+#define cpuStatusLEDredPin 51     // 325 ohm
+#define cpuStatusLEDgreenPin 52   // 1.2K ohm
+#define cpuStatusLEDbluePin 53    // 1K ohm
+
 
 // unsigned int cpuCycleHeadroom10ms;            // most recent number of spare cycles betewen 10ms interrupt periods
 // unsigned int cpuCycleHeadroom10msIncrement;   // working count
@@ -28,10 +33,39 @@ ISR(TIMER5_OVF_vect) {
   bitSet(PINB, 7); // toggle ATMega2560 PB7/D13 LED pin state by writing to the input read register // per Dale Wheat - Arduino Internals page 145
 }
 
-// attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
-#define cpuStatusLEDredPin 51     // 325 ohm
-#define cpuStatusLEDgreenPin 52   // 1.2K ohm
-#define cpuStatusLEDbluePin 53    // 1K ohm
+
+char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
+
+// Use timer 5 to periodically trigger the main loop with well controlled timing
+// using timer 5 to avoid messing with timers needed for other purposes
+// interrupt handler via timer compare match method, per https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
+ISR(TIMER5_COMPA_vect){
+  digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
+  digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
+
+  tasks100Hz ();
+
+  if (taskLoopCounter == 49) {
+    taskLoopCounter = 0;
+    tasks2Hz();
+  } else {
+    taskLoopCounter += 1;
+  }
+
+  if ((taskLoopCounter == 4) && digitalRead(cpuStatusLEDbluePin)){
+    digitalWrite(cpuStatusLEDbluePin, LOW);
+  }
+}
+
+// functions which run at 100 Hz
+void tasks100Hz () {
+}
+
+// functions which run at 2 Hz
+void tasks2Hz () {
+  digitalWrite(cpuStatusLEDbluePin, HIGH);
+}
+
 
 
 void setup()
@@ -44,14 +78,28 @@ void setup()
   //                       // https://www.arduino.cc/reference/en/language/functions/communication/serial/write/#howtouse  
   // printFreeBytesOfRAM();
 
-  bitSet(DDRB, 7); // set ATMega2560 PB7/D13 as an output // saves 4 bytes over Arduino pinMode() per Dale Wheat - Arduino Internals page 101
-  TCCR5A = 0;
-  TCCR5B = 1<<CS12;       // force overflow around once per second
-  bitSet(TIMSK5, TOIE5);  // enable overflow interrupt
+  taskLoopCounter = 0;
 
   pinMode (cpuStatusLEDredPin, OUTPUT);
   pinMode (cpuStatusLEDgreenPin, OUTPUT);
   pinMode (cpuStatusLEDbluePin, OUTPUT);
+
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, LOW);
+
+  // Initialize timer 5 to periodically trigger the main loop via ISR(TIMER5_COMPA_vect)
+  noInterrupts();           // temporarily disable all interrupts during initialization
+  TCCR5A = 0;
+  TCCR5B = 0;
+  TCNT5 = 0;
+
+  OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz
+  TCCR5B |= (1 << WGM12);   // select CTC mode
+  TCCR5B |= (1 << CS12);    // select 256 prescaler 
+  TIMSK5 |= (1 << OCIE5A);  // enable timer compare interrupt
+
+  interrupts();             // enable all interrupts
 
 
   // initialize counters to keep approximate tabs on available CPU cycles between interrupts
@@ -66,40 +114,6 @@ void setup()
 
 void loop()
 {
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, LOW);
-  digitalWrite(cpuStatusLEDbluePin, LOW);
-  delay(500);  
-  digitalWrite(cpuStatusLEDredPin, LOW);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, LOW);  
-  delay(500);  
-  digitalWrite(cpuStatusLEDredPin, LOW);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, LOW);
-  delay(500);  
-
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, LOW);
-  delay(500);  
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, LOW);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
-  delay(500);  
-  digitalWrite(cpuStatusLEDredPin, LOW);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
-  delay(500);  
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
-  delay(500);  
-  digitalWrite(cpuStatusLEDredPin, LOW);
-  digitalWrite(cpuStatusLEDgreenPin, LOW);
-  digitalWrite(cpuStatusLEDbluePin, LOW);
-  delay(500);  
-
 
   // cpuCycleHeadroom10msIncrement += 1;
   // cpuCycleHeadroom100msIncrement += 1;
