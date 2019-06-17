@@ -21,8 +21,10 @@
 // unsigned int cpuCycleHeadroom100msIncrement;  // working count
 
 // interrupt handler sketch per Dale Wheat - Arduino Internals, page 145
-//  -> except changed from timer 1 to timer 4 (since timer 1 is incompatible with delay() and other functions)
-ISR(TIMER4_OVF_vect) {
+//  -> except changed from timer 1 to timer 5 (since timer 1 is incompatible with delay() and other functions, 
+//  -> and timers 3 and 4 are needed to drive PWM on club robot Monster Motor Shield via ATMega2560 pins 5 and 6 )
+//  -> for timer/PWM/pin compatibility ref also https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
+ISR(TIMER5_OVF_vect) {
   bitSet(PINB, 7); // toggle ATMega2560 PB7/D13 LED pin state by writing to the input read register // per Dale Wheat - Arduino Internals page 145
 }
 
@@ -43,9 +45,9 @@ void setup()
   // printFreeBytesOfRAM();
 
   bitSet(DDRB, 7); // set ATMega2560 PB7/D13 as an output // saves 4 bytes over Arduino pinMode() per Dale Wheat - Arduino Internals page 101
-  TCCR4A = 0;
-  TCCR4B = 1<<CS12;       // force overflow around once per second
-  bitSet(TIMSK4, TOIE4);  // enable overflow interrupt
+  TCCR5A = 0;
+  TCCR5B = 1<<CS12;       // force overflow around once per second
+  bitSet(TIMSK5, TOIE5);  // enable overflow interrupt
 
   pinMode (cpuStatusLEDredPin, OUTPUT);
   pinMode (cpuStatusLEDgreenPin, OUTPUT);
