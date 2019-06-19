@@ -43,11 +43,11 @@ ISR(TIMER5_COMPA_vect){
   digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
   digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
 
-  tasks100Hz ();
+  tasks10ms ();
 
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
-    tasks2Hz();
+    tasks500ms();
   } else {
     taskLoopCounter += 1;
   }
@@ -58,11 +58,11 @@ ISR(TIMER5_COMPA_vect){
 }
 
 // functions which run at 100 Hz
-void tasks100Hz () {
+void tasks10ms () {
 }
 
 // functions which run at 2 Hz
-void tasks2Hz () {
+void tasks500ms () {
   digitalWrite(cpuStatusLEDbluePin, HIGH);
 }
 
