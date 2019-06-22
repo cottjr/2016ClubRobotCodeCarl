@@ -11,7 +11,7 @@
 // #include <stdio.h>
 
 #include "libtaskMemoryTest.h"
-// #include "motorTasks.h"
+#include "motorTasks.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 

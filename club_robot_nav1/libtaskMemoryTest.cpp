@@ -1,35 +1,35 @@
 
 #include "libtaskMemoryTest.h"
 
-TSIZE idleCPUcountPerSec; // crude count of CPU idle cycles available for use
+// TSIZE idleCPUcountPerSec; // crude count of CPU idle cycles available for use
 // Purpose: track CPU idle cycles available e.g. for use by additional tasks
 // Algorithm:
 //	- once per second
 //	- trap the current value of the libtask library proc_counter
 // Output: update global variable idleCPUcountPerSec with sampled proc_counter
-void monitorCPUidle(ASIZE dummyPlaceholder)
-{
-    TSIZE t;
-    t = sysclock + 1000;
-    while (1)
-    {
-        idleCPUcountPerSec = proc_counter;
-        proc_counter = 0;
-        PERIOD(&t, 1000);
-    }
-}
+// void monitorCPUidle(ASIZE dummyPlaceholder)
+// {
+//     TSIZE t;
+//     t = sysclock + 1000;
+//     while (1)
+//     {
+//         idleCPUcountPerSec = proc_counter;
+//         proc_counter = 0;
+//         PERIOD(&t, 1000);
+//     }
+// }
 
 // Purpose: print values related to a specific task
 //          this version requires that you provide pointer to a TASK structure
-void printTaskStatsByTaskPointer(TASK *t, int dummyArgumentPlaceholder)
-{
-    Serial.print("processID: ");
-    Serial.print(t->pid);
-    Serial.print(" name: ");
-    Serial.print(t->name);
-    Serial.print(" stack_usage(): ");
-    Serial.println(stack_usage(t->pid));
-}
+// void printTaskStatsByTaskPointer(TASK *t, int dummyArgumentPlaceholder)
+// {
+//     Serial.print("processID: ");
+//     Serial.print(t->pid);
+//     Serial.print(" name: ");
+//     Serial.print(t->name);
+//     Serial.print(" stack_usage(): ");
+//     Serial.println(stack_usage(t->pid));
+// }
 
 // freeBytesOfRAM()
 // Purpose: determine how much RAM is available
@@ -80,17 +80,17 @@ void printFreeBytesOfRAM()
     Serial.println();
 }
 
-void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
-{
-    TSIZE t;
-    t = sysclock + msLoopPeriod;
-    while (1)
-    {
-        Serial.print("\n\nidleCPUcountPerSec: ");
-        Serial.println(idleCPUcountPerSec);
-        // printFreeBytesOfRAM();
+// void monitorResourcesForAllTasks(ASIZE msLoopPeriod)
+// {
+//     TSIZE t;
+//     t = sysclock + msLoopPeriod;
+//     while (1)
+//     {
+//         Serial.print("\n\nidleCPUcountPerSec: ");
+//         Serial.println(idleCPUcountPerSec);
+//         // printFreeBytesOfRAM();
 
-        iterate_tasks(printTaskStatsByTaskPointer, 0);
-        PERIOD(&t, msLoopPeriod);
-    }
-}
+//         iterate_tasks(printTaskStatsByTaskPointer, 0);
+//         PERIOD(&t, msLoopPeriod);
+//     }
+// }
