@@ -11,6 +11,7 @@ develop
     ie. Work In Progress
 
 libtaskMemoryTest
+    relies on the libtask library (obviously)
     Branch used to evaluate the Dave Anderson libtask library
     par back code to bare minimum with libtask library
     identify why it appears that Arduino heap size is positive and looks normal at first
@@ -19,6 +20,7 @@ libtaskMemoryTest
     also includes initial changes to clean up RAM and console whitespace gobbling console.log messages
 
 openLoopQuickTrip
+    relies on the libtask library (obviously)
     Simplest possible implementation of the DPRG Quick Trip contest
     First prepared for 11 May 2019 DPRG RoboRama
     Simply turns motors to their 'full but matched' values for a fixed time.
@@ -32,6 +34,8 @@ openLoopQuickTrip
             then turns slightly as it slows down to a halt
 
 interruptScheme
+    will NOT rely on the libtask library   
+        instead, will use a more traditional interrupt scheme that relies on hardware timers
     given apparent issues in getting the libtask library to behave well,
     this branch provides 'hello world' exercises for using interrupt service routines
     credit to Dale Wheat and his "Arduino Internals" book
