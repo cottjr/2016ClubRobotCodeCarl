@@ -12,6 +12,7 @@
 
 #include "libtaskMemoryTest.h"
 #include "motorTasks.h"
+#include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
@@ -20,10 +21,10 @@
 #define cpuStatusLEDbluePin 53    // 1K ohm
 
 
-// unsigned int cpuCycleHeadroom10ms;            // most recent number of spare cycles betewen 10ms interrupt periods
-// unsigned int cpuCycleHeadroom10msIncrement;   // working count
-// unsigned int cpuCycleHeadroom100ms;           // most recent number of spare cycles betewen 100ms interrupt periods
-// unsigned int cpuCycleHeadroom100msIncrement;  // working count
+unsigned int cpuCycleHeadroom10ms;            // most recent number of spare cycles betewen 10ms interrupt periods
+unsigned int cpuCycleHeadroom10msIncrement;   // working count
+unsigned int cpuCycleHeadroom100ms;           // most recent number of spare cycles betewen 100ms interrupt periods
+unsigned int cpuCycleHeadroom100msIncrement;  // working count
 
 // interrupt handler sketch per Dale Wheat - Arduino Internals, page 145
 //  -> except changed from timer 1 to timer 5 (since timer 1 is incompatible with delay() and other functions, 
@@ -59,24 +60,37 @@ ISR(TIMER5_COMPA_vect){
 
 // functions which run at 100 Hz
 void tasks10ms () {
+  cpuCycleHeadroom10ms = cpuCycleHeadroom10msIncrement;
+  cpuCycleHeadroom10msIncrement = 0;
 }
 
 // functions which run at 2 Hz
 void tasks500ms () {
   digitalWrite(cpuStatusLEDbluePin, HIGH);
+
+  cpuCycleHeadroom100ms = cpuCycleHeadroom100msIncrement;
+
+  Serial.print("millis(): ");
+  Serial.print(millis());
+  Serial.print(", free cycles 10ms: ");
+  Serial.print(cpuCycleHeadroom10ms);
+  Serial.print(", 100ms: ");
+  Serial.println(cpuCycleHeadroom100ms);
+
+  cpuCycleHeadroom100msIncrement = 0;  
 }
 
 
 
 void setup()
 {
-  // Serial.begin(57600);  // Serial:  0(RX), 1(TX)
-  // Serial3.begin(57600); // => ToDo - Set This up for communication to the Display
-  //                       // Serial3:  15(RX), 14(TX)
-  //                       // https://www.arduino.cc/reference/en/language/functions/communication/serial/
-  //                       // https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
-  //                       // https://www.arduino.cc/reference/en/language/functions/communication/serial/write/#howtouse  
-  // printFreeBytesOfRAM();
+  Serial.begin(57600);  // Serial:  0(RX), 1(TX)
+  Serial3.begin(57600); // => ToDo - Set This up for communication to the Display
+                        // Serial3:  15(RX), 14(TX)
+                        // https://www.arduino.cc/reference/en/language/functions/communication/serial/
+                        // https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
+                        // https://www.arduino.cc/reference/en/language/functions/communication/serial/write/#howtouse  
+  printFreeBytesOfRAM();
 
   taskLoopCounter = 0;
 
@@ -103,10 +117,10 @@ void setup()
 
 
   // initialize counters to keep approximate tabs on available CPU cycles between interrupts
-  // cpuCycleHeadroom10ms = 0;
-  // cpuCycleHeadroom10msIncrement = 0;
-  // cpuCycleHeadroom100ms = 0;
-  // cpuCycleHeadroom100msIncrement = 0;
+  cpuCycleHeadroom10ms = 0;
+  cpuCycleHeadroom10msIncrement = 0;
+  cpuCycleHeadroom100ms = 0;
+  cpuCycleHeadroom100msIncrement = 0;
 
 
   // initializeMotorTasks();
@@ -115,7 +129,7 @@ void setup()
 void loop()
 {
 
-  // cpuCycleHeadroom10msIncrement += 1;
-  // cpuCycleHeadroom100msIncrement += 1;
+  cpuCycleHeadroom10msIncrement += 1;
+  cpuCycleHeadroom100msIncrement += 1;
 }
 
