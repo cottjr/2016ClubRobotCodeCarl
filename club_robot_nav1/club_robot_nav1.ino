@@ -11,7 +11,7 @@
 // #include <stdio.h>
 
 #include "libtaskMemoryTest.h"
-#include "motorTasks.h"
+// #include "motorTasks.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
@@ -23,8 +23,8 @@
 
 unsigned int cpuCycleHeadroom10ms;            // most recent number of spare cycles betewen 10ms interrupt periods
 unsigned int cpuCycleHeadroom10msIncrement;   // working count
-unsigned int cpuCycleHeadroom100ms;           // most recent number of spare cycles betewen 100ms interrupt periods
-unsigned int cpuCycleHeadroom100msIncrement;  // working count
+unsigned int cpuCycleHeadroom500ms;           // most recent number of spare cycles betewen 100ms interrupt periods
+unsigned int cpuCycleHeadroom500msIncrement;  // working count
 
 // interrupt handler sketch per Dale Wheat - Arduino Internals, page 145
 //  -> except changed from timer 1 to timer 5 (since timer 1 is incompatible with delay() and other functions, 
@@ -34,8 +34,7 @@ ISR(TIMER5_OVF_vect) {
   bitSet(PINB, 7); // toggle ATMega2560 PB7/D13 LED pin state by writing to the input read register // per Dale Wheat - Arduino Internals page 145
 }
 
-
-char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
+volatile bool ISR10msActive = false;
 
 // Use timer 5 to periodically trigger the main loop with well controlled timing
 // using timer 5 to avoid messing with timers needed for other purposes
@@ -44,8 +43,13 @@ ISR(TIMER5_COMPA_vect){
   digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
   digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
 
-  tasks10ms ();
+  ISR10msActive = true;
+}
 
+char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
+
+// functions which run every 10ms
+void tasks10ms () {
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
     tasks500ms();
@@ -56,28 +60,25 @@ ISR(TIMER5_COMPA_vect){
   if ((taskLoopCounter == 4) && digitalRead(cpuStatusLEDbluePin)){
     digitalWrite(cpuStatusLEDbluePin, LOW);
   }
-}
 
-// functions which run at 100 Hz
-void tasks10ms () {
   cpuCycleHeadroom10ms = cpuCycleHeadroom10msIncrement;
   cpuCycleHeadroom10msIncrement = 0;
 }
 
-// functions which run at 2 Hz
+// functions which run every 500ms
 void tasks500ms () {
   digitalWrite(cpuStatusLEDbluePin, HIGH);
 
-  cpuCycleHeadroom100ms = cpuCycleHeadroom100msIncrement;
+  cpuCycleHeadroom500ms = cpuCycleHeadroom500msIncrement;
 
   Serial.print("millis(): ");
   Serial.print(millis());
   Serial.print(", free cycles 10ms: ");
   Serial.print(cpuCycleHeadroom10ms);
-  Serial.print(", 100ms: ");
-  Serial.println(cpuCycleHeadroom100ms);
+  Serial.print(", 500ms: ");
+  Serial.println(cpuCycleHeadroom500ms);
 
-  cpuCycleHeadroom100msIncrement = 0;  
+  cpuCycleHeadroom500msIncrement = 0;  
 }
 
 
@@ -103,7 +104,8 @@ void setup()
   digitalWrite(cpuStatusLEDbluePin, LOW);
 
   // Initialize timer 5 to periodically trigger the main loop via ISR(TIMER5_COMPA_vect)
-  noInterrupts();           // temporarily disable all interrupts during initialization
+  //    note arduino defines for cli() and sei() per https://forum.arduino.cc/index.php?topic=96156.0
+  noInterrupts();           // defined as cli() temporarily disable all interrupts during initialization
   TCCR5A = 0;
   TCCR5B = 0;
   TCNT5 = 0;
@@ -113,14 +115,14 @@ void setup()
   TCCR5B |= (1 << CS12);    // select 256 prescaler 
   TIMSK5 |= (1 << OCIE5A);  // enable timer compare interrupt
 
-  interrupts();             // enable all interrupts
+  interrupts();             // defined as sei() enable all interrupts
 
 
   // initialize counters to keep approximate tabs on available CPU cycles between interrupts
   cpuCycleHeadroom10ms = 0;
   cpuCycleHeadroom10msIncrement = 0;
-  cpuCycleHeadroom100ms = 0;
-  cpuCycleHeadroom100msIncrement = 0;
+  cpuCycleHeadroom500ms = 0;
+  cpuCycleHeadroom500msIncrement = 0;
 
 
   // initializeMotorTasks();
@@ -128,8 +130,12 @@ void setup()
 
 void loop()
 {
+  if (ISR10msActive){
+    tasks10ms ();
+    ISR10msActive = false;
+  }
 
   cpuCycleHeadroom10msIncrement += 1;
-  cpuCycleHeadroom100msIncrement += 1;
+  cpuCycleHeadroom500msIncrement += 1;
 }
 
