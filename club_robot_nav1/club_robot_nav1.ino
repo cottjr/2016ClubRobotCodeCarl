@@ -35,13 +35,16 @@ ISR(TIMER5_OVF_vect) {
 }
 
 volatile bool ISR10msActive = false;
+volatile bool cpuStatusLEDisWhite = false;
 
 // Use timer 5 to periodically trigger the main loop with well controlled timing
 // using timer 5 to avoid messing with timers needed for other purposes
 // interrupt handler via timer compare match method, per https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
 ISR(TIMER5_COMPA_vect){
-  digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
-  digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
+  if (!cpuStatusLEDisWhite){
+    digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
+    digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
+  }
 
   ISR10msActive = true;
 }
@@ -58,6 +61,9 @@ void tasks10ms () {
   }
 
   if ((taskLoopCounter == 4) && digitalRead(cpuStatusLEDbluePin)){
+    cpuStatusLEDisWhite = false;
+    digitalWrite(cpuStatusLEDredPin, HIGH);
+    digitalWrite(cpuStatusLEDgreenPin, LOW);
     digitalWrite(cpuStatusLEDbluePin, LOW);
   }
 
@@ -67,6 +73,9 @@ void tasks10ms () {
 
 // functions which run every 500ms
 void tasks500ms () {
+  cpuStatusLEDisWhite = true;
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, HIGH);
   digitalWrite(cpuStatusLEDbluePin, HIGH);
 
   cpuCycleHeadroom500ms = cpuCycleHeadroom500msIncrement;
