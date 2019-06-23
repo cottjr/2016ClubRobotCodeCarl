@@ -1,0 +1,984 @@
+
+
++----------------+  __bss_end     =2344
++----------------+  __heap_start  =2344
++                +
++       heap     +  heap_size     =5825
++                +
++----------------+  heap_end      =8169
++----------------+  Current STACK =8685
++                +
++      stack     +  stack_size    =19
+ freeBytesOfRAM: 6341
+
+
+initializeMotorTasks()
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 0
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: 0.00 rght 0.00, lftEncVelSetpnt: 0.00 rght 0.00
+
+
+periodicSampleMotorShield_Start()
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 0
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: 0.00 rght 0.00, lftEncVelSetpnt: 0.00 rght 0.00
+
+
+Starting periodic loops.
+
+-----
+
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 0 0.00, Rght 0.00 0.00 0 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 0.00 1 0.00, Rght 0.00 0.00 1 0.00
+
+
+---sampleMotorShieldCount 0
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 100
+ LeftPWM -255 Rght 255
+ left motor CCW right motor CW
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 100
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: -200.00 rght 200.00, lftEncVelSetpnt: -200.00 rght 200.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 0 right 0
+ robotOdometerVelocity.leftMotor 0.00 right 0.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint -200.00 right 200.00
+.robotOdometerVelocity.leftMotor 0.00 right 0.00
+.leftVelocityLoopOutPWM 0.00 right 0.00
+
+millis(): 1015, free cycles 20ms: 3484, 1000ms: 36007
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -22.00 1 -255.00, Rght 200.00 55.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -35.00 1 -255.00, Rght 200.00 62.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -58.00 1 -255.00, Rght 200.00 77.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -80.00 1 -255.00, Rght 200.00 92.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -97.00 1 -255.00, Rght 200.00 106.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -114.00 1 -255.00, Rght 200.00 123.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -131.00 1 -255.00, Rght 200.00 140.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -147.00 1 -255.00, Rght 200.00 154.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -162.00 1 -255.00, Rght 200.00 170.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -175.00 1 -255.00, Rght 200.00 184.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -185.00 1 -255.00, Rght 200.00 193.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -192.00 1 -255.00, Rght 200.00 200.00 1 -91.30
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -197.00 1 -235.17, Rght 200.00 207.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -199.00 1 -74.64, Rght 200.00 210.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -204.00 1 255.00, Rght 200.00 214.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -206.00 1 255.00, Rght 200.00 215.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -208.00 1 255.00, Rght 200.00 217.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -209.00 1 255.00, Rght 200.00 219.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -210.00 1 255.00, Rght 200.00 218.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -211.00 1 255.00, Rght 200.00 220.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -211.00 1 255.00, Rght 200.00 220.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+
+---sampleMotorShieldCount 1
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 0
+ LeftPWM 0 Rght 0
+ left motor off right motor off
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 0
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: 0.00 rght 0.00, lftEncVelSetpnt: 0.00 rght 0.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 9478 right 9951
+ robotOdometerVelocity.leftMotor -215.00 right 224.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint 0.00 right 0.00
+.robotOdometerVelocity.leftMotor -215.00 right 224.00
+.leftVelocityLoopOutPWM 255.00 right -255.00
+
+millis(): 2038, free cycles 20ms: 2424, 1000ms: 60097
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -422.00 1 255.00, Rght 0.00 438.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -201.00 1 255.00, Rght 0.00 209.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -195.00 1 255.00, Rght 0.00 202.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -188.00 1 255.00, Rght 0.00 196.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -182.00 1 255.00, Rght 0.00 190.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -176.00 1 255.00, Rght 0.00 183.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -171.00 1 255.00, Rght 0.00 177.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -164.00 1 255.00, Rght 0.00 171.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -158.00 1 255.00, Rght 0.00 165.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -154.00 1 255.00, Rght 0.00 159.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -147.00 1 255.00, Rght 0.00 154.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -142.00 1 255.00, Rght 0.00 148.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -136.00 1 255.00, Rght 0.00 143.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -131.00 1 255.00, Rght 0.00 137.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -126.00 1 255.00, Rght 0.00 132.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -122.00 1 255.00, Rght 0.00 127.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -117.00 1 255.00, Rght 0.00 121.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -112.00 1 255.00, Rght 0.00 117.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -107.00 1 255.00, Rght 0.00 112.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -102.00 1 255.00, Rght 0.00 107.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -98.00 1 255.00, Rght 0.00 103.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -93.00 1 255.00, Rght 0.00 97.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -89.00 1 255.00, Rght 0.00 94.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -85.00 1 255.00, Rght 0.00 88.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -81.00 1 255.00, Rght 0.00 85.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -77.00 1 255.00, Rght 0.00 80.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -72.00 1 255.00, Rght 0.00 77.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -69.00 1 255.00, Rght 0.00 72.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -65.00 1 255.00, Rght 0.00 68.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -62.00 1 255.00, Rght 0.00 63.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -57.00 1 255.00, Rght 0.00 59.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -55.00 1 255.00, Rght 0.00 56.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -51.00 1 255.00, Rght 0.00 52.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -47.00 1 255.00, Rght 0.00 50.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -44.00 1 255.00, Rght 0.00 45.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -42.00 1 255.00, Rght 0.00 43.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -37.00 1 255.00, Rght 0.00 40.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -35.00 1 255.00, Rght 0.00 36.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -33.00 1 255.00, Rght 0.00 34.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -29.00 1 255.00, Rght 0.00 31.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -27.00 1 255.00, Rght 0.00 28.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -24.00 1 255.00, Rght 0.00 26.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -21.00 1 255.00, Rght 0.00 22.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -19.00 1 255.00, Rght 0.00 21.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -16.00 1 255.00, Rght 0.00 18.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -14.00 1 255.00, Rght 0.00 16.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -12.00 1 255.00, Rght 0.00 13.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -9.00 1 255.00, Rght 0.00 11.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -8.00 1 255.00, Rght 0.00 9.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -4.00 1 255.00, Rght 0.00 7.00 1 -255.00
+
+
+---sampleMotorShieldCount 2
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 100
+ LeftPWM -255 Rght 255
+ left motor CCW right motor CW
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 100
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: -200.00 rght 200.00, lftEncVelSetpnt: -200.00 rght 200.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 14106 right 14783
+ robotOdometerVelocity.leftMotor -4.00 right 7.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint -200.00 right 200.00
+.robotOdometerVelocity.leftMotor -4.00 right 7.00
+.leftVelocityLoopOutPWM 255.00 right -255.00
+
+millis(): 3058, free cycles 20ms: 3365, 1000ms: 18713
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -65.00 1 -255.00, Rght 200.00 30.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -63.00 1 -255.00, Rght 200.00 46.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -76.00 1 -255.00, Rght 200.00 70.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -91.00 1 -255.00, Rght 200.00 90.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -105.00 1 -255.00, Rght 200.00 108.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -120.00 1 -255.00, Rght 200.00 127.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -137.00 1 -255.00, Rght 200.00 143.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -152.00 1 -255.00, Rght 200.00 159.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -167.00 1 -255.00, Rght 200.00 174.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -179.00 1 -255.00, Rght 200.00 187.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -188.00 1 -255.00, Rght 200.00 197.00 1 164.70
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -194.00 1 -255.00, Rght 200.00 203.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -199.00 1 -31.13, Rght 200.00 208.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -203.00 1 255.00, Rght 200.00 213.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -204.00 1 255.00, Rght 200.00 215.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -208.00 1 255.00, Rght 200.00 217.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -209.00 1 255.00, Rght 200.00 218.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -211.00 1 255.00, Rght 200.00 219.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 221.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+
+---sampleMotorShieldCount 3
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 0
+ LeftPWM 0 Rght 0
+ left motor off right motor off
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 0
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: 0.00 rght 0.00, lftEncVelSetpnt: 0.00 rght 0.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 23766 right 24773
+ robotOdometerVelocity.leftMotor -216.00 right 225.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint 0.00 right 0.00
+.robotOdometerVelocity.leftMotor -216.00 right 225.00
+.leftVelocityLoopOutPWM 255.00 right -255.00
+
+millis(): 4080, free cycles 20ms: 2419, 1000ms: 59480
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -424.00 1 255.00, Rght 0.00 441.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -203.00 1 255.00, Rght 0.00 211.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -196.00 1 255.00, Rght 0.00 206.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -190.00 1 255.00, Rght 0.00 198.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -183.00 1 255.00, Rght 0.00 193.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -178.00 1 255.00, Rght 0.00 186.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -171.00 1 255.00, Rght 0.00 181.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -167.00 1 255.00, Rght 0.00 175.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -160.00 1 255.00, Rght 0.00 170.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -156.00 1 255.00, Rght 0.00 164.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -148.00 1 255.00, Rght 0.00 158.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -144.00 1 255.00, Rght 0.00 153.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -139.00 1 255.00, Rght 0.00 147.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -133.00 1 255.00, Rght 0.00 143.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -129.00 1 255.00, Rght 0.00 136.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -124.00 1 255.00, Rght 0.00 133.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -119.00 1 255.00, Rght 0.00 127.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -115.00 1 255.00, Rght 0.00 123.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -109.00 1 255.00, Rght 0.00 118.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -105.00 1 255.00, Rght 0.00 114.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -101.00 1 255.00, Rght 0.00 109.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -96.00 1 255.00, Rght 0.00 104.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -92.00 1 255.00, Rght 0.00 100.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -87.00 1 255.00, Rght 0.00 96.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -84.00 1 255.00, Rght 0.00 92.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -80.00 1 255.00, Rght 0.00 88.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -75.00 1 255.00, Rght 0.00 84.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -72.00 1 255.00, Rght 0.00 80.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -68.00 1 255.00, Rght 0.00 76.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -64.00 1 255.00, Rght 0.00 73.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -60.00 1 255.00, Rght 0.00 69.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -57.00 1 255.00, Rght 0.00 65.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -54.00 1 255.00, Rght 0.00 62.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -50.00 1 255.00, Rght 0.00 59.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -47.00 1 255.00, Rght 0.00 55.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -44.00 1 255.00, Rght 0.00 52.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -40.00 1 255.00, Rght 0.00 49.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -38.00 1 255.00, Rght 0.00 45.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -34.00 1 255.00, Rght 0.00 43.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -32.00 1 255.00, Rght 0.00 39.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -28.00 1 255.00, Rght 0.00 37.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -27.00 1 255.00, Rght 0.00 33.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -22.00 1 255.00, Rght 0.00 31.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -21.00 1 255.00, Rght 0.00 28.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -18.00 1 255.00, Rght 0.00 27.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -16.00 1 255.00, Rght 0.00 22.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -13.00 1 255.00, Rght 0.00 20.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -11.00 1 255.00, Rght 0.00 18.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -9.00 1 255.00, Rght 0.00 15.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -6.00 1 255.00, Rght 0.00 13.00 1 -255.00
+
+
+---sampleMotorShieldCount 4
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 100
+ LeftPWM -255 Rght 255
+ left motor CCW right motor CW
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 100
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: -200.00 rght 200.00, lftEncVelSetpnt: -200.00 rght 200.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 28505 right 29934
+ robotOdometerVelocity.leftMotor -6.00 right 13.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint -200.00 right 200.00
+.robotOdometerVelocity.leftMotor -6.00 right 13.00
+.leftVelocityLoopOutPWM 255.00 right -255.00
+
+millis(): 5100, free cycles 20ms: 3333, 1000ms: 17753
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -30.00 1 -255.00, Rght 200.00 72.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -43.00 1 -255.00, Rght 200.00 68.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -66.00 1 -255.00, Rght 200.00 82.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -86.00 1 -255.00, Rght 200.00 98.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -104.00 1 -255.00, Rght 200.00 113.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -120.00 1 -255.00, Rght 200.00 130.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -137.00 1 -255.00, Rght 200.00 146.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -154.00 1 -255.00, Rght 200.00 161.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -168.00 1 -255.00, Rght 200.00 177.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -181.00 1 -255.00, Rght 200.00 190.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -188.00 1 -255.00, Rght 200.00 197.00 1 199.19
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -196.00 1 -255.00, Rght 200.00 205.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -200.00 1 59.83, Rght 200.00 210.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -203.00 1 255.00, Rght 200.00 214.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -206.00 1 255.00, Rght 200.00 216.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -208.00 1 255.00, Rght 200.00 218.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -211.00 1 255.00, Rght 200.00 220.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 227.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+
+---sampleMotorShieldCount 5
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 0
+ LeftPWM 0 Rght 0
+ left motor off right motor off
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 0
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: 0.00 rght 0.00, lftEncVelSetpnt: 0.00 rght 0.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 38122 right 40069
+ robotOdometerVelocity.leftMotor -216.00 right 226.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint 0.00 right 0.00
+.robotOdometerVelocity.leftMotor -216.00 right 226.00
+.leftVelocityLoopOutPWM 255.00 right -255.00
+
+millis(): 6122, free cycles 20ms: 2411, 1000ms: 59261
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -424.00 1 255.00, Rght 0.00 441.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -202.00 1 255.00, Rght 0.00 212.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -197.00 1 255.00, Rght 0.00 205.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -190.00 1 255.00, Rght 0.00 200.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -184.00 1 255.00, Rght 0.00 194.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -179.00 1 255.00, Rght 0.00 188.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -172.00 1 255.00, Rght 0.00 182.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -167.00 1 255.00, Rght 0.00 176.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -161.00 1 255.00, Rght 0.00 170.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -156.00 1 255.00, Rght 0.00 166.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -150.00 1 255.00, Rght 0.00 160.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -146.00 1 255.00, Rght 0.00 155.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -140.00 1 255.00, Rght 0.00 149.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -135.00 1 255.00, Rght 0.00 145.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -129.00 1 255.00, Rght 0.00 139.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -126.00 1 255.00, Rght 0.00 135.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -120.00 1 255.00, Rght 0.00 129.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -116.00 1 255.00, Rght 0.00 125.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -111.00 1 255.00, Rght 0.00 120.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -106.00 1 255.00, Rght 0.00 115.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -102.00 1 255.00, Rght 0.00 112.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -98.00 1 255.00, Rght 0.00 106.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -93.00 1 255.00, Rght 0.00 102.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -88.00 1 255.00, Rght 0.00 97.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -85.00 1 255.00, Rght 0.00 94.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -81.00 1 255.00, Rght 0.00 89.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -77.00 1 255.00, Rght 0.00 84.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -73.00 1 255.00, Rght 0.00 81.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -68.00 1 255.00, Rght 0.00 78.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -65.00 1 255.00, Rght 0.00 73.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -63.00 1 255.00, Rght 0.00 70.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -57.00 1 255.00, Rght 0.00 67.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -55.00 1 255.00, Rght 0.00 63.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -52.00 1 255.00, Rght 0.00 60.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -48.00 1 255.00, Rght 0.00 56.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -44.00 1 255.00, Rght 0.00 53.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -42.00 1 255.00, Rght 0.00 50.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -39.00 1 255.00, Rght 0.00 47.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -35.00 1 255.00, Rght 0.00 43.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -33.00 1 255.00, Rght 0.00 41.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -30.00 1 255.00, Rght 0.00 38.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -27.00 1 255.00, Rght 0.00 36.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -25.00 1 255.00, Rght 0.00 32.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -21.00 1 255.00, Rght 0.00 30.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -20.00 1 255.00, Rght 0.00 27.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -16.00 1 255.00, Rght 0.00 24.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -15.00 1 255.00, Rght 0.00 23.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -12.00 1 255.00, Rght 0.00 19.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -9.00 1 255.00, Rght 0.00 17.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: 0.00 -8.00 1 255.00, Rght 0.00 15.00 1 -255.00
+
+
+---sampleMotorShieldCount 6
+setMotorVelocityByPWM()
+clmpd turnVelocity 0 thrttl 100
+ LeftPWM -255 Rght 255
+ left motor CCW right motor CW
+
+setVelLoopSetpnts()clampd turnVel 0, thrttl 100
+lftEncFrmTurn: 0.00 rght 0.00, lftEncFrmThrttl: -200.00 rght 200.00, lftEncVelSetpnt: -200.00 rght 200.00
+
+
+.printRobotOdometerTicks() 
+ robotOdometerTicks.leftMotor 42914 right 45302
+ robotOdometerVelocity.leftMotor -8.00 right 15.00
+
+printVelocityLoopValues() 
+.leftEncVelocitySetpoint -200.00 right 200.00
+.robotOdometerVelocity.leftMotor -8.00 right 15.00
+.leftVelocityLoopOutPWM 255.00 right -255.00
+
+millis(): 7142, free cycles 20ms: 3331, 1000ms: 17490
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -36.00 1 -255.00, Rght 200.00 75.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -46.00 1 -255.00, Rght 200.00 67.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -68.00 1 -255.00, Rght 200.00 83.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -88.00 1 -255.00, Rght 200.00 99.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -105.00 1 -255.00, Rght 200.00 114.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -122.00 1 -255.00, Rght 200.00 131.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -139.00 1 -255.00, Rght 200.00 147.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -155.00 1 -255.00, Rght 200.00 163.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -169.00 1 -255.00, Rght 200.00 178.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -181.00 1 -255.00, Rght 200.00 191.00 1 255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -190.00 1 -255.00, Rght 200.00 200.00 1 -132.24
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -197.00 1 -196.49, Rght 200.00 205.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -200.00 1 50.88, Rght 200.00 211.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -203.00 1 255.00, Rght 200.00 214.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -206.00 1 255.00, Rght 200.00 217.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -210.00 1 255.00, Rght 200.00 219.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -209.00 1 255.00, Rght 200.00 220.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -212.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 222.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -213.00 1 255.00, Rght 200.00 223.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -214.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -215.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 224.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -217.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 227.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 225.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00
+
+LeftSetPnt/OdVel/PID/PWM: -200.00 -216.00 1 255.00, Rght 200.00 226.00 1 -255.00

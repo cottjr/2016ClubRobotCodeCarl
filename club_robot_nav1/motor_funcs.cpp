@@ -115,14 +115,14 @@ void printRobotOdometerTicks()
 {
   Serial.println("\n.printRobotOdometerTicks() ");
 
-  Serial.print(" robotOdometerTicks.leftMotor: ");
+  Serial.print(" robotOdometerTicks.leftMotor ");
   Serial.print(robotOdometerTicks.leftMotor);
-  Serial.print(" robotOdometerTicks.rightMotor: ");
+  Serial.print(" right ");
   Serial.println(robotOdometerTicks.rightMotor);
 
-  Serial.print(" robotOdometerVelocity.leftMotor: ");
+  Serial.print(" robotOdometerVelocity.leftMotor ");
   Serial.print(robotOdometerVelocity.leftMotor);
-  Serial.print(" robotOdometerVelocity.rightMotor: ");
+  Serial.print(" right ");
   Serial.print(robotOdometerVelocity.rightMotor);
   Serial.println();
 }
@@ -150,7 +150,7 @@ void updateRobotOdometerTicks()
   robotOdometerTicks.rightMotor += deltaOdometerTicks.rightMotor;
   robotOdometerTicks.leftMotor += deltaOdometerTicks.leftMotor;
 
-  robotOdometerVelocity.leftMotor = (double)deltaOdometerTicks.leftMotor;
+  robotOdometerVelocity.leftMotor = -(double)deltaOdometerTicks.leftMotor;
   robotOdometerVelocity.rightMotor = (double)deltaOdometerTicks.rightMotor;
 
   priorEncoderSample.rightMotor = currentEncoderSample.rightMotor;

@@ -7,6 +7,11 @@
 *  accepts abstrated +- 100 ranged commands for velocity control loop or position control loop
 *  maps those commands to PWM scaled commands as needed by the motor shield
 *
+*  NOTE: Review ANY 'Velocity' values when changing the sample rate, motor type or motor drive voltage!
+*   e.g. 'maxEncoderVelocityTicks' change when those parameters change...
+*   => would be nice to abstract those to a single compile or run-time initialization HAL place
+*   see "measureMinMaxMotorSpeed results 2019 April 21.txt" for initial baseline data
+*
 ******************************************************************/
 
 #include "motorTasks.h"
@@ -23,7 +28,11 @@
                                     // defined as the bigger of left or right motor value in forward or backwards, \
                                     // to ensure that both motors can achieve the lowest speed.                    \
                                     // measured over 100 ms
-#define maxEncoderVelocityTicks 100 // abs(steady state # encoder ticks) per 10 ms when motor at minPWM,            \
+#define maxEncoderVelocityTicks 200     // updated per quick measurement 2019 June 23 circa commit c786d6e 
+#define maxTurnEncoderVelocityTicks 78  // One would expcet this = maxTurnPWM / maxPWM * maxEncoderVelocityTicks;
+                                        // however, encoderVelocityTicks do not follow that formula in practice
+                                        // hence this value needs to be set by manual calibration
+                                    // abs(steady state # encoder ticks) per 10 ms when motor at maxPWM,            \
                                     // defined as the smaller of left or right motor value in forward or backwards, \
                                     // to ensure that both motors can achieve the highest speed                     \
                                     // measured over 100 ms
@@ -61,20 +70,20 @@ void printVelocityLoopValues()
 {
     Serial.println("\nprintVelocityLoopValues() ");
 
-    Serial.print(".leftEncVelocitySetpoint: ");
+    Serial.print(".leftEncVelocitySetpoint ");
     Serial.print(leftEncVelocitySetpoint);
-    Serial.print(" right: ");
+    Serial.print(" right ");
     Serial.println(rightEncVelocitySetpoint);
 
-    Serial.print(".robotOdometerVelocity.leftMotor: ");
+    Serial.print(".robotOdometerVelocity.leftMotor ");
     Serial.print(robotOdometerVelocity.leftMotor);
-    Serial.print(" right: ");
+    Serial.print(" right ");
     Serial.print(robotOdometerVelocity.rightMotor);
     Serial.println();
 
-    Serial.print(".leftVelocityLoopOutPWM: ");
+    Serial.print(".leftVelocityLoopOutPWM ");
     Serial.print(leftVelocityLoopOutPWM);
-    Serial.print(" right: ");
+    Serial.print(" right ");
     Serial.print(rightVelocityLoopOutPWM);
     Serial.println();
 }
@@ -279,6 +288,8 @@ signed char clamp(signed char whatValue, signed char limitingValue)
 // setVelocityLoopSetpoints()
 // Purpose: map heading and throttle commands to encoder velocity setpoints
 // Input:   accepts abstract speed and steering commands
+//          turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+//          throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
 // Algorithm:   maps abstract command range into encoder speed value range
 //              limits values to provide more robust behavior
 // Output:
@@ -296,50 +307,50 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
     //  Encoder values are signed Long...
     //  + values => turn motor CW, - values => turn motor CCW
     //  => positive turnVelocity => robot spins CW => turn both motors CCW
-    double rightEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxEncoderVelocityTicks;
-    double leftEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxEncoderVelocityTicks;
+    double rightEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks;
+    double leftEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks;
 
-    double limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(((double)turnVelocity) / 100 * maxEncoderVelocityTicks);
+    double limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks);
 
     double rightEncFromThrottle = ((double)throttle) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
     double leftEncFromThrottle = -1 * ((double)throttle) / 100 * limitedMaxVelocityTicks; // limit throttle for high rates of robot turn
 
-    rightEncVelocitySetpoint = (int)rightEncFromTurn + (int)rightEncFromThrottle;
-    leftEncVelocitySetpoint = (int)leftEncFromTurn + (int)leftEncFromThrottle;
+    rightEncVelocitySetpoint = rightEncFromTurn + rightEncFromThrottle;
+    leftEncVelocitySetpoint = leftEncFromTurn + leftEncFromThrottle;
 
     if (printNewSettings)
     {
-        Serial.println("\nsetVelocityLoopSetpoints()");
-        Serial.print(" clamped turnVelocity: ");
+        Serial.print("\nsetVelLoopSetpnts()");
+        Serial.print("clampd turnVel ");
         Serial.print(turnVelocity);
-        Serial.print(" clamped throttle: ");
+        Serial.print(", thrttl ");
         Serial.println(throttle);
 
-        Serial.print(" leftEncFromTurn: ");
+        Serial.print("lftEncFrmTurn: ");
         Serial.print(leftEncFromTurn);
-        Serial.print(" rightEncFromTurn: ");
+        Serial.print(" rght ");
         Serial.print(rightEncFromTurn);
-        Serial.println();
-
-        Serial.print(" leftEncFromThrottle: ");
+        
+        Serial.print(", lftEncFrmThrttl: ");
         Serial.print(leftEncFromThrottle);
-        Serial.print(" rightEncFromThrottle: ");
+        Serial.print(" rght ");
         Serial.print(rightEncFromThrottle);
+
+        Serial.print(", lftEncVelSetpnt: ");
+        Serial.print(leftEncVelocitySetpoint);
+        Serial.print(" rght ");
+        Serial.println(rightEncVelocitySetpoint);
         Serial.println();
 
-        // Serial.print(" leftEncVelocitySetpoint: ");
-        // Serial.print(leftEncVelocitySetpoint);
-        // Serial.print(" rightEncVelocitySetpoint: ");
-        // Serial.print(rightEncVelocitySetpoint);
-        // Serial.println("\n");
-
-        printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
+        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
     }
 }
 
 // sendVelocityLoopPWMtoMotorShield()   // ToDo -> belongs in HAL layer ???
 // Purpose: map velocity PID loop output to  & send PWM commands to the motor shield
 // Input:   'signed PWM' domain velocity setpoints
+//          values expected to range from -255 to +255
+//          values outside that range will be clamped
 // Algorithm:
 //          limits values to provide more robust behavior
 // Output:  set robot motor PWM values and direction as commanded
@@ -355,6 +366,7 @@ bool sendVelocityLoopPWMtoMotorShield()
     //  + values => turn motor CW, - values => turn motor CCW
     //  => positive turnVelocity => robot spins CW => turn both motors CCW
 
+    // Consider disabling the following lines -> rely on clamping function built-into PID_v1 library...
     leftLoopPWM = clamp((signed char)leftVelocityLoopOutPWM, maxPWM);
     rightLoopPWM = clamp((signed char)rightVelocityLoopOutPWM, maxPWM);
 
@@ -404,6 +416,8 @@ bool sendVelocityLoopPWMtoMotorShield()
 //  - this function assumes that no other tasks are sending PWM commands to the motor shield.
 //  - e.g. unpredictable results will likely occur if motor PID loops are running when this function is called
 // Input:   accepts abstract speed and steering commands
+//          turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+//          throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
 // Algorithm:   maps abstract command range into motor PWM value range
 //              limits values to provide more robust behavior
 //              Initial implementation - open loop
@@ -430,11 +444,14 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
     double rightPWMfromThrottle = ((double)throttle) / 100 * limitedMaxPWM;     // limit throttle for high rates of robot turn
     double leftPWMfromThrottle = -1 * ((double)throttle) / 100 * limitedMaxPWM; // limit throttle for high rates of robot turn
 
-    Serial.println("\nsetMotorVelocityByPWM()");
+    int rightPWM = (int)rightPWMfromTurn + (int)rightPWMfromThrottle;
+    int leftPWM = (int)leftPWMfromTurn + (int)leftPWMfromThrottle;
 
-    Serial.print("clamped: turnVelocity is ");
+    Serial.println("setMotorVelocityByPWM()");
+
+    Serial.print("clmpd turnVelocity ");
     Serial.print(turnVelocity);
-    Serial.print(" throttle is ");
+    Serial.print(" thrttl ");
     Serial.print(throttle);
     Serial.println();
 
@@ -454,13 +471,10 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
     //        Serial.print(rightPWMfromThrottle);
     //        Serial.println();
 
-    int rightPWM = (int)rightPWMfromTurn + (int)rightPWMfromThrottle;
-    int leftPWM = (int)leftPWMfromTurn + (int)leftPWMfromThrottle;
-
     //        Serial.println("\nmotorTasks.cpp - setMotorVelocityByPWM() - velocityLoopEnabled === true...");
-    Serial.print(" leftPWM: ");
+    Serial.print(" LeftPWM ");
     Serial.print(leftPWM);
-    Serial.print(" rightPWM: ");
+    Serial.print(" Rght ");
     Serial.print(rightPWM);
     Serial.println();
 
@@ -497,6 +511,7 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
         Serial.println(" right motor CCW");
         motorGo(R_MTR, CCW, -rightPWM);
     }
+
 
     return true;
 }
