@@ -125,17 +125,26 @@ void initializeMotorTasks()
 // int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
 void sampleMotorShield(){
         updateRobotOdometerTicks();
-        printRobotOdometerTicks(); // ToDo - remove this at full loop speed
+        // printRobotOdometerTicks(); // ToDo - remove this at full loop speed
 
         // leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
         // use preceeding lines normally - use following lines to verify PID is actually computing
-        Serial.print("\nleftPID: ");
+        Serial.print("\nleftPID/ setpnt/ PWM: ");
+        Serial.print(leftEncVelocitySetpoint);
+        Serial.print(" ");
         Serial.print(leftVelocityPID.Compute());
-        Serial.print(", right ");
-        Serial.println(rightVelocityPID.Compute());
+        Serial.print(" ");
+        Serial.print(leftVelocityLoopOutPWM);
 
-        printVelocityLoopValues(); // ToDo - remove this at full loop speed
+        Serial.print(", Rght ");
+        Serial.print(rightEncVelocitySetpoint);
+        Serial.print(" ");
+        Serial.print(rightVelocityPID.Compute());
+        Serial.print(" ");
+        Serial.println(rightVelocityLoopOutPWM);
+
+        // printVelocityLoopValues(); // ToDo - remove this at full loop speed
         // sendVelocityLoopPWMtoMotorShield();
 }
 // void periodicSampleMotorShield(ASIZE msLoopPeriod)

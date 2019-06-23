@@ -45,7 +45,9 @@ typedef struct encoderMeasurementsStruct
 // extern int periodicSampleMotorShield_ProcessID;
 // extern int monitorVelocityLoop_ProcessID;
 
+void printRobotOdometerTicks();
 void printVelocityLoopValues();
+
 // void monitorVelocityLoop(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
