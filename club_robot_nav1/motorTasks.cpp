@@ -130,8 +130,10 @@ void sampleMotorShield(){
         // leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
         // use preceeding lines normally - use following lines to verify PID is actually computing
-        Serial.print("\nleftPID/ setpnt/ PWM: ");
+        Serial.print("\nLeftSetPnt/OdVel/PID/PWM: ");
         Serial.print(leftEncVelocitySetpoint);
+        Serial.print(" ");
+        Serial.print(robotOdometerVelocity.leftMotor);
         Serial.print(" ");
         Serial.print(leftVelocityPID.Compute());
         Serial.print(" ");
@@ -139,6 +141,8 @@ void sampleMotorShield(){
 
         Serial.print(", Rght ");
         Serial.print(rightEncVelocitySetpoint);
+        Serial.print(" ");
+        Serial.print(robotOdometerVelocity.rightMotor);
         Serial.print(" ");
         Serial.print(rightVelocityPID.Compute());
         Serial.print(" ");
