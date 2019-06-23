@@ -123,6 +123,21 @@ void initializeMotorTasks()
 // Output:
 //  - send resulting motor commands to the motor shield
 // int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
+void sampleMotorShield(){
+        updateRobotOdometerTicks();
+        // printRobotOdometerTicks(); // ToDo - remove this at full loop speed
+
+        // leftVelocityPID.Compute();
+        // rightVelocityPID.Compute();
+        // use preceeding lines normally - use following lines to verify PID is actually computing
+        Serial.print("\nleftPID: ");
+        Serial.print(leftVelocityPID.Compute());
+        Serial.print(", right ");
+        Serial.println(rightVelocityPID.Compute());
+
+        // printVelocityLoopValues(); // ToDo - remove this at full loop speed
+        sendVelocityLoopPWMtoMotorShield();
+}
 // void periodicSampleMotorShield(ASIZE msLoopPeriod)
 // {
 //     TSIZE t;
@@ -153,6 +168,7 @@ void initializeMotorTasks()
 //  - request current encoder from nav_funcs.cpp
 // Output:
 //  - update data structure with current values
+
 void sampleEncoders(encoderMeasurementsStruct *whichOnes)
 {
     whichOnes->msTimestamp = millis();
@@ -185,9 +201,9 @@ void periodicSampleMotorShield_Start()
     leftVelocityPID.SetMode(AUTOMATIC);
     rightVelocityPID.SetMode(AUTOMATIC);
 
-    //sample the PIDs at 50 Hz
-    leftVelocityPID.SetSampleTime(20);
-    rightVelocityPID.SetSampleTime(20);
+    //sample the PIDs at 50 Hz -> ie. rely on the timer/counter interrupt scheme to sample every 20ms
+    leftVelocityPID.SetSampleTime(19);
+    rightVelocityPID.SetSampleTime(19);
 
     // Serial.println("launching periodicSampleMotorShield()");
     // kill_process(periodicSampleMotorShield_ProcessID); // cleanly restart this task in case an instance is already running

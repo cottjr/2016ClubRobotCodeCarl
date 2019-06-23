@@ -53,6 +53,18 @@ char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
 
 // functions which run every 10ms
 void tasks10ms () {
+  cpuStatusLEDisWhite = true;
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  digitalWrite(cpuStatusLEDbluePin, HIGH);
+  sampleMotorShield();          // read encoders, calculate PID, send commands to motors
+  cpuStatusLEDisWhite = false;
+  noInterrupts();
+  digitalWrite(cpuStatusLEDredPin, HIGH);
+  digitalWrite(cpuStatusLEDgreenPin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, LOW);
+  interrupts();
+
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
     tasks500ms();
@@ -61,10 +73,10 @@ void tasks10ms () {
   }
 
   if ((taskLoopCounter == 4) && digitalRead(cpuStatusLEDbluePin)){
-    cpuStatusLEDisWhite = false;
-    digitalWrite(cpuStatusLEDredPin, HIGH);
-    digitalWrite(cpuStatusLEDgreenPin, LOW);
-    digitalWrite(cpuStatusLEDbluePin, LOW);
+    // cpuStatusLEDisWhite = false;
+    // digitalWrite(cpuStatusLEDredPin, HIGH);
+    // digitalWrite(cpuStatusLEDgreenPin, LOW);
+    // digitalWrite(cpuStatusLEDbluePin, LOW);
   }
 
   cpuCycleHeadroom10ms = cpuCycleHeadroom10msIncrement;
@@ -73,10 +85,10 @@ void tasks10ms () {
 
 // functions which run every 500ms
 void tasks500ms () {
-  cpuStatusLEDisWhite = true;
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
+  // cpuStatusLEDisWhite = true;
+  // digitalWrite(cpuStatusLEDredPin, HIGH);
+  // digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  // digitalWrite(cpuStatusLEDbluePin, HIGH);
 
   cpuCycleHeadroom500ms = cpuCycleHeadroom500msIncrement;
 
@@ -94,7 +106,9 @@ void tasks500ms () {
 
 void setup()
 {
-  Serial.begin(57600);  // Serial:  0(RX), 1(TX)
+  Serial.begin(250000);   // Serial:  0(RX), 1(TX) => use the highest possible rate to minimize drag on the CPU
+                          // e.g. https://forum.arduino.cc/index.php?topic=76359.0
+                          // e.g. https://www.quora.com/What-is-the-baud-rate-and-why-does-Arduino-have-a-baud-rate-of-9-600
   Serial3.begin(57600); // => ToDo - Set This up for communication to the Display
                         // Serial3:  15(RX), 14(TX)
                         // https://www.arduino.cc/reference/en/language/functions/communication/serial/
@@ -119,7 +133,9 @@ void setup()
   TCCR5B = 0;
   TCNT5 = 0;
 
-  OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz
+  OCR5A = 1250;             // compare match register 16MHz/256 -> 1250 counts => 20ms ~50Hz
+  // OCR5A = 62500;             // compare match register 16MHz/256 -> 62500 counts => 1Hz
+  // OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz
   TCCR5B |= (1 << WGM12);   // select CTC mode
   TCCR5B |= (1 << CS12);    // select 256 prescaler 
   TIMSK5 |= (1 << OCIE5A);  // enable timer compare interrupt
@@ -134,7 +150,8 @@ void setup()
   cpuCycleHeadroom500msIncrement = 0;
 
 
-  // initializeMotorTasks();
+  initializeMotorTasks();
+  periodicSampleMotorShield_Start();
 }
 
 void loop()

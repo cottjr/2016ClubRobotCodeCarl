@@ -49,6 +49,7 @@ void printVelocityLoopValues();
 // void monitorVelocityLoop(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
+void sampleMotorShield();
 // void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
 extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
