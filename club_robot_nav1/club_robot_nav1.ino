@@ -53,17 +53,17 @@ char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
 
 // functions which run every 10ms
 void tasks10ms () {
-  cpuStatusLEDisWhite = true;
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
-  sampleMotorShield();          // read encoders, calculate PID, send commands to motors
-  cpuStatusLEDisWhite = false;
-  noInterrupts();
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, LOW);
-  digitalWrite(cpuStatusLEDbluePin, LOW);
-  interrupts();
+  // cpuStatusLEDisWhite = true;
+  // digitalWrite(cpuStatusLEDredPin, HIGH);
+  // digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  // digitalWrite(cpuStatusLEDbluePin, HIGH);
+  // sampleMotorShield();          // read encoders, calculate PID, send commands to motors
+  // cpuStatusLEDisWhite = false;
+  // noInterrupts();
+  // digitalWrite(cpuStatusLEDredPin, HIGH);
+  // digitalWrite(cpuStatusLEDgreenPin, LOW);
+  // digitalWrite(cpuStatusLEDbluePin, LOW);
+  // interrupts();
 
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
@@ -85,14 +85,24 @@ void tasks10ms () {
 
 // functions which run every 500ms
 void tasks500ms () {
-  // cpuStatusLEDisWhite = true;
-  // digitalWrite(cpuStatusLEDredPin, HIGH);
-  // digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  // digitalWrite(cpuStatusLEDbluePin, HIGH);
+  Serial.println("\n\n-----");
+
+  sampleMotorShield();
+
+  if (digitalRead(cpuStatusLEDbluePin) ){
+    digitalWrite(cpuStatusLEDbluePin, LOW);
+      setMotorVelocityByPWM(0,0);
+
+  } else {
+    digitalWrite(cpuStatusLEDbluePin, HIGH);
+      setMotorVelocityByPWM(0,15);
+  };
+
+  digitalRead(cpuStatusLEDbluePin) ^ 1;
 
   cpuCycleHeadroom500ms = cpuCycleHeadroom500msIncrement;
 
-  Serial.print("millis(): ");
+  Serial.print("\nmillis(): ");
   Serial.print(millis());
   Serial.print(", free cycles 10ms: ");
   Serial.print(cpuCycleHeadroom10ms);
@@ -152,6 +162,8 @@ void setup()
 
   initializeMotorTasks();
   periodicSampleMotorShield_Start();
+  Serial.println ("\nStarting periodic loops.");
+  Serial.println("\n-----\n");
 }
 
 void loop()
