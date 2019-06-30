@@ -58,9 +58,9 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // Aggressive and conservative Tuning Parameters
 // [0] == right, [1] == left
 // double aggKp=4, aggKi=0.2, aggKd=1;
-double conservativeVelocityKp[2] = {100, 100};
-double conservativeVelocityKi[2] = {0.05, 0.05};
-double conservativeVelocityKd[2] = {0.25, 0.25};
+double conservativeVelocityKp[2] = {1.75,1.75};  //r 1.75 note: {right, left}
+double conservativeVelocityKi[2] = {12, 12};  //r 12  note: {right, left}
+double conservativeVelocityKd[2] = {0, 0};  //r 0    note: {right, left}
 
 PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
 PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
@@ -158,7 +158,7 @@ void sampleMotorShield(){
         Serial.println(rightVelocityLoopOutPWM);
 
         // printVelocityLoopValues(); // ToDo - remove this at full loop speed
-        // sendVelocityLoopPWMtoMotorShield();
+        sendVelocityLoopPWMtoMotorShield();
 }
 // void periodicSampleMotorShield(ASIZE msLoopPeriod)
 // {
@@ -266,9 +266,24 @@ void periodicSampleMotorShield_Stop()
 }
 
 // clamp input whatValue to +/- limitingValue
-//  whatValue may be + or -
-//  limitingValue must be positive
+//      version for (signed char)
+//      whatValue may be + or -
+//      limitingValue must be positive
 signed char clamp(signed char whatValue, signed char limitingValue)
+{
+    if (whatValue < -limitingValue)
+        return -limitingValue;
+    else if (whatValue > limitingValue)
+        return limitingValue;
+    else
+        return whatValue;
+}
+
+// clamp input whatValue to +/- limitingValue
+//      version for (double)
+//      whatValue may be + or -
+//      limitingValue must be positive
+double clampDouble(double whatValue, double limitingValue)
 {
     if (whatValue < -limitingValue)
         return -limitingValue;
@@ -367,37 +382,51 @@ bool sendVelocityLoopPWMtoMotorShield()
     //  => positive turnVelocity => robot spins CW => turn both motors CCW
 
     // Consider disabling the following lines -> rely on clamping function built-into PID_v1 library...
-    leftLoopPWM = clamp((signed char)leftVelocityLoopOutPWM, maxPWM);
-    rightLoopPWM = clamp((signed char)rightVelocityLoopOutPWM, maxPWM);
+    leftLoopPWM = (signed int) clampDouble(leftVelocityLoopOutPWM, maxPWM);
+    rightLoopPWM = (signed int) clampDouble(rightVelocityLoopOutPWM, maxPWM);
 
-    if (velocityLoopEnabled)
+Serial.print("velLoopEnabled ");
+Serial.print(velocityLoopEnabled);
+Serial.print(" lftLoopPWM ");
+Serial.print(leftLoopPWM);
+Serial.print(" rght ");
+Serial.println(rightLoopPWM);
+
+    if ((abs(leftEncVelocitySetpoint)> minEncoderVelocityTicks) ||
+        (abs(rightEncVelocitySetpoint)> minEncoderVelocityTicks))
+                                                                // simply shut motors off for now and use passive braking
+                                                                // or maybe, consider having the setpoint override the PID loop
+                                                                // ie. so that if setpoint is too low, turn motors off regardless of PID loop...
+    // if (velocityLoopEnabled)
     {
         // set the left motor
         if (abs(leftLoopPWM) < minLeftPWM) // define the left motor deadband
         {
+            Serial.println(">>> Left motorOff ??? ");
             motorOff(L_MTR);
         }
         if (leftLoopPWM > 0)
         {
-            motorGo(L_MTR, CW, leftLoopPWM);
+            motorGo(L_MTR, CW, (unsigned int)(leftLoopPWM));
         }
         if (leftLoopPWM < 0)
         {
-            motorGo(L_MTR, CCW, -leftLoopPWM);
+            motorGo(L_MTR, CCW, (unsigned int)(-leftLoopPWM));
         }
 
         // set the right motor
         if (abs(rightLoopPWM) < minRightPWM) // define the right motor deadband
         {
+            Serial.println(">>> Right motorOff ??? ");
             motorOff(R_MTR);
         }
         if (rightLoopPWM > 0)
         {
-            motorGo(R_MTR, CW, rightLoopPWM);
+            motorGo(R_MTR, CW, (unsigned int)(rightLoopPWM));
         }
         if (rightLoopPWM < 0)
         {
-            motorGo(R_MTR, CCW, -rightLoopPWM);
+            motorGo(R_MTR, CCW, (unsigned int)(-rightLoopPWM));
         }
     }
     else // stop the motors

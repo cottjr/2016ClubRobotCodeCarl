@@ -101,17 +101,17 @@ void tasks1000ms () {
 
   if (digitalRead(cpuStatusLEDbluePin) ){
     digitalWrite(cpuStatusLEDbluePin, LOW);
-      setMotorVelocityByPWM(0,0);
+      // setMotorVelocityByPWM(0,0);
       setVelocityLoopSetpoints(0,0,true);
 
   } else {
     digitalWrite(cpuStatusLEDbluePin, HIGH);
-      setMotorVelocityByPWM(0,15);
-      setVelocityLoopSetpoints(0,15,true);
+      // setMotorVelocityByPWM(0,15);
+      setVelocityLoopSetpoints(0,30,true);
   };
 
-  printRobotOdometerTicks();
-  printVelocityLoopValues();
+  // printRobotOdometerTicks(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
+  // printVelocityLoopValues(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
 
   digitalRead(cpuStatusLEDbluePin) ^ 1;
 
