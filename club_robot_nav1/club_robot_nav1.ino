@@ -51,7 +51,10 @@ ISR(TIMER5_COMPA_vect){
   ISR20msActive = true;
 }
 
-char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
+char taskLoopCounter;    // used to divide the 20ms tick into a 1000ms loop
+long int tick20msCounter;     // used to track absolute number of 20ms ticks since power up
+bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off with an impulse runContinuousMotorStepResponseTest. Handy e.g. for PID tuning
+bool runQuickTrip;    // simply go out and back once shortly after power up
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -87,6 +90,30 @@ void tasks20ms () {
     // digitalWrite(cpuStatusLEDbluePin, LOW);
   }
 
+  unsigned char quickTripSpeed = 30;
+  if (runQuickTrip){
+    if (tick20msCounter == 150){
+      // start moving 3 seconds after power up
+      // move forward
+        setVelocityLoopSetpoints(0,quickTripSpeed,true);
+    }
+    if (tick20msCounter == 600){
+      // turn motors off
+      setVelocityLoopSetpoints(0,0,true);
+      // wait for 3 seconds
+    }
+    if (tick20msCounter == 750){
+      // then move backwards
+        setVelocityLoopSetpoints(0,-quickTripSpeed,true);
+    }
+    if (tick20msCounter == 1200){
+      // stop moving, please...    
+      setVelocityLoopSetpoints(0,0,true);
+    }
+  }
+
+  tick20msCounter += 1;
+
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
   cpuCycleHeadroom20msIncrement = 0;
 }
@@ -99,21 +126,21 @@ void tasks1000ms () {
   Serial.println(sampleMotorShieldCount);
   sampleMotorShieldCount += 1;
 
-  if (digitalRead(cpuStatusLEDbluePin) ){
-    digitalWrite(cpuStatusLEDbluePin, LOW);
+  digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
+
+  if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
+      // setMotorVelocityByPWM(0,0);
+      setVelocityLoopSetpoints(0,30,true);
+  } 
+  if (runContinuousMotorStepResponseTest && !digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,0);
       setVelocityLoopSetpoints(0,0,true);
-
-  } else {
-    digitalWrite(cpuStatusLEDbluePin, HIGH);
-      // setMotorVelocityByPWM(0,15);
-      setVelocityLoopSetpoints(0,30,true);
-  };
-
+  } 
+ 
   // printRobotOdometerTicks(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
   // printVelocityLoopValues(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
 
-  digitalRead(cpuStatusLEDbluePin) ^ 1;
+  // digitalRead(cpuStatusLEDbluePin) ^ 1;      // toggle the blue pin
 
   cpuCycleHeadroom1000ms = cpuCycleHeadroom1000msIncrement;
 
@@ -180,6 +207,11 @@ void setup()
   cpuCycleHeadroom1000ms = 0;
   cpuCycleHeadroom1000msIncrement = 0;
 
+  tick20msCounter = 0;
+
+  // Kludgy switches to run one or another thing when first power up
+  runContinuousMotorStepResponseTest = false;
+  runQuickTrip = true;
 
   initializeMotorTasks();
   periodicSampleMotorShield_Start();
