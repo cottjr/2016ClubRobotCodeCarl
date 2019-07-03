@@ -71,6 +71,7 @@ void tasks20ms () {
   // interrupts();
 
   digitalWrite(cpuStatusPin50, HIGH);
+  filterSetpointCommandValues();
   sampleMotorShield();
   digitalWrite(cpuStatusPin50, LOW);
 
@@ -95,7 +96,7 @@ void tasks20ms () {
     if (tick20msCounter == 150){
       // start moving 3 seconds after power up
       // move forward
-        setVelocityLoopSetpoints(0,quickTripSpeed,true);
+      setVelocityLoopSetpoints(0,quickTripSpeed,true);
     }
     if (tick20msCounter == 600){
       // turn motors off

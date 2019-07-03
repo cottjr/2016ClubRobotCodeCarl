@@ -15,6 +15,7 @@
 ******************************************************************/
 
 #include "motorTasks.h"
+#include <filters.h>
 
 // These values belong in a HAL layer file -> leaving here for now
 // by definition of motor_funcs.cpp, the maximum motor speed is 255
@@ -49,11 +50,26 @@ location currentLocation; // location === structure defined in nav_funcs.h  // T
 // Velocity loop PID variables
 double rightEncVelocitySetpoint = 0;
 double leftEncVelocitySetpoint = 0;
+
+double currentRightEncVelocitySetpointRequest = 0;
+double currentLeftEncVelocitySetpointRequest = 0;
+
 double rightVelocityLoopOutPWM = 0;
 double leftVelocityLoopOutPWM = 0;
 
 int leftLoopPWM = 0;  // used by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
+
+// Low-pass filters for velocity loop setpoint- smooth motor response- avoid slamming the gears
+// using this library: https://martinvb.com/wp/minimalist-low-pass-filter-library/
+// >> https://github.com/MartinBloedorn/libFilter
+const float velocity_setpoint_lowpass_cutoff_freq   = 4.0;  //Cutoff frequency in Hz
+const float sampling_time = 0.020; //Sampling time in seconds.
+IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD3; // Order (OD1 to OD4)
+    
+Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order);
+Filter filterLeftEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order);
+
 
 // Aggressive and conservative Tuning Parameters
 // [0] == right, [1] == left
@@ -116,6 +132,20 @@ void initializeMotorTasks()
     positionLoopEnabled = false;
 
     setVelocityLoopSetpoints(0, 0, true);
+}
+
+// Purpose: Smooth the setpoints given to the PID loop
+// Input:
+//      accepts current encoder velocity setpoint values,
+//      which are normally computed from higher level / abstract
+//      throttle and turn velocity values, and are changed relatively infrequently
+// Algorithm:
+//      simply maintain a low pass filtered version of whatever setpoint is thrown at the PID loop
+// Output:
+//      low pass filtered setpoint values
+void filterSetpointCommandValues(){
+  rightEncVelocitySetpoint = filterRightEncVelSetpoint.filterIn(currentRightEncVelocitySetpointRequest);
+  leftEncVelocitySetpoint = filterLeftEncVelSetpoint.filterIn(currentLeftEncVelocitySetpointRequest);
 }
 
 // Purpose: Periodic service to read and write motor shield values,
@@ -330,8 +360,10 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
     double rightEncFromThrottle = ((double)throttle) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
     double leftEncFromThrottle = -1 * ((double)throttle) / 100 * limitedMaxVelocityTicks; // limit throttle for high rates of robot turn
 
-    rightEncVelocitySetpoint = rightEncFromTurn + rightEncFromThrottle;
-    leftEncVelocitySetpoint = leftEncFromTurn + leftEncFromThrottle;
+    // rightEncVelocitySetpoint = rightEncFromTurn + rightEncFromThrottle;
+    // leftEncVelocitySetpoint = leftEncFromTurn + leftEncFromThrottle;
+    currentRightEncVelocitySetpointRequest = rightEncFromTurn + rightEncFromThrottle;
+    currentLeftEncVelocitySetpointRequest = leftEncFromTurn + leftEncFromThrottle;
 
     if (printNewSettings)
     {
@@ -352,9 +384,9 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
         Serial.print(rightEncFromThrottle);
 
         Serial.print(", lftEncVelSetpnt: ");
-        Serial.print(leftEncVelocitySetpoint);
+        Serial.print(currentLeftEncVelocitySetpointRequest);
         Serial.print(" rght ");
-        Serial.println(rightEncVelocitySetpoint);
+        Serial.println(currentRightEncVelocitySetpointRequest);
         Serial.println();
 
         // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
