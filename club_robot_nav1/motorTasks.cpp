@@ -392,49 +392,22 @@ Serial.print(leftLoopPWM);
 Serial.print(" rght ");
 Serial.println(rightLoopPWM);
 
-    // if ((abs(leftEncVelocitySetpoint)> minEncoderVelocityTicks) ||
-    //     (abs(rightEncVelocitySetpoint)> minEncoderVelocityTicks))
-                                                                // simply shut motors off for now and use passive braking
-                                                                // or maybe, consider having the setpoint override the PID loop
-                                                                // ie. so that if setpoint is too low, turn motors off regardless of PID loop...
-    // if (velocityLoopEnabled)
-    if (1)
+    if (leftLoopPWM > 0)
     {
-        // // set the left motor
-        // if (abs(leftLoopPWM) < minLeftPWM) // define the left motor deadband
-        // {
-        //     Serial.println(">>> Left motorOff ??? ");
-        //     motorOff(L_MTR);
-        // }
-        if (leftLoopPWM > 0)
-        {
-            motorGo(L_MTR, CW, (uint8_t)(leftLoopPWM));
-        }
-        if (leftLoopPWM < 0)
-        {
-            motorGo(L_MTR, CCW, (uint8_t)(-leftLoopPWM));
-        }
-
-        // // set the right motor
-        // if (abs(rightLoopPWM) < minRightPWM) // define the right motor deadband
-        // {
-        //     Serial.println(">>> Right motorOff ??? ");
-        //     motorOff(R_MTR);
-        // }
-        if (rightLoopPWM > 0)
-        {
-            motorGo(R_MTR, CW, (uint8_t)(rightLoopPWM));
-        }
-        if (rightLoopPWM < 0)
-        {
-            motorGo(R_MTR, CCW, (uint8_t)(-rightLoopPWM));
-        }
+        motorGo(L_MTR, CW, (uint8_t)(leftLoopPWM));
     }
-    else // stop the motors
+    if (leftLoopPWM < 0)
     {
-        setVelocityLoopSetpoints(0, 0, false);
-        motorOff(R_MTR);
-        motorOff(L_MTR);
+        motorGo(L_MTR, CCW, (uint8_t)(-leftLoopPWM));
+    }
+
+    if (rightLoopPWM > 0)
+    {
+        motorGo(R_MTR, CW, (uint8_t)(rightLoopPWM));
+    }
+    if (rightLoopPWM < 0)
+    {
+        motorGo(R_MTR, CCW, (uint8_t)(-rightLoopPWM));
     }
 
     return true;
