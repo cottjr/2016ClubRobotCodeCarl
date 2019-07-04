@@ -170,6 +170,11 @@ void setup()
 
   taskLoopCounter = 0;
 
+// chase this down, why does it look like uint8_t appear mapped to unsigned int, but behave more like byte or char?
+  // uint8_t sillyTest = 289;
+  // Serial.print("silly Test is ");
+  // Serial.println(sillyTest);
+
 
   pinMode (cpuStatusPin48, OUTPUT);
   pinMode (cpuStatusPin50, OUTPUT);
