@@ -65,6 +65,75 @@ double conservativeVelocityKd[2] = {0, 0};  //r 0    note: {right, left}
 PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
 PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
 
+// Purpose:
+//      stop any form of power going to the motor
+//      this eliminates motor noise which otherwise occurs from sending 0 velocity commands to motors via the PID loops
+void stopMotors()
+{
+    motorOff(L_MTR);
+    motorOff(R_MTR);
+}
+
+// Purpose: zero the PID loop integrator
+// Input: none
+// Algorithm:
+//      because the PID library does not expose it's internal "Initialize" method,
+//      Simply flip PID mode to manual, zero the PID output, then enable the PID again.
+//      This follows the library authors intention,
+//      ie. per http://brettbeauregard.com/blog/2011/04/improving-the-beginner%e2%80%99s-pid-initialization/
+//      note: it feels "dirty" to mainpulate the PID loop output variables this way,
+//          -> but it's what the author explicitly intended
+// Output:
+//      internal ITerm variable in the PID components are set to
+//      either the most recent actual feedback values
+//      or the PID loop output limits
+void initializePIDs () 
+{
+    leftVelocityPID.SetMode(MANUAL);
+    leftVelocityLoopOutPWM = 0;
+    leftVelocityPID.SetMode(AUTOMATIC);
+
+    rightVelocityPID.SetMode(MANUAL);
+    rightVelocityLoopOutPWM = 0;
+    rightVelocityPID.SetMode(AUTOMATIC);
+}
+
+byte zeroSpeedCache = 0;
+// Purpose:
+//      re-initialize the PIDs when the motors and robot appear to be at restart
+//      results in quickly disabling the annoying motor hum when motors are not getting commands
+//      relies on inherent inertial braking to more or less hold position steady
+//      but as the PID loops are left on this function,
+//      in case some external disturbance turns the motors, 
+//      the loops should automatically kick in and attempt to correct any motion and maintain zero velocity
+// Input:
+//      velocity loop setpoints
+//      actual encoder velocity measurements
+// Algorithm
+//      declare zero motion on several consecutive samples,
+//      where command and actual velocity is zero
+//      hopefully this is sufficient to detect an actual stop,
+//      as opposed to a motor command and velocity swinging through zero
+// Output:
+//      sets motor shield values and PWM commands to zero
+//      sets the PID loop integrator to zero
+void resetAtRestMotorsAndPIDs ()
+{
+    bool isCurrentSampleZero = false;
+
+    zeroSpeedCache = zeroSpeedCache << 1;
+
+    isCurrentSampleZero = (leftEncVelocitySetpoint == 0) && (robotOdometerVelocity.leftMotor == 0)
+                        && (rightEncVelocitySetpoint == 0) && (robotOdometerVelocity.rightMotor == 0);
+   
+    zeroSpeedCache |= isCurrentSampleZero;
+
+    if ( (zeroSpeedCache & 0x07) == 0x07) {
+        stopMotors();
+        initializePIDs();
+    }
+}
+
 // Purpose: print values related to the Velocity PID loop
 void printVelocityLoopValues()
 {
@@ -135,6 +204,8 @@ void initializeMotorTasks()
 void sampleMotorShield(){
         updateRobotOdometerTicks();
         // printRobotOdometerTicks(); // ToDo - remove this at full loop speed
+
+        resetAtRestMotorsAndPIDs();
 
         // leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
