@@ -91,23 +91,23 @@ void tasks20ms () {
     // digitalWrite(cpuStatusLEDbluePin, LOW);
   }
 
-  unsigned char quickTripSpeed = 30;
+  unsigned char quickTripSpeed = 100;
   if (runQuickTrip){
     if (tick20msCounter == 150){
       // start moving 3 seconds after power up
       // move forward
       setVelocityLoopSetpoints(0,quickTripSpeed,true);
     }
-    if (tick20msCounter == 600){
+    if (tick20msCounter == 250){
       // turn motors off
       setVelocityLoopSetpoints(0,0,true);
       // wait for 3 seconds
     }
-    if (tick20msCounter == 750){
+    if (tick20msCounter == 350){
       // then move backwards
         setVelocityLoopSetpoints(0,-quickTripSpeed,true);
     }
-    if (tick20msCounter == 1200){
+    if (tick20msCounter == 450){
       // stop moving, please...    
       setVelocityLoopSetpoints(0,0,true);
     }
