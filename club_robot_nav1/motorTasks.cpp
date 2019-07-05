@@ -139,8 +139,8 @@ void resetAtRestMotorsAndPIDs ()
 
     zeroSpeedCache = zeroSpeedCache << 1;
 
-    isCurrentSampleZero = (leftEncVelocitySetpoint == 0) && (robotOdometerVelocity.leftMotor == 0)
-                        && (rightEncVelocitySetpoint == 0) && (robotOdometerVelocity.rightMotor == 0);
+    isCurrentSampleZero = (currentLeftEncVelocitySetpointRequest == 0) && (robotOdometerVelocity.leftMotor == 0)
+                        && (currentRightEncVelocitySetpointRequest == 0) && (robotOdometerVelocity.rightMotor == 0);
    
     zeroSpeedCache |= isCurrentSampleZero;
 
