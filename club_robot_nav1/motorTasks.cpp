@@ -65,10 +65,10 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // >> https://github.com/MartinBloedorn/libFilter
 const float velocity_setpoint_lowpass_cutoff_freq   = 0.3;  //Cutoff frequency in Hz
 const float sampling_time = 0.020; //Sampling time in seconds.
-IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD3; // Order (OD1 to OD4)
+IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD1; // Order (OD1 to OD4)
     
-Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order);
-Filter filterLeftEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order);
+Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterLeftEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
 
 // Aggressive and conservative Tuning Parameters
