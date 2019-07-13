@@ -1,6 +1,16 @@
 Planning Notes.txt
 Thoughts and plans for "ClubCar DonkeyBot"
 
+2019 June 30
+- Loops seem slightly underdamped, but would be easier to tune real-time 
+-- >> with potentiometer input for each value, 
+-- >> and writing the loop setpoint and current encoder velocity to analog pins for viewing on O'Scope 
+- Need to consider options: 
+-- >> active braking versus simple shunt to ground braking 
+-- >> improving the logic to better handle setpoints & loop output when PWM values are less than minLeftPWM or minRightPWM 
+-- >> adding a low pass between command and setpoint, to give more graceful transitions & reduce peak transient demands on the battery
+-- >> adding logic to clear recent encoderVelocity measures when turn off the motors (ie. avoid big surge when turn motors off while running, then on again - simulate by switching power to motors? or is that causing some other issue?)
+
 2019 March 2
 - solder & swap out Monster Motor Shield
     verify symmetrical encoder behavior

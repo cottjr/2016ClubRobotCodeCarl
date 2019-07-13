@@ -11,20 +11,22 @@
 // #include <stdio.h>
 
 #include "libtaskMemoryTest.h"
-// #include "motorTasks.h"
+#include "motorTasks.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
+#define cpuStatusPin48 48         // simple digital pin for o'scope monitoring
+#define cpuStatusPin50 50         // simple digital pin for o'scope monitoring
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
 #define cpuStatusLEDredPin 51     // 325 ohm
 #define cpuStatusLEDgreenPin 52   // 1.2K ohm
 #define cpuStatusLEDbluePin 53    // 1K ohm
 
 
-unsigned int cpuCycleHeadroom10ms;            // most recent number of spare cycles betewen 10ms interrupt periods
-unsigned int cpuCycleHeadroom10msIncrement;   // working count
-unsigned int cpuCycleHeadroom500ms;           // most recent number of spare cycles betewen 100ms interrupt periods
-unsigned int cpuCycleHeadroom500msIncrement;  // working count
+unsigned int cpuCycleHeadroom20ms;            // most recent number of spare cycles betewen 10ms interrupt periods
+unsigned int cpuCycleHeadroom20msIncrement;   // working count
+unsigned int cpuCycleHeadroom1000ms;           // most recent number of spare cycles betewen 100ms interrupt periods
+unsigned int cpuCycleHeadroom1000msIncrement;  // working count
 
 // interrupt handler sketch per Dale Wheat - Arduino Internals, page 145
 //  -> except changed from timer 1 to timer 5 (since timer 1 is incompatible with delay() and other functions, 
@@ -34,7 +36,7 @@ ISR(TIMER5_OVF_vect) {
   bitSet(PINB, 7); // toggle ATMega2560 PB7/D13 LED pin state by writing to the input read register // per Dale Wheat - Arduino Internals page 145
 }
 
-volatile bool ISR10msActive = false;
+volatile bool ISR20msActive = false;
 volatile bool cpuStatusLEDisWhite = false;
 
 // Use timer 5 to periodically trigger the main loop with well controlled timing
@@ -46,55 +48,120 @@ ISR(TIMER5_COMPA_vect){
     digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
   }
 
-  ISR10msActive = true;
+  ISR20msActive = true;
 }
 
-char taskLoopCounter;      // used to divide the 100 Hz loop into a 10 Hz loop
+char taskLoopCounter;    // used to divide the 20ms tick into a 1000ms loop
+long int tick20msCounter;     // used to track absolute number of 20ms ticks since power up
+bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off with an impulse runContinuousMotorStepResponseTest. Handy e.g. for PID tuning
+bool runQuickTrip;    // simply go out and back once shortly after power up
 
-// functions which run every 10ms
-void tasks10ms () {
+// functions which run every 20ms
+void tasks20ms () {
+  // cpuStatusLEDisWhite = true;
+  // digitalWrite(cpuStatusLEDredPin, HIGH);
+  // digitalWrite(cpuStatusLEDgreenPin, HIGH);
+  // digitalWrite(cpuStatusLEDbluePin, HIGH);
+  // sampleMotorShield();          // read encoders, calculate PID, send commands to motors
+  // cpuStatusLEDisWhite = false;
+  // noInterrupts();
+  // digitalWrite(cpuStatusLEDredPin, HIGH);
+  // digitalWrite(cpuStatusLEDgreenPin, LOW);
+  // digitalWrite(cpuStatusLEDbluePin, LOW);
+  // interrupts();
+
+  digitalWrite(cpuStatusPin50, HIGH);
+  filterSetpointCommandValues();
+  sampleMotorShield();
+  digitalWrite(cpuStatusPin50, LOW);
+
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
-    tasks500ms();
+    digitalWrite(cpuStatusPin48, HIGH);
+    tasks1000ms();
+    digitalWrite(cpuStatusPin48, LOW);
   } else {
     taskLoopCounter += 1;
   }
 
   if ((taskLoopCounter == 4) && digitalRead(cpuStatusLEDbluePin)){
-    cpuStatusLEDisWhite = false;
-    digitalWrite(cpuStatusLEDredPin, HIGH);
-    digitalWrite(cpuStatusLEDgreenPin, LOW);
-    digitalWrite(cpuStatusLEDbluePin, LOW);
+    // cpuStatusLEDisWhite = false;
+    // digitalWrite(cpuStatusLEDredPin, HIGH);
+    // digitalWrite(cpuStatusLEDgreenPin, LOW);
+    // digitalWrite(cpuStatusLEDbluePin, LOW);
   }
 
-  cpuCycleHeadroom10ms = cpuCycleHeadroom10msIncrement;
-  cpuCycleHeadroom10msIncrement = 0;
+  unsigned char quickTripSpeed = 100;
+  if (runQuickTrip){
+    if (tick20msCounter == 150){
+      // start moving 3 seconds after power up
+      // move forward
+      setVelocityLoopSetpoints(0,quickTripSpeed,true);
+    }
+    if (tick20msCounter == 250){
+      // turn motors off
+      setVelocityLoopSetpoints(0,0,true);
+      // wait for 3 seconds
+    }
+    if (tick20msCounter == 350){
+      // then move backwards
+        setVelocityLoopSetpoints(0,-quickTripSpeed,true);
+    }
+    if (tick20msCounter == 450){
+      // stop moving, please...    
+      setVelocityLoopSetpoints(0,0,true);
+    }
+  }
+
+  tick20msCounter += 1;
+
+  cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
+  cpuCycleHeadroom20msIncrement = 0;
 }
 
+int sampleMotorShieldCount = 0;
+
 // functions which run every 500ms
-void tasks500ms () {
-  cpuStatusLEDisWhite = true;
-  digitalWrite(cpuStatusLEDredPin, HIGH);
-  digitalWrite(cpuStatusLEDgreenPin, HIGH);
-  digitalWrite(cpuStatusLEDbluePin, HIGH);
+void tasks1000ms () {
+  Serial.print("\n\n---sampleMotorShieldCount ");
+  Serial.println(sampleMotorShieldCount);
+  sampleMotorShieldCount += 1;
 
-  cpuCycleHeadroom500ms = cpuCycleHeadroom500msIncrement;
+  digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
 
-  Serial.print("millis(): ");
+  if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
+      // setMotorVelocityByPWM(0,0);
+      setVelocityLoopSetpoints(0,30,true);
+  } 
+  if (runContinuousMotorStepResponseTest && !digitalRead(cpuStatusLEDbluePin) ){
+      // setMotorVelocityByPWM(0,0);
+      setVelocityLoopSetpoints(0,0,true);
+  } 
+ 
+  // printRobotOdometerTicks(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
+  // printVelocityLoopValues(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
+
+  // digitalRead(cpuStatusLEDbluePin) ^ 1;      // toggle the blue pin
+
+  cpuCycleHeadroom1000ms = cpuCycleHeadroom1000msIncrement;
+
+  Serial.print("\nmillis(): ");
   Serial.print(millis());
-  Serial.print(", free cycles 10ms: ");
-  Serial.print(cpuCycleHeadroom10ms);
-  Serial.print(", 500ms: ");
-  Serial.println(cpuCycleHeadroom500ms);
+  Serial.print(", free cycles 20ms: ");
+  Serial.print(cpuCycleHeadroom20ms);
+  Serial.print(", 1000ms: ");
+  Serial.println(cpuCycleHeadroom1000ms);
 
-  cpuCycleHeadroom500msIncrement = 0;  
+  cpuCycleHeadroom1000msIncrement = 0;  
 }
 
 
 
 void setup()
 {
-  Serial.begin(57600);  // Serial:  0(RX), 1(TX)
+  Serial.begin(250000);   // Serial:  0(RX), 1(TX) => use the highest possible rate to minimize drag on the CPU
+                          // e.g. https://forum.arduino.cc/index.php?topic=76359.0
+                          // e.g. https://www.quora.com/What-is-the-baud-rate-and-why-does-Arduino-have-a-baud-rate-of-9-600
   Serial3.begin(57600); // => ToDo - Set This up for communication to the Display
                         // Serial3:  15(RX), 14(TX)
                         // https://www.arduino.cc/reference/en/language/functions/communication/serial/
@@ -103,6 +170,17 @@ void setup()
   printFreeBytesOfRAM();
 
   taskLoopCounter = 0;
+
+// chase this down, why does it look like uint8_t appear mapped to unsigned int, but behave more like byte or char?
+  // uint8_t sillyTest = 289;
+  // Serial.print("silly Test is ");
+  // Serial.println(sillyTest);
+
+
+  pinMode (cpuStatusPin48, OUTPUT);
+  pinMode (cpuStatusPin50, OUTPUT);
+  digitalWrite(cpuStatusPin48, LOW);
+  digitalWrite(cpuStatusPin50, LOW);
 
   pinMode (cpuStatusLEDredPin, OUTPUT);
   pinMode (cpuStatusLEDgreenPin, OUTPUT);
@@ -119,7 +197,9 @@ void setup()
   TCCR5B = 0;
   TCNT5 = 0;
 
-  OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz
+  OCR5A = 1250;             // compare match register 16MHz/256 -> 1250 counts => 20ms ~50Hz
+  // OCR5A = 62500;             // compare match register 16MHz/256 -> 62500 counts => 1Hz
+  // OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz
   TCCR5B |= (1 << WGM12);   // select CTC mode
   TCCR5B |= (1 << CS12);    // select 256 prescaler 
   TIMSK5 |= (1 << OCIE5A);  // enable timer compare interrupt
@@ -128,23 +208,31 @@ void setup()
 
 
   // initialize counters to keep approximate tabs on available CPU cycles between interrupts
-  cpuCycleHeadroom10ms = 0;
-  cpuCycleHeadroom10msIncrement = 0;
-  cpuCycleHeadroom500ms = 0;
-  cpuCycleHeadroom500msIncrement = 0;
+  cpuCycleHeadroom20ms = 0;
+  cpuCycleHeadroom20msIncrement = 0;
+  cpuCycleHeadroom1000ms = 0;
+  cpuCycleHeadroom1000msIncrement = 0;
 
+  tick20msCounter = 0;
 
-  // initializeMotorTasks();
+  // Kludgy switches to run one or another thing when first power up
+  runContinuousMotorStepResponseTest = false;
+  runQuickTrip = true;
+
+  initializeMotorTasks();
+  periodicSampleMotorShield_Start();
+  Serial.println ("\nStarting periodic loops.");
+  Serial.println("\n-----\n");
 }
 
 void loop()
 {
-  if (ISR10msActive){
-    tasks10ms ();
-    ISR10msActive = false;
+  if (ISR20msActive){
+    tasks20ms ();
+    ISR20msActive = false;
   }
 
-  cpuCycleHeadroom10msIncrement += 1;
-  cpuCycleHeadroom500msIncrement += 1;
+  cpuCycleHeadroom20msIncrement += 1;
+  cpuCycleHeadroom1000msIncrement += 1;
 }
 

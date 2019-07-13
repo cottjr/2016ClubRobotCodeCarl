@@ -59,30 +59,18 @@ void init_motor_driver_shield()
     pinMode(pwmpin[i], OUTPUT);
   }
   // Initialize braked
-  // ToDo => replace following with a call to motorOff() for each motor
-  // for (int i = 0; i < 2; i++)
-  // {
-  //   digitalWrite(inApin[i], LOW);
-  //   digitalWrite(inBpin[i], LOW);
-  // }
   motorOff(L_MTR);
   motorOff(R_MTR);
 }
 
 // Legacy Function => Keep in motorHAL.cpp
-// Purpose: Initializes motor shield
+// Purpose: Turn motor off
 // Output:
-//  - motor shield chips left in a proper initial state
-//  - motor drive pins set as proper type
-//  - motor drive pin state set to 'brake mode'
+//  - set motor drive pins to 'brake mode'
 void motorOff(int motor)
 {
-  // Initialize braked
-  for (int i = 0; i < 2; i++)
-  {
-    digitalWrite(inApin[i], LOW);
-    digitalWrite(inBpin[i], LOW);
-  }
+  digitalWrite(inApin[motor], LOW);
+  digitalWrite(inBpin[motor], LOW);
   analogWrite(pwmpin[motor], 0);
 }
 
@@ -115,14 +103,14 @@ void printRobotOdometerTicks()
 {
   Serial.println("\n.printRobotOdometerTicks() ");
 
-  Serial.print(" robotOdometerTicks.leftMotor: ");
+  Serial.print(" robotOdometerTicks.leftMotor ");
   Serial.print(robotOdometerTicks.leftMotor);
-  Serial.print(" robotOdometerTicks.rightMotor: ");
+  Serial.print(" right ");
   Serial.println(robotOdometerTicks.rightMotor);
 
-  Serial.print(" robotOdometerVelocity.leftMotor: ");
+  Serial.print(" robotOdometerVelocity.leftMotor ");
   Serial.print(robotOdometerVelocity.leftMotor);
-  Serial.print(" robotOdometerVelocity.rightMotor: ");
+  Serial.print(" right ");
   Serial.print(robotOdometerVelocity.rightMotor);
   Serial.println();
 }
@@ -150,7 +138,7 @@ void updateRobotOdometerTicks()
   robotOdometerTicks.rightMotor += deltaOdometerTicks.rightMotor;
   robotOdometerTicks.leftMotor += deltaOdometerTicks.leftMotor;
 
-  robotOdometerVelocity.leftMotor = (double)deltaOdometerTicks.leftMotor;
+  robotOdometerVelocity.leftMotor = -(double)deltaOdometerTicks.leftMotor;
   robotOdometerVelocity.rightMotor = (double)deltaOdometerTicks.rightMotor;
 
   priorEncoderSample.rightMotor = currentEncoderSample.rightMotor;

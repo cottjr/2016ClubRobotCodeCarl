@@ -14,11 +14,12 @@
 // #define VERSION "BMARK-2.1.3 (clubRobot-0.0.1)"
 
 #include <arduino.h>
-#include <task.h>
-#include <log.h>
-#include <sysclock.h>
+// #include <task.h>
+// #include <log.h>
+// #include <sysclock.h>
 
-#include "motor_funcs.h"      // provides access to motor motor drivers.  needs also helpful_defines.h     // ToDo, add #include helpful_defines.h to motor_funcs.h due to it's obvious dependency?
+#include "motor_funcs.h"    // provides access to motor motor drivers.  needs also helpful_defines.h     // ToDo, add #include helpful_defines.h to motor_funcs.h due to it's obvious dependency?
+                            // Interface layer to Monster Motor Shield
 #include <PID_v1.h>
 #include "nav_funcs.h"        // provides access encoder functions
 #include "helpful_defines.h"  // common defines used also in motor_funcs.h, like R_MTR
@@ -26,10 +27,10 @@
 
 // ToDo - decide whether to keep & use this
 // need / used by libtask logging functions?
-#if (MACHINE == MACH_AVR) /* Mega2560, Mega328 Teensy-LC */
-#define PRINTF Serial3.println
-#define SPRINTF sprintf
-#endif
+// #if (MACHINE == MACH_AVR) /* Mega2560, Mega328 Teensy-LC */
+// #define PRINTF Serial3.println
+// #define SPRINTF sprintf
+// #endif
 
 
 typedef struct encoderMeasurementsStruct
@@ -42,14 +43,18 @@ typedef struct encoderMeasurementsStruct
     int encoderDeltaToPriorLeft;  // encoder difference from this sample to prior
 };
 
-extern int periodicSampleMotorShield_ProcessID;
-extern int monitorVelocityLoop_ProcessID;
+// extern int periodicSampleMotorShield_ProcessID;
+// extern int monitorVelocityLoop_ProcessID;
 
+void printRobotOdometerTicks();
 void printVelocityLoopValues();
-void monitorVelocityLoop(ASIZE msLoopPeriod);
+
+// void monitorVelocityLoop(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
-void periodicSampleMotorShield(ASIZE msLoopPeriod);
+void filterSetpointCommandValues();
+void sampleMotorShield();
+// void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
 extern int msOfPriorPID, msOfCurrentPID, msBetweenPID, msExecutePID; // track velocity PID loop execution timing and periodicity...
 
@@ -67,10 +72,10 @@ extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorS
 extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();
 
-void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
+// void testVelocityPIDloop(ASIZE dummyArgumentPlaceholder);
 void testVelocityLoopSetpointsMath();
-void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
-void testMotorTasks(ASIZE dummyArgumentPlaceholder);
+// void measureMinMaxMotorSpeeds(ASIZE dummyPlaceholder);
+// void testMotorTasks(ASIZE dummyArgumentPlaceholder);
 
 
 
