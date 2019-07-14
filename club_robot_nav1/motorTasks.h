@@ -52,7 +52,9 @@ void printVelocityLoopValues();
 // void monitorVelocityLoop(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
+void filterTurnAndThrottleRequestValues();
 void filterSetpointCommandValues();
+bool updateVelocityLoopSetpoints(bool printNewSettings);
 void sampleMotorShield();
 // void periodicSampleMotorShield(ASIZE msLoopPeriod);
 

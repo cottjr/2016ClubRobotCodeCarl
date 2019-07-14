@@ -71,7 +71,9 @@ void tasks20ms () {
   // interrupts();
 
   digitalWrite(cpuStatusPin50, HIGH);
-  filterSetpointCommandValues();
+  filterTurnAndThrottleRequestValues(); // moved lowpass to start of chain
+  updateVelocityLoopSetpoints(false); // map filtered turn & throttle to encoder space motor setpoints
+  filterSetpointCommandValues();  // original lowpass position at input of motor encooder PID loops
   sampleMotorShield();
   digitalWrite(cpuStatusPin50, LOW);
 

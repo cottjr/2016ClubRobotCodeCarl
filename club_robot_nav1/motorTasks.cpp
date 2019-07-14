@@ -47,6 +47,20 @@ bool positionLoopEnabled = false;
 
 location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
 
+// user requested throttle and turn setpoints
+signed char clampedTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+signed char clampedThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
+double filteredTurnVelocityRequest = 0;     // low pass filtered version of clamped turn velocity request
+double filteredThrottleRequest = 0;         // low pass filtered version of clamped throttle request
+
+double throttleRequestEncoderTicks = 0;    // intermediate variable, setpoint contribution from throttle request 
+double rightEncRequestFromThrottle = 0;    // intermediate variable, setpoint contribution from throttle request
+double leftEncRequestFromThrottle = 0;     // intermediate variable, setpoint contribution from throttle request
+
+double rightEncRequestFromTurn = 0;    // intermediate variable, setpoint contribution from turn request
+double leftEncRequestFromTurn = 0;    // intermediate variable, setpoint contribution from turn request
+
 // Velocity loop PID variables
 double rightEncVelocitySetpoint = 0;
 double leftEncVelocitySetpoint = 0;
@@ -67,10 +81,16 @@ const float velocity_setpoint_lowpass_cutoff_freq   = 0.3;  //Cutoff frequency i
 const float sampling_time = 0.020; //Sampling time in seconds.
 IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD1; // Order (OD1 to OD4)
     
+// ToDo: remove these filters, now that they were bypassed when moved LowPass function from setpoints to be earlier with Throttle and TurnVelocity
 Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 Filter filterLeftEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
+Filter filterThrottleRequest(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterTurnVelocityRequest(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
+
+// Velocity PID Loops -> for mananging left and right motor velocity
+// Framework for adaptive tuning parameters, copied from PID library examples
 // Aggressive and conservative Tuning Parameters
 // [0] == right, [1] == left
 // double aggKp=4, aggKi=0.2, aggKd=1;
@@ -80,6 +100,18 @@ double conservativeVelocityKd[2] = {0, 0};  //r 0    note: {right, left}
 
 PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
 PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
+
+// Turn Velocity PID loops -> for mananging turn velocity on differential drive robots where rate of turn is a function of relative left and right motor Speeds
+double turnVelocityKp = 1.75; //r 1.75
+double turnVelocityKi = 12;  //r 12
+double turnVelocityKd = 0;  //r 0
+
+double limitedMaxVelocityTicks = maxEncoderVelocityTicks;   // intermediate value to give turn commands priority over throttle commands
+double turnVelocityRequestEncoderTicks = 0; // desired turn velocity setpoint (encoder velocity units space)
+double turnVelocityMeasured = 0; // latest measured turn velocity (encoder velocity units space)
+double turnVelocityLoopOut = 0; // control loop output to obtain desired turn velocity setpoint (encoder velocity units space)
+
+PID turnVelocityPID(&turnVelocityMeasured, &turnVelocityLoopOut, &turnVelocityRequestEncoderTicks, turnVelocityKp, turnVelocityKi, turnVelocityKd, DIRECT);
 
 // Purpose:
 //      stop any form of power going to the motor
@@ -139,8 +171,8 @@ void resetAtRestMotorsAndPIDs ()
 
     zeroSpeedCache = zeroSpeedCache << 1;
 
-    isCurrentSampleZero = (currentLeftEncVelocitySetpointRequest == 0) && (robotOdometerVelocity.leftMotor == 0)
-                        && (currentRightEncVelocitySetpointRequest == 0) && (robotOdometerVelocity.rightMotor == 0);
+    isCurrentSampleZero = (clampedThrottleRequest == 0) && (clampedTurnVelocityRequest == 0)
+                        && (robotOdometerVelocity.leftMotor == 0) && (robotOdometerVelocity.rightMotor == 0);
    
     zeroSpeedCache |= isCurrentSampleZero;
 
@@ -203,6 +235,25 @@ void initializeMotorTasks()
     setVelocityLoopSetpoints(0, 0, true);
 }
 
+// Purpose: low pass limit & smooth the throttle and turn setpoint requests
+// Input:
+//      accepts current clamped Throttle and Turn Velocity request values,
+//      which are higher level / abstract values ranging from -100 ... +100,
+//      which are changed relatively infrequently
+// Algorithm:
+//      simply maintain a low pass filtered version of these command values
+//      this function is intended to be called at a regular sampling rate e.g. based on some interrupt
+// Output:
+//      low pass filtered Throttle and TurnVelocity request values
+void filterTurnAndThrottleRequestValues()
+{
+    filteredThrottleRequest = filterThrottleRequest.filterIn((double)clampedThrottleRequest);
+    filteredTurnVelocityRequest = filterTurnVelocityRequest.filterIn((double)clampedTurnVelocityRequest);
+}
+
+// ToDo: deprecate this function and it's dependencies,
+//  ie. now that this low pass is bypassed, and the low pass
+//  function was moved earlier to the Throttle and Turn Velocity commands
 // Purpose: Smooth the setpoints given to the PID loop
 // Input:
 //      accepts current encoder velocity setpoint values,
@@ -213,8 +264,12 @@ void initializeMotorTasks()
 // Output:
 //      low pass filtered setpoint values
 void filterSetpointCommandValues(){
-  rightEncVelocitySetpoint = filterRightEncVelSetpoint.filterIn(currentRightEncVelocitySetpointRequest);
-  leftEncVelocitySetpoint = filterLeftEncVelSetpoint.filterIn(currentLeftEncVelocitySetpointRequest);
+//  moved low pass filter from encoder setpoint space to throttle and turn space...
+//  rightEncVelocitySetpoint = filterRightEncVelSetpoint.filterIn(currentRightEncVelocitySetpointRequest);
+//  leftEncVelocitySetpoint = filterLeftEncVelSetpoint.filterIn(currentLeftEncVelocitySetpointRequest);
+  rightEncVelocitySetpoint = currentRightEncVelocitySetpointRequest;
+  leftEncVelocitySetpoint = currentLeftEncVelocitySetpointRequest;
+
 }
 
 // Purpose: Periodic service to read and write motor shield values,
@@ -394,6 +449,61 @@ double clampDouble(double whatValue, double limitingValue)
         return whatValue;
 }
 
+// updateVelocityLoopSetpoints()
+// Purpose: quickly update left and right motor setpoints
+//          adjusts left and right motor setpoints to maintain the desired turnVelocity
+// Algorithm:
+//          updates global variables
+//          performs computations described in comments for setVelocityloopSetpoints()
+bool updateVelocityLoopSetpoints(bool printNewSettings)
+{
+    // coding convention ->
+    //  Encoder values are signed Long...
+    //  + values => turn motor CW, - values => turn motor CCW
+    //  => positive turnVelocity => robot spins CW => turn both motors CCW
+    turnVelocityRequestEncoderTicks = (filteredTurnVelocityRequest) / 100 * maxTurnEncoderVelocityTicks;
+
+ //  ToDo: need to put PID loop between turnVelocityRequestEncoderTicks and these next lines
+    rightEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
+    leftEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
+    limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityRequestEncoderTicks);
+
+    throttleRequestEncoderTicks = (filteredThrottleRequest) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
+    rightEncRequestFromThrottle = throttleRequestEncoderTicks;
+    leftEncRequestFromThrottle = -1 * throttleRequestEncoderTicks;
+
+    currentRightEncVelocitySetpointRequest = rightEncRequestFromTurn + rightEncRequestFromThrottle;
+    currentLeftEncVelocitySetpointRequest = leftEncRequestFromTurn + leftEncRequestFromThrottle;
+
+    if (printNewSettings)
+    {
+        Serial.print("\nsetVelLoopSetpnts()");
+        Serial.print("clampd turnVel ");
+        Serial.print(clampedTurnVelocityRequest);
+        Serial.print(", thrttl ");
+        Serial.println(clampedThrottleRequest);
+
+        Serial.print("lftEncFrmTurn: ");
+        Serial.print(leftEncRequestFromTurn);
+        Serial.print(" rght ");
+        Serial.print(rightEncRequestFromTurn);
+        
+        Serial.print(", lftEncFrmThrttl: ");
+        Serial.print(leftEncRequestFromThrottle);
+        Serial.print(" rght ");
+        Serial.print(rightEncRequestFromThrottle);
+
+        Serial.print(", lftEncVelSetpnt: ");
+        Serial.print(currentLeftEncVelocitySetpointRequest);
+        Serial.print(" rght ");
+        Serial.println(currentRightEncVelocitySetpointRequest);
+        Serial.println();
+
+        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
+    }
+}
+
+
 // Orientation Conventions
 // when looking down on robot    when looking from wheel towards motor
 // robot spin CW                left    CCW     right   CCW
@@ -402,7 +512,7 @@ double clampDouble(double whatValue, double limitingValue)
 // robot move backwards         left    CW      right   CCW
 
 // setVelocityLoopSetpoints()
-// Purpose: map heading and throttle commands to encoder velocity setpoints
+// Purpose: map heading and throttle commands to motor velocity setpoint requests in encoder value space
 // Input:   accepts abstract speed and steering commands
 //          turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
 //          throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
@@ -413,55 +523,16 @@ double clampDouble(double whatValue, double limitingValue)
 //  - intended as reference signal for a PID loop
 bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings)
 {
-    signed char turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
-    signed char throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+    // capture TurnVelocity and Throttle setpoint requests
+    clampedTurnVelocityRequest = clamp(TurnVelocity, 100); // keep this function tolerant of mimalformed input
+    clampedThrottleRequest = clamp(Throttle, 100);         // keep this function tolerant of mimalformed input
 
-    turnVelocity = clamp(TurnVelocity, 100); // keep this function tolerant of mimalformed input
-    throttle = clamp(Throttle, 100);         // keep this function tolerant of mimalformed input
+    // once the requested setpoints are clamped,
+    //  the system runs low pass filters, 
+    //  translates clamped turn and throttle requests to encoder tick space,
+    //  and runs PID loops every 20 ms
 
-    // coding convention ->
-    //  Encoder values are signed Long...
-    //  + values => turn motor CW, - values => turn motor CCW
-    //  => positive turnVelocity => robot spins CW => turn both motors CCW
-    double rightEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks;
-    double leftEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks;
-
-    double limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks);
-
-    double rightEncFromThrottle = ((double)throttle) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
-    double leftEncFromThrottle = -1 * ((double)throttle) / 100 * limitedMaxVelocityTicks; // limit throttle for high rates of robot turn
-
-    // rightEncVelocitySetpoint = rightEncFromTurn + rightEncFromThrottle;
-    // leftEncVelocitySetpoint = leftEncFromTurn + leftEncFromThrottle;
-    currentRightEncVelocitySetpointRequest = rightEncFromTurn + rightEncFromThrottle;
-    currentLeftEncVelocitySetpointRequest = leftEncFromTurn + leftEncFromThrottle;
-
-    if (printNewSettings)
-    {
-        Serial.print("\nsetVelLoopSetpnts()");
-        Serial.print("clampd turnVel ");
-        Serial.print(turnVelocity);
-        Serial.print(", thrttl ");
-        Serial.println(throttle);
-
-        Serial.print("lftEncFrmTurn: ");
-        Serial.print(leftEncFromTurn);
-        Serial.print(" rght ");
-        Serial.print(rightEncFromTurn);
-        
-        Serial.print(", lftEncFrmThrttl: ");
-        Serial.print(leftEncFromThrottle);
-        Serial.print(" rght ");
-        Serial.print(rightEncFromThrottle);
-
-        Serial.print(", lftEncVelSetpnt: ");
-        Serial.print(currentLeftEncVelocitySetpointRequest);
-        Serial.print(" rght ");
-        Serial.println(currentRightEncVelocitySetpointRequest);
-        Serial.println();
-
-        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
-    }
+    updateVelocityLoopSetpoints(printNewSettings);
 }
 
 // sendVelocityLoopPWMtoMotorShield()   // ToDo -> belongs in HAL layer ???
