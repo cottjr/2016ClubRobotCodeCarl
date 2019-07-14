@@ -36,8 +36,10 @@ typedef struct robotEncoderTicksType
 
 typedef struct robotEncoderVelocityType
 {
-    double leftMotor;
-    double rightMotor;
+    double leftMotor;       // count of encododer ticks during arbitrary time period
+    double rightMotor;      // count of encododer ticks during arbitrary time period
+    double turnDeltaTicks;  // left/right encododer ticks difference during arbitrary time period
+                            // convention -> + values => robot turning CW (ie. left motor faster than right)
 };
 
 extern robotEncoderTicksType robotOdometerTicks; // cumulative odometer in robot coordinates in units of encoder ticks

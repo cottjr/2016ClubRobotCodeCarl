@@ -105,10 +105,9 @@ double turnVelocityKd = 0;  //r 0
 
 double limitedMaxVelocityTicks = maxEncoderVelocityTicks;   // intermediate value to give turn commands priority over throttle commands
 double turnVelocityRequestEncoderTicks = 0; // desired turn velocity setpoint (encoder velocity units space)
-double turnVelocityMeasured = 0; // latest measured turn velocity (encoder velocity units space)
 double turnVelocityLoopOut = 0; // control loop output to obtain desired turn velocity setpoint (encoder velocity units space)
 
-PID turnVelocityPID(&turnVelocityMeasured, &turnVelocityLoopOut, &turnVelocityRequestEncoderTicks, turnVelocityKp, turnVelocityKi, turnVelocityKd, DIRECT);
+PID turnVelocityPID(&robotOdometerVelocity.turnDeltaTicks, &turnVelocityLoopOut, &turnVelocityRequestEncoderTicks, turnVelocityKp, turnVelocityKi, turnVelocityKd, DIRECT);
 
 // Purpose:
 //      stop any form of power going to the motor
@@ -248,6 +247,45 @@ void filterTurnAndThrottleRequestValues()
     filteredTurnVelocityRequest = filterTurnVelocityRequest.filterIn((double)clampedTurnVelocityRequest);
 }
 
+// updateVelocityLoopSetpoints()
+// Purpose: quickly update left and right motor setpoints
+//          adjusts left and right motor setpoints to maintain the desired turnVelocity
+// Algorithm:
+//          updates global variables
+//          performs computations described in comments for setVelocityloopSetpoints()
+bool updateVelocityLoopSetpoints(bool printNewSettings)
+{
+    // coding convention ->
+    //  Encoder values are signed Long...
+    //  + values => turn motor CW, - values => turn motor CCW
+    //  => positive turnVelocity => robot spins CW => turn both motors CCW
+    turnVelocityRequestEncoderTicks = (filteredTurnVelocityRequest) / 100 * maxTurnEncoderVelocityTicks;
+
+ //  ToDo: need to put PID loop between turnVelocityRequestEncoderTicks and these next lines
+    rightEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
+    leftEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
+    limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityRequestEncoderTicks);
+
+    throttleRequestEncoderTicks = (filteredThrottleRequest) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
+    rightEncRequestFromThrottle = throttleRequestEncoderTicks;
+    leftEncRequestFromThrottle = -1 * throttleRequestEncoderTicks;
+
+    // set input to the motor PID loops
+    rightEncVelocitySetpoint = rightEncRequestFromTurn + rightEncRequestFromThrottle;
+    leftEncVelocitySetpoint = leftEncRequestFromTurn + leftEncRequestFromThrottle;
+
+    if (printNewSettings)
+    {        
+        Serial.print("\n>>> setVelLoopSetpnts()");
+        Serial.print("clampd turnVel ");
+        Serial.print(clampedTurnVelocityRequest);
+        Serial.print(", thrttl ");
+        Serial.println(clampedThrottleRequest);
+
+        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
+    }
+}
+
 // Purpose: Periodic service to read and write motor shield values,
 //          and perform other synchronous tasks at e.g. PID loop sample intervals
 // Input:
@@ -267,6 +305,10 @@ void sampleMotorShield(){
         // printRobotOdometerTicks(); // ToDo - remove this at full loop speed
 
         resetAtRestMotorsAndPIDs();
+
+        turnVelocityPID.Compute();  // compute turn velocity correction ie. heading correction
+
+        updateVelocityLoopSetpoints(false); // map filtered turn & throttle to encoder space motor
 
         // leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
@@ -434,46 +476,6 @@ double clampDouble(double whatValue, double limitingValue)
     else
         return whatValue;
 }
-
-// updateVelocityLoopSetpoints()
-// Purpose: quickly update left and right motor setpoints
-//          adjusts left and right motor setpoints to maintain the desired turnVelocity
-// Algorithm:
-//          updates global variables
-//          performs computations described in comments for setVelocityloopSetpoints()
-bool updateVelocityLoopSetpoints(bool printNewSettings)
-{
-    // coding convention ->
-    //  Encoder values are signed Long...
-    //  + values => turn motor CW, - values => turn motor CCW
-    //  => positive turnVelocity => robot spins CW => turn both motors CCW
-    turnVelocityRequestEncoderTicks = (filteredTurnVelocityRequest) / 100 * maxTurnEncoderVelocityTicks;
-
- //  ToDo: need to put PID loop between turnVelocityRequestEncoderTicks and these next lines
-    rightEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
-    leftEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
-    limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityRequestEncoderTicks);
-
-    throttleRequestEncoderTicks = (filteredThrottleRequest) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
-    rightEncRequestFromThrottle = throttleRequestEncoderTicks;
-    leftEncRequestFromThrottle = -1 * throttleRequestEncoderTicks;
-
-    // set input to the motor PID loops
-    rightEncVelocitySetpoint = rightEncRequestFromTurn + rightEncRequestFromThrottle;
-    leftEncVelocitySetpoint = leftEncRequestFromTurn + leftEncRequestFromThrottle;
-
-    if (printNewSettings)
-    {        
-        Serial.print("\n>>> setVelLoopSetpnts()");
-        Serial.print("clampd turnVel ");
-        Serial.print(clampedTurnVelocityRequest);
-        Serial.print(", thrttl ");
-        Serial.println(clampedThrottleRequest);
-
-        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
-    }
-}
-
 
 // Orientation Conventions
 // when looking down on robot    when looking from wheel towards motor
