@@ -65,9 +65,6 @@ double leftEncRequestFromTurn = 0;    // intermediate variable, setpoint contrib
 double rightEncVelocitySetpoint = 0;
 double leftEncVelocitySetpoint = 0;
 
-double currentRightEncVelocitySetpointRequest = 0;
-double currentLeftEncVelocitySetpointRequest = 0;
-
 double rightVelocityLoopOutPWM = 0;
 double leftVelocityLoopOutPWM = 0;
 
@@ -251,27 +248,6 @@ void filterTurnAndThrottleRequestValues()
     filteredTurnVelocityRequest = filterTurnVelocityRequest.filterIn((double)clampedTurnVelocityRequest);
 }
 
-// ToDo: deprecate this function and it's dependencies,
-//  ie. now that this low pass is bypassed, and the low pass
-//  function was moved earlier to the Throttle and Turn Velocity commands
-// Purpose: Smooth the setpoints given to the PID loop
-// Input:
-//      accepts current encoder velocity setpoint values,
-//      which are normally computed from higher level / abstract
-//      throttle and turn velocity values, and are changed relatively infrequently
-// Algorithm:
-//      simply maintain a low pass filtered version of whatever setpoint is thrown at the PID loop
-// Output:
-//      low pass filtered setpoint values
-void filterSetpointCommandValues(){
-//  moved low pass filter from encoder setpoint space to throttle and turn space...
-//  rightEncVelocitySetpoint = filterRightEncVelSetpoint.filterIn(currentRightEncVelocitySetpointRequest);
-//  leftEncVelocitySetpoint = filterLeftEncVelSetpoint.filterIn(currentLeftEncVelocitySetpointRequest);
-  rightEncVelocitySetpoint = currentRightEncVelocitySetpointRequest;
-  leftEncVelocitySetpoint = currentLeftEncVelocitySetpointRequest;
-
-}
-
 // Purpose: Periodic service to read and write motor shield values,
 //          and perform other synchronous tasks at e.g. PID loop sample intervals
 // Input:
@@ -295,7 +271,17 @@ void sampleMotorShield(){
         // leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
         // use preceeding lines normally - use following lines to verify PID is actually computing
-        Serial.print("\nLeftSetPnt/OdVel/PID/PWM: ");
+        Serial.print("\nlftEncFrmTurn/Thrttl: ");
+        Serial.print(leftEncRequestFromTurn);
+        Serial.print(" ");
+        Serial.print(leftEncRequestFromThrottle);
+
+        Serial.print("   rghtEncFrmTurn/Thrttl: ");
+        Serial.print(rightEncRequestFromTurn);
+        Serial.print(" ");
+        Serial.println(rightEncRequestFromThrottle);
+
+        Serial.print("LeftSetPnt/OdVel/PID/PWM: ");
         Serial.print(leftEncVelocitySetpoint);
         Serial.print(" ");
         Serial.print(robotOdometerVelocity.leftMotor);
@@ -304,7 +290,7 @@ void sampleMotorShield(){
         Serial.print(" ");
         Serial.print(leftVelocityLoopOutPWM);
 
-        Serial.print(", Rght ");
+        Serial.print(",   Rght ");
         Serial.print(rightEncVelocitySetpoint);
         Serial.print(" ");
         Serial.print(robotOdometerVelocity.rightMotor);
@@ -472,32 +458,17 @@ bool updateVelocityLoopSetpoints(bool printNewSettings)
     rightEncRequestFromThrottle = throttleRequestEncoderTicks;
     leftEncRequestFromThrottle = -1 * throttleRequestEncoderTicks;
 
-    currentRightEncVelocitySetpointRequest = rightEncRequestFromTurn + rightEncRequestFromThrottle;
-    currentLeftEncVelocitySetpointRequest = leftEncRequestFromTurn + leftEncRequestFromThrottle;
+    // set input to the motor PID loops
+    rightEncVelocitySetpoint = rightEncRequestFromTurn + rightEncRequestFromThrottle;
+    leftEncVelocitySetpoint = leftEncRequestFromTurn + leftEncRequestFromThrottle;
 
     if (printNewSettings)
-    {
-        Serial.print("\nsetVelLoopSetpnts()");
+    {        
+        Serial.print("\n>>> setVelLoopSetpnts()");
         Serial.print("clampd turnVel ");
         Serial.print(clampedTurnVelocityRequest);
         Serial.print(", thrttl ");
         Serial.println(clampedThrottleRequest);
-
-        Serial.print("lftEncFrmTurn: ");
-        Serial.print(leftEncRequestFromTurn);
-        Serial.print(" rght ");
-        Serial.print(rightEncRequestFromTurn);
-        
-        Serial.print(", lftEncFrmThrttl: ");
-        Serial.print(leftEncRequestFromThrottle);
-        Serial.print(" rght ");
-        Serial.print(rightEncRequestFromThrottle);
-
-        Serial.print(", lftEncVelSetpnt: ");
-        Serial.print(currentLeftEncVelocitySetpointRequest);
-        Serial.print(" rght ");
-        Serial.println(currentRightEncVelocitySetpointRequest);
-        Serial.println();
 
         // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
     }
@@ -563,7 +534,7 @@ Serial.print("velLoopEnabled ");
 Serial.print(velocityLoopEnabled);
 Serial.print(" lftLoopPWM ");
 Serial.print(leftLoopPWM);
-Serial.print(" rght ");
+Serial.print("   rght ");
 Serial.println(rightLoopPWM);
 
     if (leftLoopPWM > 0)
