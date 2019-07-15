@@ -72,7 +72,6 @@ void tasks20ms () {
 
   digitalWrite(cpuStatusPin50, HIGH);
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
-  // updateVelocityLoopSetpoints(false); // map filtered turn & throttle to encoder space motor
   sampleMotorShield();
   digitalWrite(cpuStatusPin50, LOW);
 

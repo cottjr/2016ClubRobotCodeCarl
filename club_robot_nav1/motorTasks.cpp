@@ -30,7 +30,7 @@
                                     // to ensure that both motors can achieve the lowest speed.                    \
                                     // measured over 100 ms
 #define maxEncoderVelocityTicks 200     // updated per quick measurement 2019 June 23 circa commit c786d6e 
-#define maxTurnEncoderVelocityTicks 78  // One would expcet this = maxTurnPWM / maxPWM * maxEncoderVelocityTicks;
+#define maxTurnEncoderVelocityTicks 78  // One would expect this = maxTurnPWM / maxPWM * maxEncoderVelocityTicks;
                                         // however, encoderVelocityTicks do not follow that formula in practice
                                         // hence this value needs to be set by manual calibration
                                     // abs(steady state # encoder ticks) per 10 ms when motor at maxPWM,            \
@@ -140,6 +140,10 @@ void initializePIDs ()
     rightVelocityPID.SetMode(MANUAL);
     rightVelocityLoopOutPWM = 0;
     rightVelocityPID.SetMode(AUTOMATIC);
+
+    turnVelocityPID.SetMode(MANUAL);
+    turnVelocityLoopOut = 0;
+    turnVelocityPID.SetMode(AUTOMATIC);
 }
 
 byte zeroSpeedCache = 0;
@@ -227,6 +231,10 @@ void initializeMotorTasks()
     Serial.println("\ninitializeMotorTasks()");
     velocityLoopEnabled = false;
     positionLoopEnabled = false;
+
+    leftVelocityPID.SetOutputLimits(-(double)maxPWM,(double)maxPWM);
+    rightVelocityPID.SetOutputLimits(-(double)maxPWM,(double)maxPWM);
+    turnVelocityPID.SetOutputLimits( -(double)maxTurnEncoderVelocityTicks, (double)maxTurnEncoderVelocityTicks);    
 
     setVelocityLoopSetpoints(0, 0, true);
 }
