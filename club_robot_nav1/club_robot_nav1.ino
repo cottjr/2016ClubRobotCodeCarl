@@ -130,8 +130,8 @@ void tasks1000ms () {
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
-      // setMotorVelocityByPWM(0,0);
-      setVelocityLoopSetpoints(0,30,true);
+      // setMotorVelocityByPWM(0,30);
+      setVelocityLoopSetpoints(0,50,true);
   } 
   if (runContinuousMotorStepResponseTest && !digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,0);
@@ -216,8 +216,8 @@ void setup()
   tick20msCounter = 0;
 
   // Kludgy switches to run one or another thing when first power up
-  runContinuousMotorStepResponseTest = false;
-  runQuickTrip = true;
+  runContinuousMotorStepResponseTest = true;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
+  runQuickTrip = false;
 
   initializeMotorTasks();
   periodicSampleMotorShield_Start();

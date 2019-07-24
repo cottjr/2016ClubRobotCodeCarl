@@ -74,7 +74,7 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // Low-pass filters for velocity loop setpoint- smooth motor response- avoid slamming the gears
 // using this library: https://martinvb.com/wp/minimalist-low-pass-filter-library/
 // >> https://github.com/MartinBloedorn/libFilter
-const float velocity_setpoint_lowpass_cutoff_freq   = 0.3;  //Cutoff frequency in Hz
+const float velocity_setpoint_lowpass_cutoff_freq   = 20; // 0.3;  //Cutoff frequency in Hz
 const float sampling_time = 0.020; //Sampling time in seconds.
 IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD1; // Order (OD1 to OD4)
     
@@ -99,8 +99,8 @@ PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &
 PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
 
 // Turn Velocity PID loops -> for mananging turn velocity on differential drive robots where rate of turn is a function of relative left and right motor Speeds
-double turnVelocityKp = 1.75; //r 1.75
-double turnVelocityKi = 12;  //r 12
+double turnVelocityKp = 0.08; //r 1.75
+double turnVelocityKi = 0;  //r 12
 double turnVelocityKd = 0;  //r 0
 
 double limitedMaxVelocityTicks = maxEncoderVelocityTicks;   // intermediate value to give turn commands priority over throttle commands
@@ -270,6 +270,11 @@ bool updateVelocityLoopSetpoints(bool printNewSettings)
     turnVelocityRequestEncoderTicks = (filteredTurnVelocityRequest) / 100 * maxTurnEncoderVelocityTicks;
 
  //  ToDo: need to put PID loop between turnVelocityRequestEncoderTicks and these next lines
+ //  use the following lines to use the tunrVelocityPID() 
+    // rightEncRequestFromTurn = -1 * turnVelocityLoopOut;
+    // leftEncRequestFromTurn = -1 * turnVelocityLoopOut;
+    // limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityLoopOut);
+ //  use following lines to bypass turnVelocityPID()
     rightEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
     leftEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
     limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityRequestEncoderTicks);
