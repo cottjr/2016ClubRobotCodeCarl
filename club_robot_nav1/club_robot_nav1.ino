@@ -12,6 +12,7 @@
 
 #include "libtaskMemoryTest.h"
 #include "motorTasks.h"
+#include "PS2X_controller.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
@@ -55,6 +56,8 @@ char taskLoopCounter;    // used to divide the 20ms tick into a 1000ms loop
 long int tick20msCounter;     // used to track absolute number of 20ms ticks since power up
 bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off with an impulse runContinuousMotorStepResponseTest. Handy e.g. for PID tuning
 bool runQuickTrip;    // simply go out and back once shortly after power up
+bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
+PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -73,7 +76,6 @@ void tasks20ms () {
   digitalWrite(cpuStatusPin50, HIGH);
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
   sampleMotorShield();
-  digitalWrite(cpuStatusPin50, LOW);
 
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
@@ -113,6 +115,13 @@ void tasks20ms () {
     }
   }
 
+  if (readAndViewAllPS2Buttons){
+    readAllPS2xControllerValues();  // show any PS2 controller events/data if present
+  }
+
+  // readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
+
+  digitalWrite(cpuStatusPin50, LOW);
   tick20msCounter += 1;
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
@@ -215,9 +224,13 @@ void setup()
 
   tick20msCounter = 0;
 
+  // Initialize and check for a PS2 Controller
+  // initPS2xController();
+
   // Kludgy switches to run one or another thing when first power up
-  runContinuousMotorStepResponseTest = true;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
-  runQuickTrip = false;
+  runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
+  runQuickTrip = true;
+  readAndViewAllPS2Buttons = false;
 
   initializeMotorTasks();
   periodicSampleMotorShield_Start();

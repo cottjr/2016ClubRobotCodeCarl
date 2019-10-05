@@ -66,7 +66,14 @@ void initPS2xController()
   }
 }
 
-void readPS2xController()
+void readPS2Joysticks( PS2JoystickValuesType* joystickValues ){
+      joystickValues->leftX = ps2x.Analog(PSS_LX);
+      joystickValues->leftY = ps2x.Analog(PSS_LY);
+      joystickValues->rightX = ps2x.Analog(PSS_RX);
+      joystickValues->rightY = ps2x.Analog(PSS_RY);
+}
+
+void readAllPS2xControllerValues()
 {
   /*
     You must Read Gamepad to get new values
