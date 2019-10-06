@@ -490,6 +490,50 @@ double clampDouble(double whatValue, double limitingValue)
         return whatValue;
 }
 
+// joystickToTurnvelocity()
+// Purpose: map left to right values of a joystick on PS2X controller by Lynxmotion to TurnVelocity setpoint
+// Input:  accepts values from PS2 controller V4 by Lynxmotion 
+// Algorithm: see "Joystick to Velocity Loop Setpoints" sketch 2019 oct 6
+// Returns: TurnVelocity values between -100 and +100
+signed char joystickToTurnVelocity(unsigned char joystick)
+{
+    if (joystick < 126) {
+        return (signed char) ((double) 0.792 * (double) joystick - (double) 100 );
+    }
+    if (joystick > 130) {
+        return (signed char) ((double) 0.798 * (double) joystick - (double) 103.5 );
+    }
+    return (signed char) 0;
+};
+
+// joystickToThrottle()
+// Purpose: map front to back values of a joystick on PS2X controller by Lynxmotion to a Throttle setpoint
+// Input:  accepts values from PS2 controller V4 by Lynxmotion 
+// Algorithm: see "Joystick to Velocity Loop Setpoints" sketch 2019 oct 6
+// Returns: Throttle values between -100 and +100
+signed char joystickToThrottle(unsigned char joystick)
+{
+    if (joystick < 126) {
+        return (signed char) ((double) -0.792 * (double) joystick + (double) 100 );
+    }
+    if (joystick > 130) {
+        return (signed char) ((double) -0.798 * (double) joystick + (double) 103.5 );
+    }
+    return (signed char) 0;
+};
+
+// addToVelocityLoopSetpoints()
+// Purpose: allow mixing setpoint adjustments with whatever current baseline values are in place
+// Algorithm: simply add requested values to whatever setpoint values already exist
+bool addToVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings) {
+    // capture TurnVelocity and Throttle setpoint requests
+    clampedTurnVelocityRequest = clamp(clampedTurnVelocityRequest + TurnVelocity, 100); // keep this function tolerant of mimalformed input
+    clampedThrottleRequest = clamp(clampedThrottleRequest + Throttle, 100);         // keep this function tolerant of mimalformed input
+
+    updateVelocityLoopSetpoints(printNewSettings);
+};
+
+
 // Orientation Conventions
 // when looking down on robot    when looking from wheel towards motor
 // robot spin CW                left    CCW     right   CCW
