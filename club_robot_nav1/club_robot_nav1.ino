@@ -148,6 +148,19 @@ void tasks1000ms () {
       setVelocityLoopSetpoints(0,0,true);
   } 
  
+
+  Serial.print("Lx ");
+  // Left stick, Y axis. Other options: LX, RY, RX  
+  Serial.print(PS2JoystickValues.leftX, DEC); 
+  Serial.print(" y ");
+  Serial.print(PS2JoystickValues.leftY, DEC);
+  
+  Serial.print(" Rx ");
+  Serial.print(PS2JoystickValues.rightX, DEC); 
+  Serial.print(" y ");
+  Serial.println(PS2JoystickValues.rightY, DEC); 
+
+
   // printRobotOdometerTicks(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
   // printVelocityLoopValues(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
 
@@ -230,7 +243,7 @@ void setup()
 
   // Kludgy switches to run one or another thing when first power up
   runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
-  runQuickTrip = false;
+  runQuickTrip = true;
   readAndViewAllPS2Buttons = true;
 
   initializeMotorTasks();

@@ -323,8 +323,8 @@ void sampleMotorShield(){
 
         updateVelocityLoopSetpoints(false); // map filtered turn & throttle to encoder space motor
 
-        // leftVelocityPID.Compute();
-        // rightVelocityPID.Compute();
+        leftVelocityPID.Compute();
+        rightVelocityPID.Compute();
         // use preceeding lines normally - use following lines to monitor & verify PID is actually computing
         // Serial.print("\nlftEncFrmTurn/Thrttl: ");
         // Serial.print(leftEncRequestFromTurn);
