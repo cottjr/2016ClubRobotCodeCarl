@@ -115,25 +115,26 @@ void tasks20ms () {
     }
   }
 
+  // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
   if (readAndViewAllPS2Buttons){
     readAllPS2xControllerValues();  // show any PS2 controller events/data if present
   }
 
-  // readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
+  readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
 
-  digitalWrite(cpuStatusPin50, LOW);
   tick20msCounter += 1;
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
   cpuCycleHeadroom20msIncrement = 0;
+  digitalWrite(cpuStatusPin50, LOW);
 }
 
 int sampleMotorShieldCount = 0;
 
-// functions which run every 500ms
+// functions which run every 1000ms
 void tasks1000ms () {
-  Serial.print("\n\n---sampleMotorShieldCount ");
-  Serial.println(sampleMotorShieldCount);
+  // Serial.print("\n\n---sampleMotorShieldCount ");
+  // Serial.println(sampleMotorShieldCount);
   sampleMotorShieldCount += 1;
 
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
@@ -154,12 +155,12 @@ void tasks1000ms () {
 
   cpuCycleHeadroom1000ms = cpuCycleHeadroom1000msIncrement;
 
-  Serial.print("\nmillis(): ");
-  Serial.print(millis());
-  Serial.print(", free cycles 20ms: ");
-  Serial.print(cpuCycleHeadroom20ms);
-  Serial.print(", 1000ms: ");
-  Serial.println(cpuCycleHeadroom1000ms);
+  // Serial.print("\nmillis(): ");
+  // Serial.print(millis());
+  // Serial.print(", free cycles 20ms: ");
+  // Serial.print(cpuCycleHeadroom20ms);
+  // Serial.print(", 1000ms: ");
+  // Serial.println(cpuCycleHeadroom1000ms);
 
   cpuCycleHeadroom1000msIncrement = 0;  
 }
@@ -225,12 +226,12 @@ void setup()
   tick20msCounter = 0;
 
   // Initialize and check for a PS2 Controller
-  // initPS2xController();
+  initPS2xController();
 
   // Kludgy switches to run one or another thing when first power up
   runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
-  runQuickTrip = true;
-  readAndViewAllPS2Buttons = false;
+  runQuickTrip = false;
+  readAndViewAllPS2Buttons = true;
 
   initializeMotorTasks();
   periodicSampleMotorShield_Start();

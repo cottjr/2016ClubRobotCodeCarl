@@ -24,27 +24,27 @@ void initPS2xController()
   if(ps2xError == 0)
   {
     Serial.println();
-    Serial.println("Found Controller- init success");
-    Serial.println("Try out buttons:");
-    Serial.println("X shakes faster as you press harder");
-    Serial.println("hold L1 or R1 to view analog stick values");
-    Serial.println("www.billporter.info- troubleshooting tips/ updates/ bugs");
-    Serial.println();
+    Serial.println("ps2xError 0- all good- Found Controller- init success");
+    // Serial.println("Try out buttons:");
+    // Serial.println("X shakes faster as you press harder");
+    // Serial.println("hold L1 or R1 to view analog stick values");
+    // Serial.println("www.billporter.info- troubleshooting tips/ updates/ bugs");
+    // Serial.println();
   }
   else if(ps2xError == 1)
   {
-    Serial.println("No controller found, check wiring, readme.txt-> enable debug");
+    Serial.println("ps2xError 1- very bad- No controller found, check wiring, readme.txt-> enable debug");
     Serial.println();
   }
   else if(ps2xError == 2)
   {
-    Serial.println("Controller found but not accepting commands. readme.txt-> enable debug");
+    Serial.println("ps2xError 2- very bad- Controller found but not accepting commands. readme.txt-> enable debug");
     Serial.println();
   }
   else if(ps2xError == 3)
   {
-    Serial.println("Controller refusing Pressures mode- may not support it");
-    Serial.println();
+    Serial.println("ps2xError 3- partly ok- Controller refusing Pressures mode- may not support it");
+    // Serial.println();
   }
 
   // Serial.print(ps2x.Analog(1), HEX);

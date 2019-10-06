@@ -325,34 +325,34 @@ void sampleMotorShield(){
 
         // leftVelocityPID.Compute();
         // rightVelocityPID.Compute();
-        // use preceeding lines normally - use following lines to verify PID is actually computing
-        Serial.print("\nlftEncFrmTurn/Thrttl: ");
-        Serial.print(leftEncRequestFromTurn);
-        Serial.print(" ");
-        Serial.print(leftEncRequestFromThrottle);
+        // use preceeding lines normally - use following lines to monitor & verify PID is actually computing
+        // Serial.print("\nlftEncFrmTurn/Thrttl: ");
+        // Serial.print(leftEncRequestFromTurn);
+        // Serial.print(" ");
+        // Serial.print(leftEncRequestFromThrottle);
 
-        Serial.print("   rghtEncFrmTurn/Thrttl: ");
-        Serial.print(rightEncRequestFromTurn);
-        Serial.print(" ");
-        Serial.println(rightEncRequestFromThrottle);
+        // Serial.print("   rghtEncFrmTurn/Thrttl: ");
+        // Serial.print(rightEncRequestFromTurn);
+        // Serial.print(" ");
+        // Serial.println(rightEncRequestFromThrottle);
 
-        Serial.print("LeftSetPnt/OdVel/PID/PWM: ");
-        Serial.print(leftEncVelocitySetpoint);
-        Serial.print(" ");
-        Serial.print(robotOdometerVelocity.leftMotor);
-        Serial.print(" ");
-        Serial.print(leftVelocityPID.Compute());
-        Serial.print(" ");
-        Serial.print(leftVelocityLoopOutPWM);
+        // Serial.print("LeftSetPnt/OdVel/PID/PWM: ");
+        // Serial.print(leftEncVelocitySetpoint);
+        // Serial.print(" ");
+        // Serial.print(robotOdometerVelocity.leftMotor);
+        // Serial.print(" ");
+        // Serial.print(leftVelocityPID.Compute());
+        // Serial.print(" ");
+        // Serial.print(leftVelocityLoopOutPWM);
 
-        Serial.print(",   Rght ");
-        Serial.print(rightEncVelocitySetpoint);
-        Serial.print(" ");
-        Serial.print(robotOdometerVelocity.rightMotor);
-        Serial.print(" ");
-        Serial.print(rightVelocityPID.Compute());
-        Serial.print(" ");
-        Serial.println(rightVelocityLoopOutPWM);
+        // Serial.print(",   Rght ");
+        // Serial.print(rightEncVelocitySetpoint);
+        // Serial.print(" ");
+        // Serial.print(robotOdometerVelocity.rightMotor);
+        // Serial.print(" ");
+        // Serial.print(rightVelocityPID.Compute());
+        // Serial.print(" ");
+        // Serial.println(rightVelocityLoopOutPWM);
 
         // printVelocityLoopValues(); // ToDo - remove this at full loop speed
         sendVelocityLoopPWMtoMotorShield();
@@ -545,12 +545,12 @@ bool sendVelocityLoopPWMtoMotorShield()
     leftLoopPWM = (signed int) clampDouble(leftVelocityLoopOutPWM, maxPWM);
     rightLoopPWM = (signed int) clampDouble(rightVelocityLoopOutPWM, maxPWM);
 
-Serial.print("velLoopEnabled ");
-Serial.print(velocityLoopEnabled);
-Serial.print(" lftLoopPWM ");
-Serial.print(leftLoopPWM);
-Serial.print("   rght ");
-Serial.println(rightLoopPWM);
+// Serial.print("velLoopEnabled ");
+// Serial.print(velocityLoopEnabled);
+// Serial.print(" lftLoopPWM ");
+// Serial.print(leftLoopPWM);
+// Serial.print("   rght ");
+// Serial.println(rightLoopPWM);
 
     if (leftLoopPWM > 0)
     {
