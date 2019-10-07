@@ -71,8 +71,8 @@ bool setMotorVelocityByPWM(signed char, signed char); // turnVelocity, throttle.
 signed char joystickToTurnVelocity(unsigned char); // map joystick to turn velocity setpoint space values
 signed char joystickToThrottle(unsigned char);      // map joystick to throttle setpoint space values
 
-bool addToVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
+bool setManualVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
+bool setAutomaticVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
 extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();

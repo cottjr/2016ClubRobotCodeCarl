@@ -98,20 +98,20 @@ void tasks20ms () {
     if (tick20msCounter == 150){
       // start moving 3 seconds after power up
       // move forward
-      setVelocityLoopSetpoints(0,quickTripSpeed,true);
+      setAutomaticVelocityLoopSetpoints(0,quickTripSpeed,true);
     }
     if (tick20msCounter == 250){
       // turn motors off
-      setVelocityLoopSetpoints(0,0,true);
+      setAutomaticVelocityLoopSetpoints(0,0,true);
       // wait for 3 seconds
     }
     if (tick20msCounter == 350){
       // then move backwards
-        setVelocityLoopSetpoints(0,-quickTripSpeed,true);
+        setAutomaticVelocityLoopSetpoints(0,-quickTripSpeed,true);
     }
     if (tick20msCounter == 450){
       // stop moving, please...    
-      setVelocityLoopSetpoints(0,0,true);
+      setAutomaticVelocityLoopSetpoints(0,0,true);
     }
   }
 
@@ -121,8 +121,8 @@ void tasks20ms () {
   }
 
   readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
-  // addToVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
-  setVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+
+  setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
 
   tick20msCounter += 1;
 
@@ -143,11 +143,11 @@ void tasks1000ms () {
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,30);
-      setVelocityLoopSetpoints(0,50,true);
+      setAutomaticVelocityLoopSetpoints(0,50,true);
   } 
   if (runContinuousMotorStepResponseTest && !digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,0);
-      setVelocityLoopSetpoints(0,0,true);
+      setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
  
 
@@ -244,7 +244,7 @@ void setup()
 
   // Kludgy switches to run one or another thing when first power up
   runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
-  runQuickTrip = false;
+  runQuickTrip = true;
   readAndViewAllPS2Buttons = true;
 
   initializeMotorTasks();

@@ -48,6 +48,12 @@ bool positionLoopEnabled = false;
 location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
 
 // user requested throttle and turn setpoints
+signed char manualTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+signed char manualThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
+signed char automaticTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+signed char automaticThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
 signed char clampedTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
 signed char clampedThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
 
@@ -236,8 +242,8 @@ void initializeMotorTasks()
     rightVelocityPID.SetOutputLimits(-(double)maxPWM,(double)maxPWM);
     turnVelocityPID.SetOutputLimits( -(double)maxTurnEncoderVelocityTicks, (double)maxTurnEncoderVelocityTicks);    
 
-    setVelocityLoopSetpoints(0, 0, true);
-}
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
+    setManualVelocityLoopSetpoints(0, 0, true);}
 
 // Purpose: low pass limit & smooth the throttle and turn setpoint requests
 // Input:
@@ -260,7 +266,7 @@ void filterTurnAndThrottleRequestValues()
 //          adjusts left and right motor setpoints to maintain the desired turnVelocity
 // Algorithm:
 //          updates global variables
-//          performs computations described in comments for setVelocityloopSetpoints()
+//          performs computations described in comments for setAutomaticVelocityLoopSetpoints()
 bool updateVelocityLoopSetpoints(bool printNewSettings)
 {
     // coding convention ->
@@ -414,7 +420,8 @@ void periodicSampleMotorShield_Start()
     Serial.println("\nperiodicSampleMotorShield_Start()");
     velocityLoopEnabled = true;
 
-    setVelocityLoopSetpoints(0, 0, true);
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
+    setManualVelocityLoopSetpoints(0, 0, true);
 
     //turn the PIDs on
     leftVelocityPID.SetMode(AUTOMATIC);
@@ -449,7 +456,8 @@ void periodicSampleMotorShield_Stop()
     velocityLoopEnabled = false;
 
     setMotorVelocityByPWM(0, 0); // gracefully stop the motors when stopping this loop
-    setVelocityLoopSetpoints(0, 0, true);
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
+    setManualVelocityLoopSetpoints(0, 0, true);
 
     //turn the PIDs off
     leftVelocityPID.SetMode(MANUAL);
@@ -467,6 +475,20 @@ void periodicSampleMotorShield_Stop()
 //      whatValue may be + or -
 //      limitingValue must be positive
 signed char clamp(signed char whatValue, signed char limitingValue)
+{
+    if (whatValue < -limitingValue)
+        return -limitingValue;
+    else if (whatValue > limitingValue)
+        return limitingValue;
+    else
+        return whatValue;
+}
+
+// clamp input whatValue to +/- limitingValue
+//      version for (int)
+//      whatValue may be + or -
+//      limitingValue must be positive
+int clampInt(int whatValue, int limitingValue)
 {
     if (whatValue < -limitingValue)
         return -limitingValue;
@@ -522,28 +544,11 @@ signed char joystickToThrottle(unsigned char joystick)
     return (signed char) 0;
 };
 
-// addToVelocityLoopSetpoints()
-// Purpose: allow mixing setpoint adjustments with whatever current baseline values are in place
-// Algorithm: simply add requested values to whatever setpoint values already exist
-bool addToVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings) {
-    // capture TurnVelocity and Throttle setpoint requests
-    clampedTurnVelocityRequest = clamp(clampedTurnVelocityRequest + TurnVelocity, 100); // keep this function tolerant of mimalformed input
-    clampedThrottleRequest = clamp(clampedThrottleRequest + Throttle, 100);         // keep this function tolerant of mimalformed input
 
-    updateVelocityLoopSetpoints(printNewSettings);
-};
-
-
-// Orientation Conventions
-// when looking down on robot    when looking from wheel towards motor
-// robot spin CW                left    CCW     right   CCW
-// robot spin CCW               left    CW      right   CW
-// robot move forward           left    CCW     right   CW
-// robot move backwards         left    CW      right   CCW
-
-// setVelocityLoopSetpoints()
+// mixAndSetVelocityLoopSetpoints()
 // Purpose: map heading and throttle commands to motor velocity setpoint requests in encoder value space
 // Input:   accepts abstract speed and steering commands
+//          currently accepts multiple values -> ToDo -> replace global implementation with local variables
 //          turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
 //          throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
 // Algorithm:   maps abstract command range into encoder speed value range
@@ -551,11 +556,12 @@ bool addToVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, 
 // Output:
 //  - updates local storage encoder value domain velocity setpoints,
 //  - intended as reference signal for a PID loop
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings)
+//  - ToDo -> replace global output variable implementation with local variables
+bool mixAndSetVelocityLoopSetpoints(bool printNewSettings)
 {
     // capture TurnVelocity and Throttle setpoint requests
-    clampedTurnVelocityRequest = clamp(TurnVelocity, 100); // keep this function tolerant of mimalformed input
-    clampedThrottleRequest = clamp(Throttle, 100);         // keep this function tolerant of mimalformed input
+    clampedTurnVelocityRequest = (signed char) clampInt((int) manualTurnVelocityRequest + automaticTurnVelocityRequest, 100); // keep this function tolerant of mimalformed input
+    clampedThrottleRequest =(signed char) clampInt((int) manualThrottleRequest + automaticThrottleRequest, 100);         // keep this function tolerant of mimalformed input
 
     // once the requested setpoints are clamped,
     //  the system runs low pass filters, 
@@ -564,6 +570,38 @@ bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bo
 
     updateVelocityLoopSetpoints(printNewSettings);
 }
+
+// Orientation Conventions
+// when looking down on robot    when looking from wheel towards motor
+// robot spin CW                left    CCW     right   CCW
+// robot spin CCW               left    CW      right   CW
+// robot move forward           left    CCW     right   CW
+// robot move backwards         left    CW      right   CCW
+
+// setManualVelocityLoopSetpoints()
+// Purpose: allow mixing setpoint adjustments with whatever current baseline values are in place
+// Algorithm: simply add requested values to whatever setpoint values already exist
+bool setManualVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings) 
+{
+    // capture TurnVelocity and Throttle setpoint requests
+    manualTurnVelocityRequest = TurnVelocity;
+    manualThrottleRequest = Throttle;
+
+    mixAndSetVelocityLoopSetpoints(printNewSettings);
+};
+
+// setAutomaticVelocityLoopSetpoints()
+// Purpose: allow mixing setpoint adjustments with whatever current baseline values are in place
+// Algorithm: simply add requested values to whatever setpoint values already exist
+bool setAutomaticVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings) 
+{
+    // capture TurnVelocity and Throttle setpoint requests
+    automaticTurnVelocityRequest = TurnVelocity;
+    automaticThrottleRequest = Throttle;
+
+    mixAndSetVelocityLoopSetpoints(printNewSettings);
+};
+
 
 // sendVelocityLoopPWMtoMotorShield()   // ToDo -> belongs in HAL layer ???
 // Purpose: map velocity PID loop output to  & send PWM commands to the motor shield
@@ -729,11 +767,11 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
 // {
 //     wake_after(2000);
 //     Serial.println("\n> testVelocityPIDloop() - start");
-//     setVelocityLoopSetpoints(0, 50, true);
+//     setAutomaticVelocityLoopSetpoints(0, 50, true);
 
 //     wake_after(4000);
 //     Serial.println("\n> testVelocityPIDloop() - stop");
-//     setVelocityLoopSetpoints(0, 0, true);
+//     setAutomaticVelocityLoopSetpoints(0, 0, true);
 
 //     periodicSampleMotorShield_Stop();
 //     terminate();
@@ -746,19 +784,19 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
 //  - manually inspect / verify the console log output
 void testVelocityLoopSetpointsMath()
 {
-    setVelocityLoopSetpoints(0, 50, true);
-    setVelocityLoopSetpoints(0, -50, true);
+    setAutomaticVelocityLoopSetpoints(0, 50, true);
+    setAutomaticVelocityLoopSetpoints(0, -50, true);
 
-    setVelocityLoopSetpoints(50, 0, true);
-    setVelocityLoopSetpoints(-50, 0, true);
+    setAutomaticVelocityLoopSetpoints(50, 0, true);
+    setAutomaticVelocityLoopSetpoints(-50, 0, true);
 
-    setVelocityLoopSetpoints(20, 90, true);
-    setVelocityLoopSetpoints(20, -90, true);
+    setAutomaticVelocityLoopSetpoints(20, 90, true);
+    setAutomaticVelocityLoopSetpoints(20, -90, true);
 
-    setVelocityLoopSetpoints(90, 20, true);
-    setVelocityLoopSetpoints(-90, 20, true);
+    setAutomaticVelocityLoopSetpoints(90, 20, true);
+    setAutomaticVelocityLoopSetpoints(-90, 20, true);
 
-    setVelocityLoopSetpoints(0, 0, true);
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
 }
 
 // Purpose:
