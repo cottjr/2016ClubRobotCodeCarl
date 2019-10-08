@@ -24,5 +24,7 @@ void initPS2xController();
 void readPS2Joysticks( PS2JoystickValuesType* );
 void readAllPS2xControllerValues();
 
+extern bool startAndTriangle; // true while start button and triangle are both held at the same time
+
 // end pragma alternative: ensure the C pre-processor only reads this file once
 #endif

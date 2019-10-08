@@ -54,6 +54,7 @@ ISR(TIMER5_COMPA_vect){
 
 char taskLoopCounter;    // used to divide the 20ms tick into a 1000ms loop
 long int tick20msCounter;     // used to track absolute number of 20ms ticks since power up
+long int QuickTripStartCounter = 0; // track the start time of a Quick Trip run, in 20ms Counter ticks
 bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off with an impulse runContinuousMotorStepResponseTest. Handy e.g. for PID tuning
 bool runQuickTrip;    // simply go out and back once shortly after power up
 bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
@@ -94,24 +95,30 @@ void tasks20ms () {
   }
 
   unsigned char quickTripSpeed = 100;
+  if ( startAndTriangle && !runQuickTrip )       // start a quick trip if requested and not already in progress
+  {
+    QuickTripStartCounter = tick20msCounter;
+    runQuickTrip = true;
+  };
   if (runQuickTrip){
-    if (tick20msCounter == 150){
+    if (tick20msCounter == QuickTripStartCounter + 150){
       // start moving 3 seconds after power up
       // move forward
       setAutomaticVelocityLoopSetpoints(0,quickTripSpeed,true);
     }
-    if (tick20msCounter == 250){
+    if (tick20msCounter ==QuickTripStartCounter + 250){
       // turn motors off
       setAutomaticVelocityLoopSetpoints(0,0,true);
       // wait for 3 seconds
     }
-    if (tick20msCounter == 350){
+    if (tick20msCounter == QuickTripStartCounter + 350){
       // then move backwards
         setAutomaticVelocityLoopSetpoints(0,-quickTripSpeed,true);
     }
-    if (tick20msCounter == 450){
+    if (tick20msCounter == QuickTripStartCounter + 450){
       // stop moving, please...    
       setAutomaticVelocityLoopSetpoints(0,0,true);
+      runQuickTrip = false;
     }
   }
 
@@ -244,7 +251,7 @@ void setup()
 
   // Kludgy switches to run one or another thing when first power up
   runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
-  runQuickTrip = true;
+  runQuickTrip = false;
   readAndViewAllPS2Buttons = true;
 
   initializeMotorTasks();

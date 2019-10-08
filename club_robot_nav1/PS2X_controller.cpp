@@ -14,6 +14,8 @@ int ps2xError = 0;
 byte PS2controllerType = 0;
 byte vibrateShake = 0;
 
+bool startAndTriangle = false; // true while start button and triangle are both held at the same time
+
 void initPS2xController()
 {
   // Serial.begin(250000);
@@ -131,9 +133,19 @@ void readAllPS2xControllerValues()
     // read controller and set large motor to spin at 'vibrateShake' speed
     ps2x.read_gamepad(false, vibrateShake);
     
+
+    startAndTriangle = ps2x.Button(PSB_START) && ps2x.Button(PSB_GREEN); // only true when both start and triangle buttons pressed.
+
     // will be TRUE as long as button is pressed
     if(ps2x.Button(PSB_START))
+    {
       Serial.println("Start being held");
+      if(ps2x.Button(PSB_GREEN))
+      {
+        Serial.println("AND Triangle pressed");
+      }
+    }
+
     if(ps2x.Button(PSB_SELECT))
       Serial.println("Select being held");
     
