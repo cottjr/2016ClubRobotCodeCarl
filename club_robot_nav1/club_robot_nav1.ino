@@ -12,6 +12,7 @@
 
 #include "libtaskMemoryTest.h"
 #include "motorTasks.h"
+#include "PS2X_controller.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
@@ -55,6 +56,8 @@ char taskLoopCounter;    // used to divide the 20ms tick into a 1000ms loop
 long int tick20msCounter;     // used to track absolute number of 20ms ticks since power up
 bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off with an impulse runContinuousMotorStepResponseTest. Handy e.g. for PID tuning
 bool runQuickTrip;    // simply go out and back once shortly after power up
+bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
+PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -71,9 +74,8 @@ void tasks20ms () {
   // interrupts();
 
   digitalWrite(cpuStatusPin50, HIGH);
-  filterSetpointCommandValues();
+  filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
   sampleMotorShield();
-  digitalWrite(cpuStatusPin50, LOW);
 
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
@@ -96,48 +98,70 @@ void tasks20ms () {
     if (tick20msCounter == 150){
       // start moving 3 seconds after power up
       // move forward
-      setVelocityLoopSetpoints(0,quickTripSpeed,true);
+      setAutomaticVelocityLoopSetpoints(0,quickTripSpeed,true);
     }
     if (tick20msCounter == 250){
       // turn motors off
-      setVelocityLoopSetpoints(0,0,true);
+      setAutomaticVelocityLoopSetpoints(0,0,true);
       // wait for 3 seconds
     }
     if (tick20msCounter == 350){
       // then move backwards
-        setVelocityLoopSetpoints(0,-quickTripSpeed,true);
+        setAutomaticVelocityLoopSetpoints(0,-quickTripSpeed,true);
     }
     if (tick20msCounter == 450){
       // stop moving, please...    
-      setVelocityLoopSetpoints(0,0,true);
+      setAutomaticVelocityLoopSetpoints(0,0,true);
     }
   }
+
+  // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
+  if (readAndViewAllPS2Buttons){
+    readAllPS2xControllerValues();  // show any PS2 controller events/data if present
+  }
+
+  readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
+
+  setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
 
   tick20msCounter += 1;
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
   cpuCycleHeadroom20msIncrement = 0;
+  digitalWrite(cpuStatusPin50, LOW);
 }
 
 int sampleMotorShieldCount = 0;
 
-// functions which run every 500ms
+// functions which run every 1000ms
 void tasks1000ms () {
-  Serial.print("\n\n---sampleMotorShieldCount ");
-  Serial.println(sampleMotorShieldCount);
+  // Serial.print("\n\n---sampleMotorShieldCount ");
+  // Serial.println(sampleMotorShieldCount);
   sampleMotorShieldCount += 1;
 
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
-      // setMotorVelocityByPWM(0,0);
-      setVelocityLoopSetpoints(0,30,true);
+      // setMotorVelocityByPWM(0,30);
+      setAutomaticVelocityLoopSetpoints(0,50,true);
   } 
   if (runContinuousMotorStepResponseTest && !digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,0);
-      setVelocityLoopSetpoints(0,0,true);
+      setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
  
+
+  Serial.print("Lx ");
+  // Left stick, Y axis. Other options: LX, RY, RX  
+  Serial.print(PS2JoystickValues.leftX, DEC); 
+  Serial.print(" y ");
+  Serial.print(PS2JoystickValues.leftY, DEC);
+  
+  Serial.print(" Rx ");
+  Serial.print(PS2JoystickValues.rightX, DEC); 
+  Serial.print(" y ");
+  Serial.println(PS2JoystickValues.rightY, DEC); 
+
   // printRobotOdometerTicks(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
   // printVelocityLoopValues(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
 
@@ -145,12 +169,12 @@ void tasks1000ms () {
 
   cpuCycleHeadroom1000ms = cpuCycleHeadroom1000msIncrement;
 
-  Serial.print("\nmillis(): ");
-  Serial.print(millis());
-  Serial.print(", free cycles 20ms: ");
-  Serial.print(cpuCycleHeadroom20ms);
-  Serial.print(", 1000ms: ");
-  Serial.println(cpuCycleHeadroom1000ms);
+  // Serial.print("\nmillis(): ");
+  // Serial.print(millis());
+  // Serial.print(", free cycles 20ms: ");
+  // Serial.print(cpuCycleHeadroom20ms);
+  // Serial.print(", 1000ms: ");
+  // Serial.println(cpuCycleHeadroom1000ms);
 
   cpuCycleHeadroom1000msIncrement = 0;  
 }
@@ -215,9 +239,13 @@ void setup()
 
   tick20msCounter = 0;
 
+  // Initialize and check for a PS2 Controller
+  initPS2xController();
+
   // Kludgy switches to run one or another thing when first power up
-  runContinuousMotorStepResponseTest = false;
+  runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
   runQuickTrip = true;
+  readAndViewAllPS2Buttons = true;
 
   initializeMotorTasks();
   periodicSampleMotorShield_Start();

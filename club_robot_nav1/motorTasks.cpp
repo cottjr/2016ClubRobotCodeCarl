@@ -30,7 +30,7 @@
                                     // to ensure that both motors can achieve the lowest speed.                    \
                                     // measured over 100 ms
 #define maxEncoderVelocityTicks 200     // updated per quick measurement 2019 June 23 circa commit c786d6e 
-#define maxTurnEncoderVelocityTicks 78  // One would expcet this = maxTurnPWM / maxPWM * maxEncoderVelocityTicks;
+#define maxTurnEncoderVelocityTicks 78  // One would expect this = maxTurnPWM / maxPWM * maxEncoderVelocityTicks;
                                         // however, encoderVelocityTicks do not follow that formula in practice
                                         // hence this value needs to be set by manual calibration
                                     // abs(steady state # encoder ticks) per 10 ms when motor at maxPWM,            \
@@ -47,12 +47,29 @@ bool positionLoopEnabled = false;
 
 location currentLocation; // location === structure defined in nav_funcs.h  // ToDo- Deprecate this with code below
 
+// user requested throttle and turn setpoints
+signed char manualTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+signed char manualThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
+signed char automaticTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+signed char automaticThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
+signed char clampedTurnVelocityRequest = 0; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
+signed char clampedThrottleRequest = 0;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+
+double filteredTurnVelocityRequest = 0;     // low pass filtered version of clamped turn velocity request
+double filteredThrottleRequest = 0;         // low pass filtered version of clamped throttle request
+
+double throttleRequestEncoderTicks = 0;    // intermediate variable, setpoint contribution from throttle request 
+double rightEncRequestFromThrottle = 0;    // intermediate variable, setpoint contribution from throttle request
+double leftEncRequestFromThrottle = 0;     // intermediate variable, setpoint contribution from throttle request
+
+double rightEncRequestFromTurn = 0;    // intermediate variable, setpoint contribution from turn request
+double leftEncRequestFromTurn = 0;    // intermediate variable, setpoint contribution from turn request
+
 // Velocity loop PID variables
 double rightEncVelocitySetpoint = 0;
 double leftEncVelocitySetpoint = 0;
-
-double currentRightEncVelocitySetpointRequest = 0;
-double currentLeftEncVelocitySetpointRequest = 0;
 
 double rightVelocityLoopOutPWM = 0;
 double leftVelocityLoopOutPWM = 0;
@@ -63,14 +80,20 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // Low-pass filters for velocity loop setpoint- smooth motor response- avoid slamming the gears
 // using this library: https://martinvb.com/wp/minimalist-low-pass-filter-library/
 // >> https://github.com/MartinBloedorn/libFilter
-const float velocity_setpoint_lowpass_cutoff_freq   = 0.3;  //Cutoff frequency in Hz
+const float velocity_setpoint_lowpass_cutoff_freq   = 20; // 0.3;  //Cutoff frequency in Hz
 const float sampling_time = 0.020; //Sampling time in seconds.
 IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD1; // Order (OD1 to OD4)
     
+// ToDo: remove these filters, now that they were bypassed when moved LowPass function from setpoints to be earlier with Throttle and TurnVelocity
 Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 Filter filterLeftEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
+Filter filterThrottleRequest(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterTurnVelocityRequest(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
+
+// Velocity PID Loops -> for mananging left and right motor velocity
+// Framework for adaptive tuning parameters, copied from PID library examples
 // Aggressive and conservative Tuning Parameters
 // [0] == right, [1] == left
 // double aggKp=4, aggKi=0.2, aggKd=1;
@@ -80,6 +103,17 @@ double conservativeVelocityKd[2] = {0, 0};  //r 0    note: {right, left}
 
 PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
 PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
+
+// Turn Velocity PID loops -> for mananging turn velocity on differential drive robots where rate of turn is a function of relative left and right motor Speeds
+double turnVelocityKp = 0.08; //r 1.75
+double turnVelocityKi = 0;  //r 12
+double turnVelocityKd = 0;  //r 0
+
+double limitedMaxVelocityTicks = maxEncoderVelocityTicks;   // intermediate value to give turn commands priority over throttle commands
+double turnVelocityRequestEncoderTicks = 0; // desired turn velocity setpoint (encoder velocity units space)
+double turnVelocityLoopOut = 0; // control loop output to obtain desired turn velocity setpoint (encoder velocity units space)
+
+PID turnVelocityPID(&robotOdometerVelocity.turnDeltaTicks, &turnVelocityLoopOut, &turnVelocityRequestEncoderTicks, turnVelocityKp, turnVelocityKi, turnVelocityKd, DIRECT);
 
 // Purpose:
 //      stop any form of power going to the motor
@@ -112,6 +146,10 @@ void initializePIDs ()
     rightVelocityPID.SetMode(MANUAL);
     rightVelocityLoopOutPWM = 0;
     rightVelocityPID.SetMode(AUTOMATIC);
+
+    turnVelocityPID.SetMode(MANUAL);
+    turnVelocityLoopOut = 0;
+    turnVelocityPID.SetMode(AUTOMATIC);
 }
 
 byte zeroSpeedCache = 0;
@@ -139,8 +177,8 @@ void resetAtRestMotorsAndPIDs ()
 
     zeroSpeedCache = zeroSpeedCache << 1;
 
-    isCurrentSampleZero = (currentLeftEncVelocitySetpointRequest == 0) && (robotOdometerVelocity.leftMotor == 0)
-                        && (currentRightEncVelocitySetpointRequest == 0) && (robotOdometerVelocity.rightMotor == 0);
+    isCurrentSampleZero = (clampedThrottleRequest == 0) && (clampedTurnVelocityRequest == 0)
+                        && (robotOdometerVelocity.leftMotor == 0) && (robotOdometerVelocity.rightMotor == 0);
    
     zeroSpeedCache |= isCurrentSampleZero;
 
@@ -200,21 +238,71 @@ void initializeMotorTasks()
     velocityLoopEnabled = false;
     positionLoopEnabled = false;
 
-    setVelocityLoopSetpoints(0, 0, true);
+    leftVelocityPID.SetOutputLimits(-(double)maxPWM,(double)maxPWM);
+    rightVelocityPID.SetOutputLimits(-(double)maxPWM,(double)maxPWM);
+    turnVelocityPID.SetOutputLimits( -(double)maxTurnEncoderVelocityTicks, (double)maxTurnEncoderVelocityTicks);    
+
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
+    setManualVelocityLoopSetpoints(0, 0, true);}
+
+// Purpose: low pass limit & smooth the throttle and turn setpoint requests
+// Input:
+//      accepts current clamped Throttle and Turn Velocity request values,
+//      which are higher level / abstract values ranging from -100 ... +100,
+//      which are changed relatively infrequently
+// Algorithm:
+//      simply maintain a low pass filtered version of these command values
+//      this function is intended to be called at a regular sampling rate e.g. based on some interrupt
+// Output:
+//      low pass filtered Throttle and TurnVelocity request values
+void filterTurnAndThrottleRequestValues()
+{
+    filteredThrottleRequest = filterThrottleRequest.filterIn((double)clampedThrottleRequest);
+    filteredTurnVelocityRequest = filterTurnVelocityRequest.filterIn((double)clampedTurnVelocityRequest);
 }
 
-// Purpose: Smooth the setpoints given to the PID loop
-// Input:
-//      accepts current encoder velocity setpoint values,
-//      which are normally computed from higher level / abstract
-//      throttle and turn velocity values, and are changed relatively infrequently
+// updateVelocityLoopSetpoints()
+// Purpose: quickly update left and right motor setpoints
+//          adjusts left and right motor setpoints to maintain the desired turnVelocity
 // Algorithm:
-//      simply maintain a low pass filtered version of whatever setpoint is thrown at the PID loop
-// Output:
-//      low pass filtered setpoint values
-void filterSetpointCommandValues(){
-  rightEncVelocitySetpoint = filterRightEncVelSetpoint.filterIn(currentRightEncVelocitySetpointRequest);
-  leftEncVelocitySetpoint = filterLeftEncVelSetpoint.filterIn(currentLeftEncVelocitySetpointRequest);
+//          updates global variables
+//          performs computations described in comments for setAutomaticVelocityLoopSetpoints()
+bool updateVelocityLoopSetpoints(bool printNewSettings)
+{
+    // coding convention ->
+    //  Encoder values are signed Long...
+    //  + values => turn motor CW, - values => turn motor CCW
+    //  => positive turnVelocity => robot spins CW => turn both motors CCW
+    turnVelocityRequestEncoderTicks = (filteredTurnVelocityRequest) / 100 * maxTurnEncoderVelocityTicks;
+
+ //  ToDo: need to put PID loop between turnVelocityRequestEncoderTicks and these next lines
+ //  use the following lines to use the tunrVelocityPID() 
+    // rightEncRequestFromTurn = -1 * turnVelocityLoopOut;
+    // leftEncRequestFromTurn = -1 * turnVelocityLoopOut;
+    // limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityLoopOut);
+ //  use following lines to bypass turnVelocityPID()
+    rightEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
+    leftEncRequestFromTurn = -1 * turnVelocityRequestEncoderTicks;
+    limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(turnVelocityRequestEncoderTicks);
+
+    throttleRequestEncoderTicks = (filteredThrottleRequest) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
+    rightEncRequestFromThrottle = throttleRequestEncoderTicks;
+    leftEncRequestFromThrottle = -1 * throttleRequestEncoderTicks;
+
+    // set input to the motor PID loops
+    rightEncVelocitySetpoint = rightEncRequestFromTurn + rightEncRequestFromThrottle;
+    leftEncVelocitySetpoint = leftEncRequestFromTurn + leftEncRequestFromThrottle;
+
+    if (printNewSettings)
+    {        
+        Serial.print("\n>>> setVelLoopSetpnts()");
+        Serial.print("clampd turnVel ");
+        Serial.print(clampedTurnVelocityRequest);
+        Serial.print(", thrttl ");
+        Serial.println(clampedThrottleRequest);
+
+        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
+    }
 }
 
 // Purpose: Periodic service to read and write motor shield values,
@@ -237,26 +325,40 @@ void sampleMotorShield(){
 
         resetAtRestMotorsAndPIDs();
 
-        // leftVelocityPID.Compute();
-        // rightVelocityPID.Compute();
-        // use preceeding lines normally - use following lines to verify PID is actually computing
-        Serial.print("\nLeftSetPnt/OdVel/PID/PWM: ");
-        Serial.print(leftEncVelocitySetpoint);
-        Serial.print(" ");
-        Serial.print(robotOdometerVelocity.leftMotor);
-        Serial.print(" ");
-        Serial.print(leftVelocityPID.Compute());
-        Serial.print(" ");
-        Serial.print(leftVelocityLoopOutPWM);
+        turnVelocityPID.Compute();  // compute turn velocity correction ie. heading correction
 
-        Serial.print(", Rght ");
-        Serial.print(rightEncVelocitySetpoint);
-        Serial.print(" ");
-        Serial.print(robotOdometerVelocity.rightMotor);
-        Serial.print(" ");
-        Serial.print(rightVelocityPID.Compute());
-        Serial.print(" ");
-        Serial.println(rightVelocityLoopOutPWM);
+        updateVelocityLoopSetpoints(false); // map filtered turn & throttle to encoder space motor
+
+        leftVelocityPID.Compute();
+        rightVelocityPID.Compute();
+        // use preceeding lines normally - use following lines to monitor & verify PID is actually computing
+        // Serial.print("\nlftEncFrmTurn/Thrttl: ");
+        // Serial.print(leftEncRequestFromTurn);
+        // Serial.print(" ");
+        // Serial.print(leftEncRequestFromThrottle);
+
+        // Serial.print("   rghtEncFrmTurn/Thrttl: ");
+        // Serial.print(rightEncRequestFromTurn);
+        // Serial.print(" ");
+        // Serial.println(rightEncRequestFromThrottle);
+
+        // Serial.print("LeftSetPnt/OdVel/PID/PWM: ");
+        // Serial.print(leftEncVelocitySetpoint);
+        // Serial.print(" ");
+        // Serial.print(robotOdometerVelocity.leftMotor);
+        // Serial.print(" ");
+        // Serial.print(leftVelocityPID.Compute());
+        // Serial.print(" ");
+        // Serial.print(leftVelocityLoopOutPWM);
+
+        // Serial.print(",   Rght ");
+        // Serial.print(rightEncVelocitySetpoint);
+        // Serial.print(" ");
+        // Serial.print(robotOdometerVelocity.rightMotor);
+        // Serial.print(" ");
+        // Serial.print(rightVelocityPID.Compute());
+        // Serial.print(" ");
+        // Serial.println(rightVelocityLoopOutPWM);
 
         // printVelocityLoopValues(); // ToDo - remove this at full loop speed
         sendVelocityLoopPWMtoMotorShield();
@@ -318,7 +420,8 @@ void periodicSampleMotorShield_Start()
     Serial.println("\nperiodicSampleMotorShield_Start()");
     velocityLoopEnabled = true;
 
-    setVelocityLoopSetpoints(0, 0, true);
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
+    setManualVelocityLoopSetpoints(0, 0, true);
 
     //turn the PIDs on
     leftVelocityPID.SetMode(AUTOMATIC);
@@ -353,7 +456,8 @@ void periodicSampleMotorShield_Stop()
     velocityLoopEnabled = false;
 
     setMotorVelocityByPWM(0, 0); // gracefully stop the motors when stopping this loop
-    setVelocityLoopSetpoints(0, 0, true);
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
+    setManualVelocityLoopSetpoints(0, 0, true);
 
     //turn the PIDs off
     leftVelocityPID.SetMode(MANUAL);
@@ -381,6 +485,20 @@ signed char clamp(signed char whatValue, signed char limitingValue)
 }
 
 // clamp input whatValue to +/- limitingValue
+//      version for (int)
+//      whatValue may be + or -
+//      limitingValue must be positive
+int clampInt(int whatValue, int limitingValue)
+{
+    if (whatValue < -limitingValue)
+        return -limitingValue;
+    else if (whatValue > limitingValue)
+        return limitingValue;
+    else
+        return whatValue;
+}
+
+// clamp input whatValue to +/- limitingValue
 //      version for (double)
 //      whatValue may be + or -
 //      limitingValue must be positive
@@ -394,16 +512,43 @@ double clampDouble(double whatValue, double limitingValue)
         return whatValue;
 }
 
-// Orientation Conventions
-// when looking down on robot    when looking from wheel towards motor
-// robot spin CW                left    CCW     right   CCW
-// robot spin CCW               left    CW      right   CW
-// robot move forward           left    CCW     right   CW
-// robot move backwards         left    CW      right   CCW
+// joystickToTurnvelocity()
+// Purpose: map left to right values of a joystick on PS2X controller by Lynxmotion to TurnVelocity setpoint
+// Input:  accepts values from PS2 controller V4 by Lynxmotion 
+// Algorithm: see "Joystick to Velocity Loop Setpoints" sketch 2019 oct 6
+// Returns: TurnVelocity values between -100 and +100
+signed char joystickToTurnVelocity(unsigned char joystick)
+{
+    if (joystick < 126) {
+        return (signed char) ((double) 0.792 * (double) joystick - (double) 100 );
+    }
+    if (joystick > 130) {
+        return (signed char) ((double) 0.798 * (double) joystick - (double) 103.5 );
+    }
+    return (signed char) 0;
+};
 
-// setVelocityLoopSetpoints()
-// Purpose: map heading and throttle commands to encoder velocity setpoints
+// joystickToThrottle()
+// Purpose: map front to back values of a joystick on PS2X controller by Lynxmotion to a Throttle setpoint
+// Input:  accepts values from PS2 controller V4 by Lynxmotion 
+// Algorithm: see "Joystick to Velocity Loop Setpoints" sketch 2019 oct 6
+// Returns: Throttle values between -100 and +100
+signed char joystickToThrottle(unsigned char joystick)
+{
+    if (joystick < 126) {
+        return (signed char) ((double) -0.792 * (double) joystick + (double) 100 );
+    }
+    if (joystick > 130) {
+        return (signed char) ((double) -0.798 * (double) joystick + (double) 103.5 );
+    }
+    return (signed char) 0;
+};
+
+
+// mixAndSetVelocityLoopSetpoints()
+// Purpose: map heading and throttle commands to motor velocity setpoint requests in encoder value space
 // Input:   accepts abstract speed and steering commands
+//          currently accepts multiple values -> ToDo -> replace global implementation with local variables
 //          turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
 //          throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
 // Algorithm:   maps abstract command range into encoder speed value range
@@ -411,58 +556,52 @@ double clampDouble(double whatValue, double limitingValue)
 // Output:
 //  - updates local storage encoder value domain velocity setpoints,
 //  - intended as reference signal for a PID loop
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings)
+//  - ToDo -> replace global output variable implementation with local variables
+bool mixAndSetVelocityLoopSetpoints(bool printNewSettings)
 {
-    signed char turnVelocity; // abstract speed from -100 to +100. + values robot spins CW, - values CCW
-    signed char throttle;     // abstract speed from -100 to +100. + values robot moves forward, - values backwards
+    // capture TurnVelocity and Throttle setpoint requests
+    clampedTurnVelocityRequest = (signed char) clampInt((int) manualTurnVelocityRequest + automaticTurnVelocityRequest, 100); // keep this function tolerant of mimalformed input
+    clampedThrottleRequest =(signed char) clampInt((int) manualThrottleRequest + automaticThrottleRequest, 100);         // keep this function tolerant of mimalformed input
 
-    turnVelocity = clamp(TurnVelocity, 100); // keep this function tolerant of mimalformed input
-    throttle = clamp(Throttle, 100);         // keep this function tolerant of mimalformed input
+    // once the requested setpoints are clamped,
+    //  the system runs low pass filters, 
+    //  translates clamped turn and throttle requests to encoder tick space,
+    //  and runs PID loops every 20 ms
 
-    // coding convention ->
-    //  Encoder values are signed Long...
-    //  + values => turn motor CW, - values => turn motor CCW
-    //  => positive turnVelocity => robot spins CW => turn both motors CCW
-    double rightEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks;
-    double leftEncFromTurn = -1 * ((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks;
-
-    double limitedMaxVelocityTicks = maxEncoderVelocityTicks - abs(((double)turnVelocity) / 100 * maxTurnEncoderVelocityTicks);
-
-    double rightEncFromThrottle = ((double)throttle) / 100 * limitedMaxVelocityTicks;     // limit throttle for high rates of robot turn
-    double leftEncFromThrottle = -1 * ((double)throttle) / 100 * limitedMaxVelocityTicks; // limit throttle for high rates of robot turn
-
-    // rightEncVelocitySetpoint = rightEncFromTurn + rightEncFromThrottle;
-    // leftEncVelocitySetpoint = leftEncFromTurn + leftEncFromThrottle;
-    currentRightEncVelocitySetpointRequest = rightEncFromTurn + rightEncFromThrottle;
-    currentLeftEncVelocitySetpointRequest = leftEncFromTurn + leftEncFromThrottle;
-
-    if (printNewSettings)
-    {
-        Serial.print("\nsetVelLoopSetpnts()");
-        Serial.print("clampd turnVel ");
-        Serial.print(turnVelocity);
-        Serial.print(", thrttl ");
-        Serial.println(throttle);
-
-        Serial.print("lftEncFrmTurn: ");
-        Serial.print(leftEncFromTurn);
-        Serial.print(" rght ");
-        Serial.print(rightEncFromTurn);
-        
-        Serial.print(", lftEncFrmThrttl: ");
-        Serial.print(leftEncFromThrottle);
-        Serial.print(" rght ");
-        Serial.print(rightEncFromThrottle);
-
-        Serial.print(", lftEncVelSetpnt: ");
-        Serial.print(currentLeftEncVelocitySetpointRequest);
-        Serial.print(" rght ");
-        Serial.println(currentRightEncVelocitySetpointRequest);
-        Serial.println();
-
-        // printVelocityLoopValues();  // print new setpoint, and current encoder velocity and loop out PWM
-    }
+    updateVelocityLoopSetpoints(printNewSettings);
 }
+
+// Orientation Conventions
+// when looking down on robot    when looking from wheel towards motor
+// robot spin CW                left    CCW     right   CCW
+// robot spin CCW               left    CW      right   CW
+// robot move forward           left    CCW     right   CW
+// robot move backwards         left    CW      right   CCW
+
+// setManualVelocityLoopSetpoints()
+// Purpose: allow mixing setpoint adjustments with whatever current baseline values are in place
+// Algorithm: simply add requested values to whatever setpoint values already exist
+bool setManualVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings) 
+{
+    // capture TurnVelocity and Throttle setpoint requests
+    manualTurnVelocityRequest = TurnVelocity;
+    manualThrottleRequest = Throttle;
+
+    mixAndSetVelocityLoopSetpoints(printNewSettings);
+};
+
+// setAutomaticVelocityLoopSetpoints()
+// Purpose: allow mixing setpoint adjustments with whatever current baseline values are in place
+// Algorithm: simply add requested values to whatever setpoint values already exist
+bool setAutomaticVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings) 
+{
+    // capture TurnVelocity and Throttle setpoint requests
+    automaticTurnVelocityRequest = TurnVelocity;
+    automaticThrottleRequest = Throttle;
+
+    mixAndSetVelocityLoopSetpoints(printNewSettings);
+};
+
 
 // sendVelocityLoopPWMtoMotorShield()   // ToDo -> belongs in HAL layer ???
 // Purpose: map velocity PID loop output to  & send PWM commands to the motor shield
@@ -488,12 +627,12 @@ bool sendVelocityLoopPWMtoMotorShield()
     leftLoopPWM = (signed int) clampDouble(leftVelocityLoopOutPWM, maxPWM);
     rightLoopPWM = (signed int) clampDouble(rightVelocityLoopOutPWM, maxPWM);
 
-Serial.print("velLoopEnabled ");
-Serial.print(velocityLoopEnabled);
-Serial.print(" lftLoopPWM ");
-Serial.print(leftLoopPWM);
-Serial.print(" rght ");
-Serial.println(rightLoopPWM);
+// Serial.print("velLoopEnabled ");
+// Serial.print(velocityLoopEnabled);
+// Serial.print(" lftLoopPWM ");
+// Serial.print(leftLoopPWM);
+// Serial.print("   rght ");
+// Serial.println(rightLoopPWM);
 
     if (leftLoopPWM > 0)
     {
@@ -628,11 +767,11 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
 // {
 //     wake_after(2000);
 //     Serial.println("\n> testVelocityPIDloop() - start");
-//     setVelocityLoopSetpoints(0, 50, true);
+//     setAutomaticVelocityLoopSetpoints(0, 50, true);
 
 //     wake_after(4000);
 //     Serial.println("\n> testVelocityPIDloop() - stop");
-//     setVelocityLoopSetpoints(0, 0, true);
+//     setAutomaticVelocityLoopSetpoints(0, 0, true);
 
 //     periodicSampleMotorShield_Stop();
 //     terminate();
@@ -645,19 +784,19 @@ bool setMotorVelocityByPWM(signed char TurnVelocity, signed char Throttle)
 //  - manually inspect / verify the console log output
 void testVelocityLoopSetpointsMath()
 {
-    setVelocityLoopSetpoints(0, 50, true);
-    setVelocityLoopSetpoints(0, -50, true);
+    setAutomaticVelocityLoopSetpoints(0, 50, true);
+    setAutomaticVelocityLoopSetpoints(0, -50, true);
 
-    setVelocityLoopSetpoints(50, 0, true);
-    setVelocityLoopSetpoints(-50, 0, true);
+    setAutomaticVelocityLoopSetpoints(50, 0, true);
+    setAutomaticVelocityLoopSetpoints(-50, 0, true);
 
-    setVelocityLoopSetpoints(20, 90, true);
-    setVelocityLoopSetpoints(20, -90, true);
+    setAutomaticVelocityLoopSetpoints(20, 90, true);
+    setAutomaticVelocityLoopSetpoints(20, -90, true);
 
-    setVelocityLoopSetpoints(90, 20, true);
-    setVelocityLoopSetpoints(-90, 20, true);
+    setAutomaticVelocityLoopSetpoints(90, 20, true);
+    setAutomaticVelocityLoopSetpoints(-90, 20, true);
 
-    setVelocityLoopSetpoints(0, 0, true);
+    setAutomaticVelocityLoopSetpoints(0, 0, true);
 }
 
 // Purpose:

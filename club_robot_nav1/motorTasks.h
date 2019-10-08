@@ -52,7 +52,8 @@ void printVelocityLoopValues();
 // void monitorVelocityLoop(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
-void filterSetpointCommandValues();
+void filterTurnAndThrottleRequestValues();
+// bool updateVelocityLoopSetpoints(bool printNewSettings);
 void sampleMotorShield();
 // void periodicSampleMotorShield(ASIZE msLoopPeriod);
 
@@ -67,7 +68,11 @@ bool setMotorVelocityByPWM(signed char, signed char); // turnVelocity, throttle.
                                                  // -100 to +100.
                                                  //  ToDo - need to dump this
 
-bool setVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
+signed char joystickToTurnVelocity(unsigned char); // map joystick to turn velocity setpoint space values
+signed char joystickToThrottle(unsigned char);      // map joystick to throttle setpoint space values
+
+bool setManualVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
+bool setAutomaticVelocityLoopSetpoints(signed char TurnVelocity, signed char Throttle, bool printNewSettings);
 extern int leftLoopPWM;        // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 extern int rightLoopPWM;       // used internally by sendVelocityLoopPWMtoMotorShield(), shared globall for diagnostics
 bool sendVelocityLoopPWMtoMotorShield();

@@ -141,6 +141,11 @@ void updateRobotOdometerTicks()
   robotOdometerVelocity.leftMotor = -(double)deltaOdometerTicks.leftMotor;
   robotOdometerVelocity.rightMotor = (double)deltaOdometerTicks.rightMotor;
 
+  // calculate turn velocity
+  // e.g. right motor 11, left motor -9, gives a slight left turn == -2 (robot turning CCW)
+  // ie. positive 'turnDeltaTicks' => robot is turning right ie. robot is turning CW
+  robotOdometerVelocity.turnDeltaTicks = -1* (robotOdometerVelocity.rightMotor + robotOdometerVelocity.leftMotor);
+
   priorEncoderSample.rightMotor = currentEncoderSample.rightMotor;
   priorEncoderSample.leftMotor = currentEncoderSample.leftMotor;
 }
