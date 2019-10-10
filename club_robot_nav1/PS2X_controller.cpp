@@ -15,6 +15,7 @@ byte PS2controllerType = 0;
 byte vibrateShake = 0;
 
 bool startAndTriangle = false; // true while start button and triangle are both held at the same time
+bool L2button = false;  // true while L2 button is pressed
 
 void initPS2xController()
 {
@@ -173,6 +174,7 @@ void readAllPS2xControllerValues()
     
     // this will set the large motor vibrateShake speed based on how hard you press the blue (X) button
     vibrateShake = ps2x.Analog(PSAB_BLUE);
+    L2button = ps2x.Button(PSB_L2);
     
     // will be TRUE if any button changes state (on to off, or off to on)
     if (ps2x.NewButtonState())

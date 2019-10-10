@@ -129,7 +129,16 @@ void tasks20ms () {
 
   readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
 
-  setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+  if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
+  {
+    setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+  } else  // normally, just use half the values provide by the joystick
+  {
+    signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
+    signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
+    setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
+  }
+  
 
   tick20msCounter += 1;
 
