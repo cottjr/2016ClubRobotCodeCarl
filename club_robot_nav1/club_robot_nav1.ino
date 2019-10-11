@@ -293,6 +293,8 @@ void setup()
   TCCR5B = 0;
   TCNT5 = 0;
 
+
+  //Reminder -> take care -> motorTasks.cpp has a filter dependency on this sampling period!
   OCR5A = 1250;             // compare match register 16MHz/256 -> 1250 counts => 20ms ~50Hz
   // OCR5A = 62500;             // compare match register 16MHz/256 -> 62500 counts => 1Hz
   // OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz

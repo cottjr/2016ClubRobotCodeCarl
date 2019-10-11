@@ -81,9 +81,9 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // Low-pass filters for velocity loop setpoint- smooth motor response- avoid slamming the gears
 // using this library: https://martinvb.com/wp/minimalist-low-pass-filter-library/
 // >> https://github.com/MartinBloedorn/libFilter
-const float velocity_setpoint_lowpass_cutoff_freq   = 1; // 0.3;  //Cutoff frequency in Hz
+const float velocity_setpoint_lowpass_cutoff_freq   = 3; // 0.3;  //Cutoff frequency in Hz
 const float sampling_time = 0.020; //Sampling time in seconds.
-IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD2; // Order (OD1 to OD4)
+IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD4; // Order (OD1 to OD4)
     
 // ToDo: remove these filters, now that they were bypassed when moved LowPass function from setpoints to be earlier with Throttle and TurnVelocity
 Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
