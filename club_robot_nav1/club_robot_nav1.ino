@@ -94,51 +94,107 @@ void tasks20ms () {
     // digitalWrite(cpuStatusLEDbluePin, LOW);
   }
 
-  unsigned char quickTripSpeed = 100;
-  if ( startAndTriangle && !runQuickTrip )       // start a quick trip if requested and not already in progress
+  unsigned char quickTripSpeed = 100;            // max speed for Quick Trip
+  unsigned char quickTripSpeedThreeQuarter = 75; // kludge (should make part of filters & loop response), start & stop quick trip slowly
+  unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
+  unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
+
+  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
   {
     QuickTripStartCounter = tick20msCounter;
     runQuickTrip = true;
   };
-  if (runQuickTrip){
-    if (tick20msCounter == QuickTripStartCounter + 150){
-      // start moving 3 seconds after power up
-      // move forward
-      setAutomaticVelocityLoopSetpoints(0,quickTripSpeed,true);
+  if (runQuickTrip)
+  {
+    // start moving 1.5 seconds after power up
+    // move forward
+    if (tick20msCounter == QuickTripStartCounter + 75)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter ==QuickTripStartCounter + 250){
-      // turn motors off
-      setAutomaticVelocityLoopSetpoints(0,0,true);
-      // wait for 3 seconds
+    if (tick20msCounter == QuickTripStartCounter + 100)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 350){
-      // then move backwards
-        setAutomaticVelocityLoopSetpoints(0,-quickTripSpeed,true);
+    if (tick20msCounter == QuickTripStartCounter + 125)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 450){
-      // stop moving, please...    
-      setAutomaticVelocityLoopSetpoints(0,0,true);
+    if (tick20msCounter == QuickTripStartCounter + 150)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeed, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 250)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedThreeQuarter, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 275)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedHalf, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 300)
+    {
+      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedQuarter, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 325)
+    {
+      setAutomaticVelocityLoopSetpoints(0, 0, true);
+    }
+    // wait for 1.5 seconds
+    // then head backwards
+    if (tick20msCounter == QuickTripStartCounter + 400)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedQuarter, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 425)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedHalf, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 450)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedThreeQuarter, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 475)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeed, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 575)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedThreeQuarter, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 600)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedHalf, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 625)
+    {
+      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedQuarter, true);
+    }
+    if (tick20msCounter == QuickTripStartCounter + 650)
+    {
+      setAutomaticVelocityLoopSetpoints(0, 0, true);
+
+      // Reset the QuickTrip Routine
       runQuickTrip = false;
     }
   }
 
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
-  if (readAndViewAllPS2Buttons){
+  if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
+  {
     readAllPS2xControllerValues();  // show any PS2 controller events/data if present
+    readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
+    if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
+    {
+      setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+    } else  // normally, just use half the values provide by the joystick
+    {
+      signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
+      signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
+      setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
+    }
   }
-
-  readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
-
-  if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
-  {
-    setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
-  } else  // normally, just use half the values provide by the joystick
-  {
-    signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
-    signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
-    setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
-  }
-  
+ 
 
   tick20msCounter += 1;
 

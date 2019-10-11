@@ -24,6 +24,7 @@ void initPS2xController();
 void readPS2Joysticks( PS2JoystickValuesType* );
 void readAllPS2xControllerValues();
 
+extern bool ps2ControllerUseable;  // flag to determine if appears safe to read values from the ps2 controller
 extern bool startAndTriangle; // true while start button and triangle are both held at the same time
 extern bool L2button; // true while start button and triangle are both held at the same time
 
