@@ -14,6 +14,7 @@ int ps2xError = 0;
 byte PS2controllerType = 0;
 byte vibrateShake = 0;
 
+bool ps2ControllerUseable = false;  // flag to determine if appears safe to read values from the ps2 controller
 bool startAndTriangle = false; // true while start button and triangle are both held at the same time
 bool L2button = false;  // true while L2 button is pressed
 
@@ -26,6 +27,7 @@ void initPS2xController()
 
   if(ps2xError == 0)
   {
+    ps2ControllerUseable = true;
     Serial.println();
     Serial.println("ps2xError 0- all good- Found Controller- init success");
     // Serial.println("Try out buttons:");
@@ -36,16 +38,19 @@ void initPS2xController()
   }
   else if(ps2xError == 1)
   {
+    ps2ControllerUseable = false;    
     Serial.println("ps2xError 1- very bad- No controller found, check wiring, readme.txt-> enable debug");
     Serial.println();
   }
   else if(ps2xError == 2)
   {
+    ps2ControllerUseable = false;
     Serial.println("ps2xError 2- very bad- Controller found but not accepting commands. readme.txt-> enable debug");
     Serial.println();
   }
   else if(ps2xError == 3)
   {
+    ps2ControllerUseable = true;
     Serial.println("ps2xError 3- partly ok- Controller refusing Pressures mode- may not support it");
     // Serial.println();
   }
