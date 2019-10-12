@@ -37,6 +37,7 @@
                                     // defined as the smaller of left or right motor value in forward or backwards, \
                                     // to ensure that both motors can achieve the highest speed                     \
                                     // measured over 100 ms
+#define lowSpeedPIDthresholdVelocityTicks 45    // adaptive PID loop gain threshold, minimizes errors when robot motors turning slowly
 
 bool velocityLoopEnabled = false;
 bool positionLoopEnabled = false;
@@ -80,9 +81,9 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // Low-pass filters for velocity loop setpoint- smooth motor response- avoid slamming the gears
 // using this library: https://martinvb.com/wp/minimalist-low-pass-filter-library/
 // >> https://github.com/MartinBloedorn/libFilter
-const float velocity_setpoint_lowpass_cutoff_freq   = 1; // 0.3;  //Cutoff frequency in Hz
+const float velocity_setpoint_lowpass_cutoff_freq   = 3; // 0.3;  //Cutoff frequency in Hz
 const float sampling_time = 0.020; //Sampling time in seconds.
-IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD2; // Order (OD1 to OD4)
+IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD4; // Order (OD1 to OD4)
     
 // ToDo: remove these filters, now that they were bypassed when moved LowPass function from setpoints to be earlier with Throttle and TurnVelocity
 Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
@@ -97,12 +98,16 @@ Filter filterTurnVelocityRequest(velocity_setpoint_lowpass_cutoff_freq, sampling
 // Aggressive and conservative Tuning Parameters
 // [0] == right, [1] == left
 // double aggKp=4, aggKi=0.2, aggKd=1;
-double conservativeVelocityKp[2] = {1.75,1.75};  //r 1.75 note: {right, left}
-double conservativeVelocityKi[2] = {12, 12};  //r 12  note: {right, left}
-double conservativeVelocityKd[2] = {0, 0};  //r 0    note: {right, left}
+double nominalVelocityKp[2] = {1.75,1.75};  //r 1.75 note: {right, left}
+double nominalVelocityKi[2] = {12, 12};  //r 12  note: {right, left}
+double nominalVelocityKd[2] = {0, 0};  //r 0    note: {right, left}
 
-PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, conservativeVelocityKp[1], conservativeVelocityKi[1], conservativeVelocityKd[1], DIRECT);
-PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, conservativeVelocityKp[0], conservativeVelocityKi[0], conservativeVelocityKd[0], DIRECT);
+// low gain values to improve performance when motor response to voltage is highly non-linear
+double lowSpeedVelocityKp[2] = {0.9,0.9};  //note: {right, left}
+
+
+PID leftVelocityPID(&robotOdometerVelocity.leftMotor, &leftVelocityLoopOutPWM, &leftEncVelocitySetpoint, nominalVelocityKp[1], nominalVelocityKi[1], nominalVelocityKd[1], DIRECT);
+PID rightVelocityPID(&robotOdometerVelocity.rightMotor, &rightVelocityLoopOutPWM, &rightEncVelocitySetpoint, nominalVelocityKp[0], nominalVelocityKi[0], nominalVelocityKd[0], DIRECT);
 
 // Turn Velocity PID loops -> for mananging turn velocity on differential drive robots where rate of turn is a function of relative left and right motor Speeds
 double turnVelocityKp = 0.08; //r 1.75
@@ -329,6 +334,22 @@ void sampleMotorShield(){
 
         updateVelocityLoopSetpoints(false); // map filtered turn & throttle to encoder space motor
 
+        // use adaptive gain when motors turning near their deadband
+        // this method helps hold back the stronger motor until the weaker motor catches up
+        // it is intended to help compensate for motor differences, especially when there is no heading control loop being used
+        // it is also intended to help limit acceleration from stop, where high initial torque can often 'burn rubber' ie. skid the wheels when starting or stopping
+        // well, that's the idea anyhow, it clearly needs to be tuned properly...
+        // for now, leave the structure in place, but with no change in values
+        if ((robotOdometerVelocity.leftMotor > lowSpeedPIDthresholdVelocityTicks) && (robotOdometerVelocity.rightMotor > lowSpeedPIDthresholdVelocityTicks))
+        {
+            leftVelocityPID.SetTunings( nominalVelocityKp[1], nominalVelocityKi[1], nominalVelocityKd[1]);
+            rightVelocityPID.SetTunings( nominalVelocityKp[0], nominalVelocityKi[0], nominalVelocityKd[0]);
+        } else
+        {
+            leftVelocityPID.SetTunings( nominalVelocityKp[1], nominalVelocityKi[1], nominalVelocityKd[1]);  // lowSpeedVelocityKp[1], nominalVelocityKi[1], nominalVelocityKd[1]);
+            rightVelocityPID.SetTunings( nominalVelocityKp[0], nominalVelocityKi[0], nominalVelocityKd[0]);  // lowSpeedVelocityKp[0], nominalVelocityKi[0], nominalVelocityKd[0]);
+        }
+        
         leftVelocityPID.Compute();
         rightVelocityPID.Compute();
         // use preceeding lines normally - use following lines to monitor & verify PID is actually computing

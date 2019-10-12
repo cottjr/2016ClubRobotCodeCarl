@@ -99,7 +99,7 @@ void tasks20ms () {
   unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
   unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
 
-  if (startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
+  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
   {
     QuickTripStartCounter = tick20msCounter;
     runQuickTrip = true;
@@ -180,22 +180,21 @@ void tasks20ms () {
   }
 
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
-  if (readAndViewAllPS2Buttons){
+  if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
+  {
     readAllPS2xControllerValues();  // show any PS2 controller events/data if present
+    readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
+    if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
+    {
+      setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+    } else  // normally, just use half the values provide by the joystick
+    {
+      signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
+      signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
+      setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
+    }
   }
-
-  readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
-
-  if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
-  {
-    setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
-  } else  // normally, just use half the values provide by the joystick
-  {
-    signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
-    signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
-    setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
-  }
-  
+ 
 
   tick20msCounter += 1;
 
@@ -294,6 +293,8 @@ void setup()
   TCCR5B = 0;
   TCNT5 = 0;
 
+
+  //Reminder -> take care -> motorTasks.cpp has a filter dependency on this sampling period!
   OCR5A = 1250;             // compare match register 16MHz/256 -> 1250 counts => 20ms ~50Hz
   // OCR5A = 62500;             // compare match register 16MHz/256 -> 62500 counts => 1Hz
   // OCR5A = 625;             // compare match register 16MHz/256 -> 625 counts => 100Hz
