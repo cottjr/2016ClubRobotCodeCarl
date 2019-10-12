@@ -110,15 +110,15 @@ void tasks20ms () {
     // move forward
     if (tick20msCounter == QuickTripStartCounter + 75)
     {
-      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedQuarter, true);
+      setAutomaticVelocityLoopSetpoints( 1, quickTripSpeedQuarter, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 100)
     {
-      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedHalf, true);
+      setAutomaticVelocityLoopSetpoints( 1, quickTripSpeedHalf, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 125)
     {
-      setAutomaticVelocityLoopSetpoints(0, quickTripSpeedThreeQuarter, true);
+      setAutomaticVelocityLoopSetpoints( 1, quickTripSpeedThreeQuarter, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 150)
     {
@@ -144,15 +144,15 @@ void tasks20ms () {
     // then head backwards
     if (tick20msCounter == QuickTripStartCounter + 400)
     {
-      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedQuarter, true);
+      setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedQuarter, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 425)
     {
-      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedHalf, true);
+      setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedHalf, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 450)
     {
-      setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedThreeQuarter, true);
+      setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedThreeQuarter, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 475)
     {
