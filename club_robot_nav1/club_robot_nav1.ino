@@ -19,9 +19,9 @@
 #define cpuStatusPin48 48         // simple digital pin for o'scope monitoring
 #define cpuStatusPin50 50         // simple digital pin for o'scope monitoring
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
-#define cpuStatusLEDredPin 51     // 325 ohm
-#define cpuStatusLEDgreenPin 52   // 1.2K ohm
-#define cpuStatusLEDbluePin 53    // 1K ohm
+#define cpuStatusLEDredPin 30     // 325 ohm
+#define cpuStatusLEDgreenPin 31   // 1.2K ohm
+#define cpuStatusLEDbluePin 32    // 1K ohm
 
 
 unsigned int cpuCycleHeadroom20ms;            // most recent number of spare cycles betewen 10ms interrupt periods
