@@ -27,6 +27,7 @@
 #define RGBswitchGreenPin 34    // 150 ohm
 #define RGBswitchBluePin 35     // zero ohm
 #define RGBswitchSwitchPin 36   // RC 4.7K 1 uF
+bool RGBswitchPriorSecond = HIGH;  //  track the prior RGB Switch state to enable detecting transitions
 
 // test points on breakout board
 #define potA8 62    // analog voltage in - Pot #1  (A8)
@@ -134,15 +135,15 @@ void tasks20ms () {
       runQuickTrip = false;
   }
 
-  // if ((taskLoopCounter == 49) && !digitalRead(RGBswitchSwitchPin) && !runQuickTrip)   // allow start QuickTrip by the button twice per second, ie. when CPU status light toggles white on/off
-  // {
-  //   // start a QuickTrip Routine
-  //   digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
-  //   digitalWrite(RGBswitchGreenPin, HIGH);
-  //   digitalWrite(RGBswitchBluePin, HIGH);      
-  //   QuickTripStartCounter = tick20msCounter;
-  //   runQuickTrip = true;
-  // }
+  if ( !RGBswitchPriorSecond && digitalRead(RGBswitchSwitchPin) && !runQuickTrip )   // allow start QuickTrip on RGB button release, ie. rising edge of RGBswitchSwitchPin
+  {
+    // start a QuickTrip Routine
+    digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
+    digitalWrite(RGBswitchGreenPin, HIGH);
+    digitalWrite(RGBswitchBluePin, HIGH);      
+    QuickTripStartCounter = tick20msCounter;
+    runQuickTrip = true;
+  }
 
 
   if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
@@ -247,7 +248,6 @@ void tasks20ms () {
     }
   }
  
-
   tick20msCounter += 1;
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
@@ -276,6 +276,8 @@ void tasks1000ms () {
       setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
  
+  RGBswitchPriorSecond = digitalRead(RGBswitchSwitchPin);   // poor mans debouncer, read once per second, hope the switch transtion & bounce doesn't happen on a 1 second boundary.
+
   Serial.println();
   Serial.print("AnaTP 1..4: ");
   Serial.print(analogRead(potA8), DEC);
