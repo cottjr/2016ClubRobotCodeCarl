@@ -68,8 +68,6 @@ ISR(TIMER5_COMPA_vect){
     digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
     digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
 
-    digitalWrite(RGBswitchRedPin, digitalRead(RGBswitchRedPin) ^ 1);        // toggle red LED pin
-    digitalWrite(RGBswitchGreenPin, digitalRead(RGBswitchGreenPin) ^ 1);    // toggle green LED pin
   }
 
   ISR20msActive = true;
@@ -98,8 +96,8 @@ void tasks20ms () {
   // interrupts();
 
   // verify the RGB Switch by writing it's value to these digital test point pins
-  digitalWrite(digTP28, digitalRead(RGBswitchSwitchPin));
-  digitalWrite(digTP29, digitalRead(RGBswitchSwitchPin));
+  // digitalWrite(digTP28, digitalRead(RGBswitchSwitchPin));
+  // digitalWrite(digTP29, digitalRead(RGBswitchSwitchPin));
 
   digitalWrite(digTP27, HIGH);
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
@@ -133,6 +131,9 @@ void tasks20ms () {
   };
   if (runQuickTrip)
   {
+    digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
+    digitalWrite(RGBswitchGreenPin, HIGH);
+    digitalWrite(RGBswitchBluePin, HIGH);      
     // start moving 1.5 seconds after power up
     // move forward
     if (tick20msCounter == QuickTripStartCounter + 75)
@@ -202,6 +203,9 @@ void tasks20ms () {
       setAutomaticVelocityLoopSetpoints(0, 0, true);
 
       // Reset the QuickTrip Routine
+      digitalWrite(RGBswitchRedPin, HIGH);       
+      digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
+      digitalWrite(RGBswitchBluePin, HIGH);      
       runQuickTrip = false;
     }
   }
@@ -239,7 +243,7 @@ void tasks1000ms () {
   sampleMotorShieldCount += 1;
 
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
-  digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
+  // digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
 
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
@@ -251,7 +255,8 @@ void tasks1000ms () {
       setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
  
-  Serial.println("AnaTP 1.. 4");
+  Serial.println();
+  Serial.print("AnaTP 1..4: ");
   Serial.print(analogRead(potA8), DEC);
   Serial.print(" ");
   Serial.print(analogRead(potA9), DEC);
@@ -379,6 +384,10 @@ void setup()
   periodicSampleMotorShield_Start();
   Serial.println ("\nStarting periodic loops.");
   Serial.println("\n-----\n");
+
+  digitalWrite(RGBswitchRedPin, HIGH);       
+  digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
+  digitalWrite(RGBswitchBluePin, HIGH);      
 }
 
 void loop()
