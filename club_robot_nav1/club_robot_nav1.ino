@@ -124,6 +124,26 @@ void tasks20ms () {
   unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
   unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
 
+  if (!digitalRead(RGBswitchSwitchPin) && runQuickTrip)   // quickly stop QuickTrip
+  {
+      // Reset the QuickTrip Routine
+      digitalWrite(RGBswitchRedPin, HIGH);       
+      digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
+      digitalWrite(RGBswitchBluePin, HIGH);      
+      setAutomaticVelocityLoopSetpoints(0, 0, true);
+      runQuickTrip = false;
+  }
+
+  if ((taskLoopCounter == 49) && !digitalRead(RGBswitchSwitchPin) && !runQuickTrip)   // allow start QuickTrip by the button twice per second, ie. when CPU status light toggles white on/off
+  {
+      // start a QuickTrip Routine
+    digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
+    digitalWrite(RGBswitchGreenPin, HIGH);
+    digitalWrite(RGBswitchBluePin, HIGH);      
+    runQuickTrip = true;
+  }
+
+
   if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
   {
     QuickTripStartCounter = tick20msCounter;
