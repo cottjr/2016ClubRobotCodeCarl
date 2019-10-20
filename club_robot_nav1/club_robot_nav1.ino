@@ -16,12 +16,32 @@
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
-#define cpuStatusPin48 48         // simple digital pin for o'scope monitoring
-#define cpuStatusPin50 50         // simple digital pin for o'scope monitoring
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
 #define cpuStatusLEDredPin 30     // 325 ohm
 #define cpuStatusLEDgreenPin 31   // 1.2K ohm
 #define cpuStatusLEDbluePin 32    // 1K ohm
+
+// attached an Adafruit 3350 Rugged Metal Pushbutton http://adafru.it/3350
+// =>  with common/anode to supply votage, and RGB pins with built-in current limiting resistors
+#define RGBswitchRedPin 33      // 219 ohm
+#define RGBswitchGreenPin 34    // 150 ohm
+#define RGBswitchBluePin 35     // zero ohm
+#define RGBswitchSwitchPin 36   // RC 4.7K 1 uF
+
+// test points on breakout board
+#define potA8 62    // analog voltage in - Pot #1  (A8)
+#define potA9 63    // analog voltage in - Pot #2  (A9)
+#define potA10 64   // analog voltage in - Pot #3  (A10)
+#define potA11 65   // analog voltage in - Pot #4  (A11)
+#define anaTPa12 66 // analog voltage in or digital i/o - test point #1  (A12)
+#define anaTPa13 67 // analog voltage in or digital i/o - test point #2  (A13)
+#define anaTPa14 68 // analog voltage in or digital i/o - test point #3  (A14)
+#define anaTPa15 69 // analog voltage in or digital i/o - test point #4  (A15)
+
+#define digTP26 26  // digital test point #1 (pin 26) // CPU status monitoring via o'scope
+#define digTP27 27  // digital test point #2 (pin 27) // CPU status monitoring via o'scope
+#define digTP28 28  // digital test point #3 (pin 28)
+#define digTP29 29  // digital test point #4(pin 29)
 
 
 unsigned int cpuCycleHeadroom20ms;            // most recent number of spare cycles betewen 10ms interrupt periods
@@ -47,6 +67,9 @@ ISR(TIMER5_COMPA_vect){
   if (!cpuStatusLEDisWhite){
     digitalWrite(cpuStatusLEDredPin, digitalRead(cpuStatusLEDredPin) ^ 1);        // toggle red LED pin
     digitalWrite(cpuStatusLEDgreenPin, digitalRead(cpuStatusLEDgreenPin) ^ 1);    // toggle green LED pin
+
+    digitalWrite(RGBswitchRedPin, digitalRead(RGBswitchRedPin) ^ 1);        // toggle red LED pin
+    digitalWrite(RGBswitchGreenPin, digitalRead(RGBswitchGreenPin) ^ 1);    // toggle green LED pin
   }
 
   ISR20msActive = true;
@@ -74,15 +97,19 @@ void tasks20ms () {
   // digitalWrite(cpuStatusLEDbluePin, LOW);
   // interrupts();
 
-  digitalWrite(cpuStatusPin50, HIGH);
+  // verify the RGB Switch by writing it's value to these digital test point pins
+  digitalWrite(digTP28, digitalRead(RGBswitchSwitchPin));
+  digitalWrite(digTP29, digitalRead(RGBswitchSwitchPin));
+
+  digitalWrite(digTP27, HIGH);
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
   sampleMotorShield();
 
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
-    digitalWrite(cpuStatusPin48, HIGH);
+    digitalWrite(digTP26, HIGH);
     tasks1000ms();
-    digitalWrite(cpuStatusPin48, LOW);
+    digitalWrite(digTP26, LOW);
   } else {
     taskLoopCounter += 1;
   }
@@ -200,7 +227,7 @@ void tasks20ms () {
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
   cpuCycleHeadroom20msIncrement = 0;
-  digitalWrite(cpuStatusPin50, LOW);
+  digitalWrite(digTP27, LOW);
 }
 
 int sampleMotorShieldCount = 0;
@@ -212,6 +239,8 @@ void tasks1000ms () {
   sampleMotorShieldCount += 1;
 
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
+  digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
+
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,30);
@@ -222,6 +251,14 @@ void tasks1000ms () {
       setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
  
+  Serial.println("AnaTP 1.. 4");
+  Serial.print(analogRead(potA8), DEC);
+  Serial.print(" ");
+  Serial.print(analogRead(potA9), DEC);
+  Serial.print(" ");
+  Serial.print(analogRead(potA10), DEC);
+  Serial.print(" ");
+  Serial.println(analogRead(potA11), DEC);
 
   Serial.print("Lx ");
   // Left stick, Y axis. Other options: LX, RY, RX  
@@ -272,19 +309,36 @@ void setup()
   // Serial.print("silly Test is ");
   // Serial.println(sillyTest);
 
+  // Digital Test Points
+  pinMode (digTP26, OUTPUT);
+  pinMode (digTP27, OUTPUT);
+  pinMode (digTP28, OUTPUT);
+  pinMode (digTP29, OUTPUT);
+  digitalWrite(digTP26, LOW);
+  digitalWrite(digTP27, LOW);
+  digitalWrite(digTP28, LOW);
+  digitalWrite(digTP29, LOW);
 
-  pinMode (cpuStatusPin48, OUTPUT);
-  pinMode (cpuStatusPin50, OUTPUT);
-  digitalWrite(cpuStatusPin48, LOW);
-  digitalWrite(cpuStatusPin50, LOW);
-
+  // CPU Status RGB LED
   pinMode (cpuStatusLEDredPin, OUTPUT);
   pinMode (cpuStatusLEDgreenPin, OUTPUT);
   pinMode (cpuStatusLEDbluePin, OUTPUT);
 
-  digitalWrite(cpuStatusLEDredPin, HIGH);
+  // RGB Switch
+  pinMode (RGBswitchRedPin, OUTPUT);
+  pinMode (RGBswitchGreenPin, OUTPUT);
+  pinMode (RGBswitchBluePin, OUTPUT);
+  pinMode (RGBswitchSwitchPin, INPUT);
+
+  // cpuStatusLED -> active HIGH
+  digitalWrite(cpuStatusLEDredPin, HIGH);   // start with Red on
   digitalWrite(cpuStatusLEDgreenPin, LOW);
   digitalWrite(cpuStatusLEDbluePin, LOW);
+
+  // RGBswitchLED -> active LOW
+  digitalWrite(RGBswitchRedPin, HIGH);
+  digitalWrite(RGBswitchGreenPin, HIGH);
+  digitalWrite(RGBswitchBluePin, LOW);      // start with Blue on
 
   // Initialize timer 5 to periodically trigger the main loop via ISR(TIMER5_COMPA_vect)
   //    note arduino defines for cli() and sei() per https://forum.arduino.cc/index.php?topic=96156.0
