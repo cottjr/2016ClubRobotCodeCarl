@@ -134,14 +134,15 @@ void tasks20ms () {
       runQuickTrip = false;
   }
 
-  if ((taskLoopCounter == 49) && !digitalRead(RGBswitchSwitchPin) && !runQuickTrip)   // allow start QuickTrip by the button twice per second, ie. when CPU status light toggles white on/off
-  {
-      // start a QuickTrip Routine
-    digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
-    digitalWrite(RGBswitchGreenPin, HIGH);
-    digitalWrite(RGBswitchBluePin, HIGH);      
-    runQuickTrip = true;
-  }
+  // if ((taskLoopCounter == 49) && !digitalRead(RGBswitchSwitchPin) && !runQuickTrip)   // allow start QuickTrip by the button twice per second, ie. when CPU status light toggles white on/off
+  // {
+  //   // start a QuickTrip Routine
+  //   digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
+  //   digitalWrite(RGBswitchGreenPin, HIGH);
+  //   digitalWrite(RGBswitchBluePin, HIGH);      
+  //   QuickTripStartCounter = tick20msCounter;
+  //   runQuickTrip = true;
+  // }
 
 
   if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
