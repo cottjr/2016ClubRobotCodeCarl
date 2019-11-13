@@ -156,6 +156,17 @@ void tasks20ms () {
     digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
     digitalWrite(RGBswitchGreenPin, HIGH);
     digitalWrite(RGBswitchBluePin, HIGH);      
+
+    //  Timed about-face move. Does pretty close to a 180 pretty quickly.
+    // if (tick20msCounter == QuickTripStartCounter + 75)
+    // {
+    //   setAutomaticVelocityLoopSetpoints( quickTripSpeed, 0, true);
+    // }
+    // if (tick20msCounter == QuickTripStartCounter + 128)
+    // {
+    //   setAutomaticVelocityLoopSetpoints( 0, 0, true);
+    // }
+
     // start moving 1.5 seconds after power up
     // move forward
     if (tick20msCounter == QuickTripStartCounter + 75)
