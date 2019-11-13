@@ -174,53 +174,53 @@ void tasks20ms () {
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeed, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 250)
+    if (tick20msCounter == QuickTripStartCounter + 305) // 250)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 275)
+    if (tick20msCounter == QuickTripStartCounter + 330) // 275)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 300)
+    if (tick20msCounter == QuickTripStartCounter + 355) // 300)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 325)
+    if (tick20msCounter == QuickTripStartCounter + 380) // 325)
     {
       setAutomaticVelocityLoopSetpoints(0, 0, true);
     }
     // wait for 1.5 seconds
     // then head backwards
-    if (tick20msCounter == QuickTripStartCounter + 400)
+    if (tick20msCounter == QuickTripStartCounter + 455) // 400)
     {
       setAutomaticVelocityLoopSetpoints( -1, -quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 425)
+    if (tick20msCounter == QuickTripStartCounter + 480) // 425)
     {
       setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 450)
+    if (tick20msCounter == QuickTripStartCounter + 505) // 450)
     {
       setAutomaticVelocityLoopSetpoints( 0, -quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 475)
+    if (tick20msCounter == QuickTripStartCounter + 530) // 475)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeed, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 575)
+    if (tick20msCounter == QuickTripStartCounter + 685) // 575)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 600)
+    if (tick20msCounter == QuickTripStartCounter + 710) // 600)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 625)
+    if (tick20msCounter == QuickTripStartCounter + 735) // 625)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 650)
+    if (tick20msCounter == QuickTripStartCounter + 760) // 650)
     {
       setAutomaticVelocityLoopSetpoints(0, 0, true);
 
