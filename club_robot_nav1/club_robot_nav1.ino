@@ -157,6 +157,11 @@ void tasks20ms () {
     digitalWrite(RGBswitchGreenPin, HIGH);
     digitalWrite(RGBswitchBluePin, HIGH);      
 
+    if (tick20msCounter == QuickTripStartCounter + 25)
+    {
+      setVelocityLoopLowPassCutoff(0.6, true);    // smooth out the setpoint commands for more accurate acceleration    
+    }
+
     //  Timed about-face move. Does pretty close to a 180 pretty quickly.
     // if (tick20msCounter == QuickTripStartCounter + 75)
     // {
@@ -234,11 +239,14 @@ void tasks20ms () {
     if (tick20msCounter == QuickTripStartCounter + 760) // 650)
     {
       setAutomaticVelocityLoopSetpoints(0, 0, true);
-
+    }    
+    if (tick20msCounter == QuickTripStartCounter + 950)
+    {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
       digitalWrite(RGBswitchBluePin, HIGH);      
+      setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
     }
   }

@@ -81,16 +81,16 @@ int rightLoopPWM = 0; // used by sendVelocityLoopPWMtoMotorShield(), shared glob
 // Low-pass filters for velocity loop setpoint- smooth motor response- avoid slamming the gears
 // using this library: https://martinvb.com/wp/minimalist-low-pass-filter-library/
 // >> https://github.com/MartinBloedorn/libFilter
-const float velocity_setpoint_lowpass_cutoff_freq   = 0.6;  //Cutoff frequency in Hz
+const float default_velocity_setpoint_lowpass_cutoff_freq = 3;   //Cutoff frequency in Hz // default value for general resonse, note that lower values like 0.6 helpful for QuickTrip algorithm
 const float sampling_time = 0.020; //Sampling time in seconds.
 IIR::ORDER  velocity_setpoint_lowpass_order  = IIR::ORDER::OD4; // Order (OD1 to OD4)
     
 // ToDo: remove these filters, now that they were bypassed when moved LowPass function from setpoints to be earlier with Throttle and TurnVelocity
-Filter filterRightEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
-Filter filterLeftEncVelSetpoint(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterRightEncVelSetpoint(default_velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterLeftEncVelSetpoint(default_velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
-Filter filterThrottleRequest(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
-Filter filterTurnVelocityRequest(velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterThrottleRequest(default_velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
+Filter filterTurnVelocityRequest(default_velocity_setpoint_lowpass_cutoff_freq, sampling_time, velocity_setpoint_lowpass_order,IIR::TYPE::LOWPASS);
 
 
 // Velocity PID Loops -> for mananging left and right motor velocity
@@ -155,6 +155,28 @@ void initializePIDs ()
     turnVelocityPID.SetMode(MANUAL);
     turnVelocityLoopOut = 0;
     turnVelocityPID.SetMode(AUTOMATIC);
+}
+
+// Purpose:
+//      allow change the lowpass filter cutoff frequency for velocity setpoint requests
+// Input:
+//      if requested cutoff frequency is negative, restores cutoff frequency to default value
+//      if flushFilter is true, filter output values are re-initialized to zero
+// Output:
+//      lowpass filter cutoff frequency and optionally reinitializes the filter output to zero
+void setVelocityLoopLowPassCutoff( float newLowPassCutoffFrequency, bool flushFilter)
+{
+    if (newLowPassCutoffFrequency < 0)
+    {
+        filterThrottleRequest.setCutoffFreqHZ(default_velocity_setpoint_lowpass_cutoff_freq, flushFilter);
+        filterTurnVelocityRequest.setCutoffFreqHZ(default_velocity_setpoint_lowpass_cutoff_freq, flushFilter);
+
+    } else
+    {
+        filterThrottleRequest.setCutoffFreqHZ(newLowPassCutoffFrequency, flushFilter);
+        filterTurnVelocityRequest.setCutoffFreqHZ(newLowPassCutoffFrequency, flushFilter);
+    }
+    
 }
 
 byte zeroSpeedCache = 0;

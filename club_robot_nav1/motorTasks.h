@@ -49,6 +49,8 @@ typedef struct encoderMeasurementsStruct
 void printRobotOdometerTicks();
 void printVelocityLoopValues();
 
+void setVelocityLoopLowPassCutoff( float newLowPassCutoffFrequency, bool flushFilter);
+
 // void monitorVelocityLoop(ASIZE msLoopPeriod);
 void initializeMotorTasks();
 
