@@ -125,17 +125,20 @@ void tasks20ms () {
   unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
   unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
 
-  if (!digitalRead(RGBswitchSwitchPin) && runQuickTrip)   // quickly stop QuickTrip
+// quickly stop QuickTrip by RGB button or the PS2 controller select button
+  if ( (!digitalRead(RGBswitchSwitchPin) || selectButtonState) && runQuickTrip)   
   {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
       digitalWrite(RGBswitchBluePin, HIGH);      
       setAutomaticVelocityLoopSetpoints(0, 0, true);
+      setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
   }
 
-  if ( !RGBswitchPriorSecond && digitalRead(RGBswitchSwitchPin) && !runQuickTrip )   // allow start QuickTrip on RGB button release, ie. rising edge of RGBswitchSwitchPin
+// enable start QuickTrip on RGB button release, ie. rising edge of RGBswitchSwitchPin
+  if ( !RGBswitchPriorSecond && digitalRead(RGBswitchSwitchPin) && !runQuickTrip )   
   {
     // start a QuickTrip Routine
     digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
@@ -145,7 +148,8 @@ void tasks20ms () {
     runQuickTrip = true;
   }
 
-  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
+// start a quick trip if requested and not already in progress
+  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) 
   {
     QuickTripStartCounter = tick20msCounter;
     runQuickTrip = true;
@@ -266,7 +270,8 @@ void tasks20ms () {
     if ( L2button ) // "L2button press defines turbo mode, use the closer to actual raw joystick values for maximum speed"
     {
       signed char selectedThrottle = joystickToThrottle(PS2JoystickValues.leftY);  // by default, select a function of the joystick
-      if (upButtonState || triangleButtonState)   { selectedThrottle = +15; }    // override joystick with slight forward
+      if (upButtonState || (triangleButtonState && !startAndTriangle))   { selectedThrottle = +15; }    // override joystick with slight forward
+                                          // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
       if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
 
       setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
@@ -274,7 +279,8 @@ void tasks20ms () {
     {
       signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
       signed char selectedThrottle = halfThrottle;        // by default, select a function of the joystick
-      if (upButtonState || triangleButtonState)   { selectedThrottle = +15; }    // override joystick with slight forward
+      if (upButtonState || (triangleButtonState && !startAndTriangle))   { selectedThrottle = +15; }    // override joystick with slight forward
+                                          // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
       if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
 
       setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);

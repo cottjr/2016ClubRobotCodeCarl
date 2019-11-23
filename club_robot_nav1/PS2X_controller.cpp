@@ -17,6 +17,7 @@ byte vibrateShake = 0;
 bool ps2ControllerUseable = false;  // flag to determine if appears safe to read values from the ps2 controller
 bool startAndTriangle = false; // true while start button and triangle are both held at the same time
 bool L2button = false;  // true while L2 button is pressed
+bool selectButtonState = false;  // true while select button is pressed
 
 bool circleButtonState = false;  // true while circle button is pressed
 bool squareButtonState = false;  // true while square button is pressed
@@ -151,6 +152,7 @@ void readAllPS2xControllerValues()
     
 
     startAndTriangle = ps2x.Button(PSB_START) && ps2x.Button(PSB_GREEN); // only true when both start and triangle buttons pressed.
+    selectButtonState = ps2x.Button(PSB_SELECT);
 
     // will be TRUE as long as button is pressed
     if(ps2x.Button(PSB_START))
