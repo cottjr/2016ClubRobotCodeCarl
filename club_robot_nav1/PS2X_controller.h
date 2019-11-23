@@ -27,8 +27,16 @@ void readAllPS2xControllerValues();
 extern bool ps2ControllerUseable;  // flag to determine if appears safe to read values from the ps2 controller
 extern bool startAndTriangle; // true while start button and triangle are both held at the same time
 extern bool L2button; // true while start button and triangle are both held at the same time
+
 extern bool circleButtonState;  // true while circle button is currently being pressed
 extern bool squareButtonState;  // true while square button is currently being pressed
+extern bool upButtonState;  // true while up button is currently being pressed
+extern bool downButtonState;  // true while down button is currently being pressed
+
+extern bool leftButtonState;  // true while left button is pressed
+extern bool rightButtonState;  // true while right button is pressed
+extern bool triangleButtonState;  // true while triangle button is pressed
+extern bool xButtonState;  // true while X button is pressed
 
 // end pragma alternative: ensure the C pre-processor only reads this file once
 #endif

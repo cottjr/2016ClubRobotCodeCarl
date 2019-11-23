@@ -145,7 +145,6 @@ void tasks20ms () {
     runQuickTrip = true;
   }
 
-
   if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
   {
     QuickTripStartCounter = tick20msCounter;
@@ -254,17 +253,32 @@ void tasks20ms () {
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
   if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
   {
-    readAllPS2xControllerValues();  // show any PS2 controller events/data if present
-    readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
-    if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
+    readAllPS2xControllerValues();                          // show any PS2 controller events/data if present
+    readPS2Joysticks( &PS2JoystickValues );                 // read the latest PS2 controller joystick values
+    // signed char twoThirdsTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) * (double) 0.66;
+    signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
+    // signed char quarterTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 4;
+    
+    signed char selectedTurnVelocity = halfTurnVelocity;    // by default select a function of the joystick
+    if (circleButtonState || rightButtonState) { selectedTurnVelocity = +15; }  // override joystick with slight steer to the right
+    if (squareButtonState || leftButtonState) { selectedTurnVelocity = -15; }  // override joystick with slight steer to the left
+
+    if ( L2button ) // "L2button press defines turbo mode, use the closer to actual raw joystick values for maximum speed"
     {
-      setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+      signed char selectedThrottle = joystickToThrottle(PS2JoystickValues.leftY);  // by default, select a function of the joystick
+      if (upButtonState || triangleButtonState)   { selectedThrottle = +15; }    // override joystick with slight forward
+      if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
+
+      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
     } else  // normally, just use half the values provide by the joystick
     {
-      signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
       signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
-      setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
-    }
+      signed char selectedThrottle = halfThrottle;        // by default, select a function of the joystick
+      if (upButtonState || triangleButtonState)   { selectedThrottle = +15; }    // override joystick with slight forward
+      if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
+
+      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+    }   
   }
  
   tick20msCounter += 1;
