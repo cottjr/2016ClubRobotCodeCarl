@@ -125,17 +125,20 @@ void tasks20ms () {
   unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
   unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
 
-  if (!digitalRead(RGBswitchSwitchPin) && runQuickTrip)   // quickly stop QuickTrip
+// quickly stop QuickTrip by RGB button or the PS2 controller select button
+  if ( (!digitalRead(RGBswitchSwitchPin) || selectButtonState) && runQuickTrip)   
   {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
       digitalWrite(RGBswitchBluePin, HIGH);      
       setAutomaticVelocityLoopSetpoints(0, 0, true);
+      setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
   }
 
-  if ( !RGBswitchPriorSecond && digitalRead(RGBswitchSwitchPin) && !runQuickTrip )   // allow start QuickTrip on RGB button release, ie. rising edge of RGBswitchSwitchPin
+// enable start QuickTrip on RGB button release, ie. rising edge of RGBswitchSwitchPin
+  if ( !RGBswitchPriorSecond && digitalRead(RGBswitchSwitchPin) && !runQuickTrip )   
   {
     // start a QuickTrip Routine
     digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
@@ -145,8 +148,8 @@ void tasks20ms () {
     runQuickTrip = true;
   }
 
-
-  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) // start a quick trip if requested and not already in progress
+// start a quick trip if requested and not already in progress
+  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) 
   {
     QuickTripStartCounter = tick20msCounter;
     runQuickTrip = true;
@@ -156,6 +159,22 @@ void tasks20ms () {
     digitalWrite(RGBswitchRedPin, LOW);       // turn Red on during the run
     digitalWrite(RGBswitchGreenPin, HIGH);
     digitalWrite(RGBswitchBluePin, HIGH);      
+
+    if (tick20msCounter == QuickTripStartCounter + 25)
+    {
+      setVelocityLoopLowPassCutoff(0.6, true);    // smooth out the setpoint commands for more accurate acceleration    
+    }
+
+    //  Timed about-face move. Does pretty close to a 180 pretty quickly.
+    // if (tick20msCounter == QuickTripStartCounter + 75)
+    // {
+    //   setAutomaticVelocityLoopSetpoints( quickTripSpeed, 0, true);
+    // }
+    // if (tick20msCounter == QuickTripStartCounter + 128)
+    // {
+    //   setAutomaticVelocityLoopSetpoints( 0, 0, true);
+    // }
+
     // start moving 1.5 seconds after power up
     // move forward
     if (tick20msCounter == QuickTripStartCounter + 75)
@@ -164,70 +183,73 @@ void tasks20ms () {
     }
     if (tick20msCounter == QuickTripStartCounter + 100)
     {
-      setAutomaticVelocityLoopSetpoints( 1, quickTripSpeedHalf, true);
+      setAutomaticVelocityLoopSetpoints( 0, quickTripSpeedHalf, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 125)
     {
-      setAutomaticVelocityLoopSetpoints( 1, quickTripSpeedThreeQuarter, true);
+      setAutomaticVelocityLoopSetpoints( 0, quickTripSpeedThreeQuarter, true);
     }
     if (tick20msCounter == QuickTripStartCounter + 150)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeed, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 250)
+    if (tick20msCounter == QuickTripStartCounter + 305) // 250)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 275)
+    if (tick20msCounter == QuickTripStartCounter + 330) // 275)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 300)
+    if (tick20msCounter == QuickTripStartCounter + 355) // 300)
     {
       setAutomaticVelocityLoopSetpoints(0, quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 325)
+    if (tick20msCounter == QuickTripStartCounter + 380) // 325)
     {
       setAutomaticVelocityLoopSetpoints(0, 0, true);
     }
     // wait for 1.5 seconds
     // then head backwards
-    if (tick20msCounter == QuickTripStartCounter + 400)
+    if (tick20msCounter == QuickTripStartCounter + 455) // 400)
     {
-      setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedQuarter, true);
+      setAutomaticVelocityLoopSetpoints( -1, -quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 425)
+    if (tick20msCounter == QuickTripStartCounter + 480) // 425)
     {
       setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 450)
+    if (tick20msCounter == QuickTripStartCounter + 505) // 450)
     {
-      setAutomaticVelocityLoopSetpoints( -2, -quickTripSpeedThreeQuarter, true);
+      setAutomaticVelocityLoopSetpoints( 0, -quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 475)
+    if (tick20msCounter == QuickTripStartCounter + 530) // 475)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeed, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 575)
+    if (tick20msCounter == QuickTripStartCounter + 685) // 575)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedThreeQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 600)
+    if (tick20msCounter == QuickTripStartCounter + 710) // 600)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedHalf, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 625)
+    if (tick20msCounter == QuickTripStartCounter + 735) // 625)
     {
       setAutomaticVelocityLoopSetpoints(0, -quickTripSpeedQuarter, true);
     }
-    if (tick20msCounter == QuickTripStartCounter + 650)
+    if (tick20msCounter == QuickTripStartCounter + 760) // 650)
     {
       setAutomaticVelocityLoopSetpoints(0, 0, true);
-
+    }    
+    if (tick20msCounter == QuickTripStartCounter + 950)
+    {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
       digitalWrite(RGBswitchBluePin, HIGH);      
+      setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
     }
   }
@@ -235,17 +257,34 @@ void tasks20ms () {
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
   if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
   {
-    readAllPS2xControllerValues();  // show any PS2 controller events/data if present
-    readPS2Joysticks( &PS2JoystickValues );  // read the latest PS2 controller joystick values
-    if ( L2button ) // "L2button press defines turbo mode, use the actual raw joystick values for maximum speed"
+    readAllPS2xControllerValues();                          // show any PS2 controller events/data if present
+    readPS2Joysticks( &PS2JoystickValues );                 // read the latest PS2 controller joystick values
+    // signed char twoThirdsTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) * (double) 0.66;
+    signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
+    // signed char quarterTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 4;
+    
+    signed char selectedTurnVelocity = halfTurnVelocity;    // by default select a function of the joystick
+    if (circleButtonState || rightButtonState) { selectedTurnVelocity = +15; }  // override joystick with slight steer to the right
+    if (squareButtonState || leftButtonState) { selectedTurnVelocity = -15; }  // override joystick with slight steer to the left
+
+    if ( L2button ) // "L2button press defines turbo mode, use the closer to actual raw joystick values for maximum speed"
     {
-      setManualVelocityLoopSetpoints(joystickToTurnVelocity(PS2JoystickValues.rightX),joystickToThrottle(PS2JoystickValues.leftY), false);
+      signed char selectedThrottle = joystickToThrottle(PS2JoystickValues.leftY);  // by default, select a function of the joystick
+      if (upButtonState || (triangleButtonState && !startAndTriangle))   { selectedThrottle = +15; }    // override joystick with slight forward
+                                          // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
+      if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
+
+      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
     } else  // normally, just use half the values provide by the joystick
     {
-      signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
       signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
-      setManualVelocityLoopSetpoints(halfTurnVelocity,halfThrottle, false);
-    }
+      signed char selectedThrottle = halfThrottle;        // by default, select a function of the joystick
+      if (upButtonState || (triangleButtonState && !startAndTriangle))   { selectedThrottle = +15; }    // override joystick with slight forward
+                                          // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
+      if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
+
+      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+    }   
   }
  
   tick20msCounter += 1;

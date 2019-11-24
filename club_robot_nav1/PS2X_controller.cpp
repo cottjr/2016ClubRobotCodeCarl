@@ -17,8 +17,17 @@ byte vibrateShake = 0;
 bool ps2ControllerUseable = false;  // flag to determine if appears safe to read values from the ps2 controller
 bool startAndTriangle = false; // true while start button and triangle are both held at the same time
 bool L2button = false;  // true while L2 button is pressed
+bool selectButtonState = false;  // true while select button is pressed
+
 bool circleButtonState = false;  // true while circle button is pressed
 bool squareButtonState = false;  // true while square button is pressed
+bool upButtonState = false;  // true while up button is pressed
+bool downButtonState = false;  // true while down button is pressed
+
+bool leftButtonState = false;  // true while left button is pressed
+bool rightButtonState = false;  // true while right button is pressed
+bool triangleButtonState = false;  // true while triangle button is pressed
+bool xButtonState = false;  // true while X button is pressed
 
 void initPS2xController()
 {
@@ -143,6 +152,7 @@ void readAllPS2xControllerValues()
     
 
     startAndTriangle = ps2x.Button(PSB_START) && ps2x.Button(PSB_GREEN); // only true when both start and triangle buttons pressed.
+    selectButtonState = ps2x.Button(PSB_SELECT);
 
     // will be TRUE as long as button is pressed
     if(ps2x.Button(PSB_START))
@@ -204,7 +214,14 @@ void readAllPS2xControllerValues()
 
     circleButtonState = ps2x.Button(PSB_RED);    // Circle is currently being pressed
     squareButtonState = ps2x.Button(PSB_PINK);   // Square is currently being pressed
+    upButtonState = ps2x.Button(PSB_PAD_UP);    // UP is currently being pressed
+    downButtonState = ps2x.Button(PSB_PAD_DOWN);   // Down is currently being pressed
     
+    leftButtonState = ps2x.Button(PSB_PAD_LEFT);    // Circle is currently being pressed
+    rightButtonState = ps2x.Button(PSB_PAD_RIGHT);   // Square is currently being pressed
+    triangleButtonState = ps2x.Button(PSB_GREEN);    // UP is currently being pressed
+    xButtonState = ps2x.Button(PSB_BLUE);   // Down is currently being pressed
+
     // will be TRUE if button was JUST released
     if(ps2x.ButtonReleased(PSB_PINK))
       Serial.println("Square released");     
