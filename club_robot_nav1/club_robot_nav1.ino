@@ -16,6 +16,10 @@
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
+// Using SPI slave code reference code from https://github.com/cottjr/piMegaSPI
+//  starting with baseline version, commit 00163e8 branch refactorToSpiSlaveClass
+#include "megaSPIslave/spiSlave.h"
+
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
 #define cpuStatusLEDredPin 30     // 325 ohm
 #define cpuStatusLEDgreenPin 31   // 1.2K ohm
@@ -305,6 +309,23 @@ void tasks1000ms () {
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
   // digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
 
+  if (digitalRead(cpuStatusLEDbluePin) ){
+      Serial.println("queuing for PI: P, Max burst duration, +13, 248, 399, 425");
+      spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), +13, 248, 399, 425);
+      Serial.print(" xfer error count ");
+      Serial.println(spiSlavePort.errorCountSPIrx);
+      Serial.print(" max SPI burst duration (ms) ");
+      Serial.println(spiSlavePort.getMaxBurstDuration());
+  } else
+  {
+      Serial.println("queuing for PI: Q, Max burst duration, -87, 13987, 22459, 609942");
+      spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), -87, 13987, 22459, 609942);
+      Serial.print(" xfer error count ");
+      Serial.println(spiSlavePort.errorCountSPIrx);
+      Serial.print(" max SPI burst duration (ms) ");
+      Serial.println(spiSlavePort.getMaxBurstDuration());
+  }
+  
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,30);
@@ -447,6 +468,10 @@ void setup()
   Serial.println ("\nStarting periodic loops.");
   Serial.println("\n-----\n");
 
+  Serial.println("Enabling the SPI as a slave.");
+  spiSlavePort.enable();
+  Serial.println("SPI initialization complete.");
+
   digitalWrite(RGBswitchRedPin, HIGH);       
   digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
   digitalWrite(RGBswitchBluePin, HIGH);      
@@ -458,6 +483,10 @@ void loop()
     tasks20ms ();
     ISR20msActive = false;
   }
+
+
+
+
 
   cpuCycleHeadroom20msIncrement += 1;
   cpuCycleHeadroom1000msIncrement += 1;
