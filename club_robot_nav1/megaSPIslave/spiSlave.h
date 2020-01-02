@@ -35,22 +35,38 @@ class spiSlave
 
     volatile unsigned int errorCountSPIrx = 0;  // let's track apparent xfer failures
 
-    // placeholder variables to provide interface between the SPI service and the functions using the SPI service
-    // ToDo -> eventually refactor these for more clean & abstracted interface to SPI service
-    //  e.g. -> accept pointers in the constuctor initialize() and bind to working values in the spiSlave class
-    char commandFromPi = 0;
-    signed char TurnVelocityFromPi = 0;
-    signed char ThrottleFromPi = 0;
-    long param1FromPi = 0;
-    long param2FromPi = 0;
-    long param3FromPi = 0;
+    // public methods to retrieve the latest values received from the Pi SPI master
+    char getCommandFromPi();
+    signed char getTurnVelocityFromPi();
+    signed char getThrottleFromPi();
+    long getParam1FromPi();
+    long getParam2FromPi();
+    long getParam3FromPi();
 
 
-    // Returns maximum SPI observed burst duration in ms, since last cleared
+    // Returns maximum SPI observed burst duration in ms, since last cleared. 
+    // This should never be higher than the value of maxAllowedSPIburstDuration.
     unsigned char getMaxBurstDuration();
 
     // Clears an internal register that tracks the maximum oberved SPI burst duration
     void clearMaxBurstDuration();
+
+    // Returns maximum observed delay between SPI bursts in ms, since last cleared. 
+    // This can easily and often be higher than the value of maxAllowedSPIburstDuration, depending primarily how often the SPI Master chooses to initiate transfers.
+    unsigned long getMaxDelayBetweenBursts();
+
+    // Clears an internal register that tracks the maximum observed delay between SPI bursts.
+    void clearMaxDelayBetweenBursts();
+
+
+    // Purpose
+    //  this method allows using programs to check for and act on any commands received from the Pi SPI Master.
+    // => see implementation code for important background
+    void handleCommandsFromPi();
+
+    // Return status flag indicating whether the next payload for Pi SPI Master has already been reserved and must go through as-is
+    bool getNextSPIxferToPiReserved();  
+    
 
     // Purpose
     //  Interrupt handler
@@ -62,6 +78,9 @@ class spiSlave
 
 
     private:
+
+    // time threshold in ms to declare a failed burst transfer attempt
+    #define maxAllowedSPIburstDuration 30  // assume that something is wrong if a burst of bytes is started but not completed within this time
 
     // SPI service state machine variables
     volatile unsigned char receiveBuffer[2][15]; // temporary buffer for bytes coming from the SPI master
@@ -100,9 +119,25 @@ class spiSlave
 
     union longUnion toSPIBufferLong1, toSPIBufferLong2, toSPIBufferLong3 ;
     union longUnion fromSPIBufferLong1, fromSPIBufferLong2, fromSPIBufferLong3 ;
- 
+
+    // placeholder variables to provide interface between the SPI service and the functions using the SPI service
+    // ToDo -> eventually refactor these for more clean & abstracted interface to SPI service
+    //  e.g. -> accept pointers in the constuctor initialize() and bind to working values in the spiSlave class
+    char commandFromPi = 0;
+    signed char TurnVelocityFromPi = 0;
+    signed char ThrottleFromPi = 0;
+    long param1FromPi = 0;
+    long param2FromPi = 0;
+    long param3FromPi = 0;
+
+    // flag to indicate whether the next SPI transfer has already been reserved to send some payload to the Pi SPI master, and must go through as-is
+    bool nextSPIxferToPiReserved = false;
+
     // Internal register that tracks the maximum oberved SPI burst duration
     volatile unsigned char maxBurstDuration = 0;
+
+    // Internal register that tracks the maximum oberved delay between SPI bursts.
+    volatile unsigned long maxDelayBetweenBursts = 0;
 
 };
 

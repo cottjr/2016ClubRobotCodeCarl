@@ -134,8 +134,6 @@ unsigned char spiSlave::setDataForPi (char command, signed char TurnVelocity, si
   }
 }
 
-// ToDo come up with a double buffer scheme to avoid the need to test return values from getLatestDataFromPi()
-// ToDo -> also provide a cleaner return value as a structure instead of separate variables
 // Purpose
 //  retrieve the latest data received from the SPI master on the most recent SPI byte exchange
 // Output
@@ -189,7 +187,40 @@ unsigned char spiSlave::getLatestDataFromPi ()
 }
 
 
-// Returns maximum SPI observed burst duration in ms, since last cleared
+// public methods to retrieve the latest values received from the Pi SPI master
+char spiSlave::getCommandFromPi()
+{
+  return commandFromPi;
+};
+
+signed char spiSlave::getTurnVelocityFromPi()
+{
+  return TurnVelocityFromPi;
+};
+
+signed char spiSlave::getThrottleFromPi()
+{
+  return ThrottleFromPi;
+};
+
+long spiSlave::getParam1FromPi()
+{
+  return param1FromPi;
+};
+
+long spiSlave::getParam2FromPi()
+{
+  return param2FromPi;
+};
+
+long spiSlave::getParam3FromPi()
+{
+  return param3FromPi;
+};
+
+
+// Returns maximum SPI observed burst duration in ms, since last cleared. 
+// This should never be higher than the value of maxAllowedSPIburstDuration.
 unsigned char spiSlave::getMaxBurstDuration()
 {
   return maxBurstDuration;
@@ -201,6 +232,88 @@ void spiSlave::clearMaxBurstDuration()
 {
   maxBurstDuration = 0;
 }
+
+
+// Returns maximum observed delay between SPI bursts in ms, since last cleared. 
+// This can easily and often be higher than the value of maxAllowedSPIburstDuration, depending primarily how often the SPI Master chooses to initiate transfers.
+unsigned long spiSlave::getMaxDelayBetweenBursts()
+{
+  return maxDelayBetweenBursts;
+}
+
+
+// Clears an internal register that tracks the maximum observed delay between SPI bursts.
+void spiSlave::clearMaxDelayBetweenBursts()
+{
+  maxDelayBetweenBursts = 0;
+}
+
+
+    // Purpose
+    //  this method allows using programs to check for and act on any commands received from the Pi SPI Master.
+    // ToDo:  Implementation Refactor
+    //    Refactor the following to better isolate arbitrary piMegaSPI commands from application layer commands
+    //    do this by adding new private arrays 
+    //      const char SPIlayerCommandHandlerCommands[n]  // ie. store up to n different 'SPI protocol' layer commands (including 'R'), 
+    //        each with a 1:1 correspondance to the switch statement construct like the baseline below
+    //      char applicationCommandHandlerCommands[n]  // ie. store up to n different application layer commands
+    //      int applicationCommandHandlerFunctions[n]  // ie. store up to n different application layer function pointers
+    //    provide a setter to allow applications to populate bindings for up to n different application layer commands and function pointers
+    //      and in that function, reject any attempted application layer assignments to commands reserved in SPIlayerCommandHandlerCommands[n] 
+    //    change handleCommandsFromPi() to act first on any commands identified in SPIlayerCommandHandlerCommands[n], 
+    //      and then through any commands identified in applicationCommandHandlerFunctions[n]
+    //    maybe have an additional array bool commandHandlerDefined[2][n], to allow iterating only across defined commands
+    // Protocol Assumptions
+    //  The following approach was taken assuming that the Pi SPI Master has the luxury of CPU overhead & time, or at least has more flexibilty than the Mega SPI Slave
+    //  Specifically, this protocol assumes that the Mega SPI Slave needs to keep the ISR as short as possible and maintain only small variations in execution timing.
+    //  Accordingly, this handleCommandsFromPi() method is designated as 'execute asynchronously as Mega CPU time permits' and NOT as 'synchronously execute immediately'
+    //  Hence this protocol requires an application layer above the physical byte transfer layer to follow this simple process:
+    // Input
+    //  none
+    // Algorithm
+    //  When the Pi SPI Master needs to send a command and be sure that the command was executed,
+    //  The Pi SPI master sends one of the defined command values, 
+    //    and continues to send that command value with every transfer.
+    //  The application program on Mega must occasionally call this handleCommandsFromPi() at it's convenience
+    //  After the Mega application program completes the command, 
+    //    it provides a "!" in the command byte indicating command executed sucessfully, 
+    //    or it provides an "E" in the command byte indicating some error and the command was not executed
+    //  and then the Mega continues to send that value in the command with every transfer, 
+    //    until this handleCommandsFromPi() method notices that the Master has stopped sending a known command
+    //  Note that this protocol relies on 'in-band' signaling,
+    //    because commandFromPi is used for signaling to the Pi SPI master,
+    //    and hence the Pi SPI master must normally check getNextSPIxferToPiReserved() before
+    //    calling setDataForPi()
+    // Output
+    //  varies based on command, review the code implementation or see documentation if/when available
+    void spiSlave::handleCommandsFromPi()
+    {
+      // until proven otherwise, presume that we'll need to reserve the next SPI transfer
+      //   to respond to a command from the Pi SPI master.
+      //   this avoids having to repeat the assignemt for every branch
+      nextSPIxferToPiReserved = true;
+      switch (commandFromPi)
+      {
+      case 'R': 
+        // reset / re-initialize application layer parts of this SPI protocol, for any element above the lowest/physical transfer layer
+        clearMaxBurstDuration();
+        clearMaxDelayBetweenBursts();
+        setDataForPi('!',0,0,0,0,0);  // queue confirmation to Pi that the command was handled
+        break;     
+      default:
+        // clear this flag if no recognized command is detected
+        //   this automatically signals to the SPI Master, on the next SPI transfer cycle,
+        //   that any prior command has been completed
+        nextSPIxferToPiReserved = false;
+        break;
+      }
+    };
+
+// Return status flag indicating whether the next payload for Pi SPI Master has already been reserved and must go through as-is
+bool spiSlave::getNextSPIxferToPiReserved()
+{
+  return nextSPIxferToPiReserved;
+};  
 
 
 // Purpose
@@ -227,14 +340,23 @@ Algorithm & protocol derived from polled example code spiHandler()
 void spiSlave::spiISR()
 {
     unsigned long currentBurstMillis;
-    
+    unsigned long currentDelayBetweenBurstsMillis = 0;
+
     // write to digTP28, to facilitate timing measurements via oscilloscope
     digitalWrite(digTP28, HIGH);
+
+    currentDelayBetweenBurstsMillis = (millis() - SPIwdPriorMillis);
+
+    // update the maxDelayBetweenBursts register if this is a new record high delay between bursts
+    if ( currentDelayBetweenBurstsMillis > maxDelayBetweenBursts)
+    {
+      maxDelayBetweenBursts = currentDelayBetweenBurstsMillis;
+    }
 
     // reset the SPI listener state machine if the prior transfer has clearly taken too long or was prematurely cancelled
     // ie. this will force the listener to wait for another initial 'start new transfer' SPIxferIndex byte
     // choose threshold based on empirical timing observation by oscilloscope plus a little margin
-    if ( (millis() - SPIwdPriorMillis) > 30)
+    if ( currentDelayBetweenBurstsMillis > maxAllowedSPIburstDuration)
     {
       SPIxferIndex = -2;
       SPIxferInProgress = 0;   // flag to external programs that the receiveBuffer 'can be trusted'

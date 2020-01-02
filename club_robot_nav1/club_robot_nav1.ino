@@ -309,21 +309,40 @@ void tasks1000ms () {
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
   // digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
 
+  spiSlavePort.getLatestDataFromPi();
+  spiSlavePort.handleCommandsFromPi();
   if (digitalRead(cpuStatusLEDbluePin) ){
-      Serial.println("queuing for PI: P, Max burst duration, +13, 248, 399, 425");
-      spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), +13, 248, 399, 425);
-      Serial.print(" xfer error count ");
-      Serial.println(spiSlavePort.errorCountSPIrx);
-      Serial.print(" max SPI burst duration (ms) ");
-      Serial.println(spiSlavePort.getMaxBurstDuration());
+
+      if (spiSlavePort.getNextSPIxferToPiReserved())
+      {
+        Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
+      } else
+      {
+        Serial.println("queuing for PI: P, Max burst duration, +13, 248, 399, 425");
+        spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), +13, 248, 399, 425);
+        Serial.print(" xfer error count ");
+        Serial.println(spiSlavePort.errorCountSPIrx);
+        Serial.print(" max SPI burst duration (ms), max delay between SPI bursts (ms) ");
+        Serial.print(spiSlavePort.getMaxBurstDuration());
+        Serial.print(", ");
+        Serial.println(spiSlavePort.getMaxDelayBetweenBursts());
+      }
   } else
   {
-      Serial.println("queuing for PI: Q, Max burst duration, -87, 13987, 22459, 609942");
-      spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), -87, 13987, 22459, 609942);
-      Serial.print(" xfer error count ");
-      Serial.println(spiSlavePort.errorCountSPIrx);
-      Serial.print(" max SPI burst duration (ms) ");
-      Serial.println(spiSlavePort.getMaxBurstDuration());
+      if (spiSlavePort.getNextSPIxferToPiReserved())
+      {
+        Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
+      } else
+      {
+        Serial.println("queuing for PI: Q, Max burst duration, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
+        spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
+        Serial.print(" xfer error count ");
+        Serial.println(spiSlavePort.errorCountSPIrx);
+        Serial.print(" max SPI burst duration (ms), max delay between SPI bursts (ms) ");
+        Serial.print(spiSlavePort.getMaxBurstDuration());
+        Serial.print(", ");
+        Serial.println(spiSlavePort.getMaxDelayBetweenBursts());      
+      }      
   }
   
 
