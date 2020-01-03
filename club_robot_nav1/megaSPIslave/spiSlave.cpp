@@ -187,6 +187,19 @@ unsigned char spiSlave::getLatestDataFromPi ()
 }
 
 
+// public method to retrieve the current count of transfer errors counted by the Mega SPI Slave
+unsigned int spiSlave::getErrorCountSPIrx()
+{
+  return errorCountSPIrx;
+};
+
+// Clears an internal register that tracks the maximum oberved SPI burst duration
+void spiSlave::clearErrorCountSPIrx()
+{
+  errorCountSPIrx = 0; 
+};
+
+
 // public methods to retrieve the latest values received from the Pi SPI master
 char spiSlave::getCommandFromPi()
 {
@@ -232,6 +245,20 @@ void spiSlave::clearMaxBurstDuration()
 {
   maxBurstDuration = 0;
 }
+
+
+// Returns value of internal register that tracks the number of bursts rejected due to duration above max allowed threshold.
+unsigned char spiSlave::getNumBurstsRejectedTooLong()
+{
+  return numBurstsRejectedTooLong;
+};
+
+
+// Clears an internal register that tracks the  number of bursts rejected due to duration above max allowed threshold.
+void spiSlave::clearNumBurstsRejectedTooLong()
+{
+  numBurstsRejectedTooLong = 0;
+};
 
 
 // Returns maximum observed delay between SPI bursts in ms, since last cleared. 
@@ -296,7 +323,9 @@ void spiSlave::clearMaxDelayBetweenBursts()
       {
       case 'R': 
         // reset / re-initialize application layer parts of this SPI protocol, for any element above the lowest/physical transfer layer
+        clearErrorCountSPIrx();
         clearMaxBurstDuration();
+        clearNumBurstsRejectedTooLong();
         clearMaxDelayBetweenBursts();
         setDataForPi('!',0,0,0,0,0);  // queue confirmation to Pi that the command was handled
         break;     
@@ -358,6 +387,10 @@ void spiSlave::spiISR()
     // choose threshold based on empirical timing observation by oscilloscope plus a little margin
     if ( currentDelayBetweenBurstsMillis > maxAllowedSPIburstDuration)
     {
+      if (SPIxferIndex != -2)  // a burst was in progress and it clearly took too long
+      {
+        numBurstsRejectedTooLong += 1; 
+      }
       SPIxferIndex = -2;
       SPIxferInProgress = 0;   // flag to external programs that the receiveBuffer 'can be trusted'
       newSPIdataAvailable = 0; // reset the new data flag, even if prior new data was not read

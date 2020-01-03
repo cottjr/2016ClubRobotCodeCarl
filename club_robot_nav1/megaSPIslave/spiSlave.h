@@ -31,9 +31,11 @@ class spiSlave
     //  returns 1 if request to retreive was accepted, 0 if it was rejected due to collision with in progress transfer
     unsigned char getLatestDataFromPi ();
 
-    volatile unsigned char newSPIdataAvailable = 0; // flag for using functions to determine when new data has been received
 
-    volatile unsigned int errorCountSPIrx = 0;  // let's track apparent xfer failures
+    // public method to retrieve the current count of transfer errors counted by the Mega SPI Slave
+    unsigned int getErrorCountSPIrx();
+    // Clears an internal register that tracks the maximum oberved SPI burst duration
+    void clearErrorCountSPIrx();
 
     // public methods to retrieve the latest values received from the Pi SPI master
     char getCommandFromPi();
@@ -51,6 +53,12 @@ class spiSlave
     // Clears an internal register that tracks the maximum oberved SPI burst duration
     void clearMaxBurstDuration();
 
+    // Returns value of internal register that tracks the number of bursts rejected due to duration above max allowed threshold.
+    unsigned char getNumBurstsRejectedTooLong();
+    // Clears an internal register that tracks the  number of bursts rejected due to duration above max allowed threshold.
+    void clearNumBurstsRejectedTooLong();
+
+
     // Returns maximum observed delay between SPI bursts in ms, since last cleared. 
     // This can easily and often be higher than the value of maxAllowedSPIburstDuration, depending primarily how often the SPI Master chooses to initiate transfers.
     unsigned long getMaxDelayBetweenBursts();
@@ -66,7 +74,7 @@ class spiSlave
 
     // Return status flag indicating whether the next payload for Pi SPI Master has already been reserved and must go through as-is
     bool getNextSPIxferToPiReserved();  
-    
+
 
     // Purpose
     //  Interrupt handler
@@ -120,6 +128,12 @@ class spiSlave
     union longUnion toSPIBufferLong1, toSPIBufferLong2, toSPIBufferLong3 ;
     union longUnion fromSPIBufferLong1, fromSPIBufferLong2, fromSPIBufferLong3 ;
 
+    // internal flag for using functions to determine when new data has been received
+    volatile unsigned char newSPIdataAvailable = 0; 
+
+    // internal register to track the current count of transfer errors counted by the Mega SPI Slave
+    volatile unsigned int errorCountSPIrx = 0;  
+
     // placeholder variables to provide interface between the SPI service and the functions using the SPI service
     // ToDo -> eventually refactor these for more clean & abstracted interface to SPI service
     //  e.g. -> accept pointers in the constuctor initialize() and bind to working values in the spiSlave class
@@ -135,6 +149,9 @@ class spiSlave
 
     // Internal register that tracks the maximum oberved SPI burst duration
     volatile unsigned char maxBurstDuration = 0;
+
+    // Internal register that tracks the number of bursts rejected due to duration above max allowed threshold
+    volatile unsigned char numBurstsRejectedTooLong = 0;
 
     // Internal register that tracks the maximum oberved delay between SPI bursts.
     volatile unsigned long maxDelayBetweenBursts = 0;
