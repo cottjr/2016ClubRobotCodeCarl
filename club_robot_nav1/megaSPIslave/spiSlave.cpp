@@ -30,11 +30,11 @@ spiSlave::spiSlave()
   SPIwdPriorMillis = millis();  
 
   // queue some initial values to send to the Pi
-  spiSlave::setDataForPi('A', 1, 2, 3, 4, 5);
+  spiSlave::setDataForPi('A', 1, 2, 3, 4, 5, 6);
 
   // initialize the receive buffer with easily recognizeable default values
   int i; 
-  for (i = 0; i <= 14; i++) 
+  for (i = 0; i <= 15; i++) 
   {
     receiveBuffer[0][i] = i;
     receiveBuffer[1][i] = i;
@@ -67,7 +67,7 @@ void spiSlave::enable()
 //  updates the sendBuffer with values to be shared at the next transfer(s)
 //  returns 0 if values queued during without an SPI transfer in progress
 //  returns 1 if values queued during an in-progress SPI transfer
-unsigned char spiSlave::setDataForPi (char command, signed char TurnVelocity, signed char Throttle, long param1, long param2, long param3 )
+unsigned char spiSlave::setDataForPi (char command, signed char TurnVelocity, signed char ForwardThrottle, signed char SidewaysThrottle, long param1, long param2, long param3 )
 {
   unsigned char nextSendBufferSelect;
 
@@ -95,7 +95,8 @@ unsigned char spiSlave::setDataForPi (char command, signed char TurnVelocity, si
   
   toSPIBufferByte1.asChar = command;
   toSPIBufferByte2.asSignedChar = TurnVelocity;
-  toSPIBufferByte3.asSignedChar = Throttle;
+  toSPIBufferByte3.asSignedChar = ForwardThrottle;
+  toSPIBufferByte4.asSignedChar = SidewaysThrottle;
   toSPIBufferLong1.asLong = param1;
   toSPIBufferLong2.asLong = param2;
   toSPIBufferLong3.asLong = param3;
@@ -103,23 +104,24 @@ unsigned char spiSlave::setDataForPi (char command, signed char TurnVelocity, si
   sendBuffer[nextSendBufferSelect][0] = toSPIBufferByte1.asUnsignedChar;
   sendBuffer[nextSendBufferSelect][1] = toSPIBufferByte2.asUnsignedChar;
   sendBuffer[nextSendBufferSelect][2] = toSPIBufferByte3.asUnsignedChar;
+  sendBuffer[nextSendBufferSelect][3] = toSPIBufferByte4.asUnsignedChar;
   int i; 
-  // queue bytes 4 thru 7 (param1)     
-  for (i = 3; i <= 6; i++) 
+  // queue bytes 5 thru 8 (param1)     
+  for (i = 4; i <= 7; i++) 
   {
-    sendBuffer[nextSendBufferSelect][i] = toSPIBufferLong1.asByte[i-3];
+    sendBuffer[nextSendBufferSelect][i] = toSPIBufferLong1.asByte[i-4];
   }   
 
-  // queue bytes 8 thru 11 (param2)     
-  for (i = 7; i <= 10; i++) 
+  // queue bytes 9 thru 12 (param2)     
+  for (i = 8; i <= 11; i++) 
   {
-    sendBuffer[nextSendBufferSelect][i] = toSPIBufferLong2.asByte[i-7];
+    sendBuffer[nextSendBufferSelect][i] = toSPIBufferLong2.asByte[i-8];
   }   
 
-  // queue bytes 12 thru 15 (param3)     
-  for (i = 11; i <= 14; i++) 
+  // queue bytes 13 thru 16 (param3)     
+  for (i = 12; i <= 15; i++) 
   {
-    sendBuffer[nextSendBufferSelect][i] = toSPIBufferLong3.asByte[i-11];
+    sendBuffer[nextSendBufferSelect][i] = toSPIBufferLong3.asByte[i-12];
   }               
   interrupts();
   digitalWrite(digTP29, LOW);
@@ -146,29 +148,31 @@ unsigned char spiSlave::getLatestDataFromPi ()
   fromSPIBufferByte1.asUnsignedChar = receiveBuffer[lastCompletedReceiveBufferSelect][0];
   fromSPIBufferByte2.asUnsignedChar = receiveBuffer[lastCompletedReceiveBufferSelect][1];
   fromSPIBufferByte3.asUnsignedChar = receiveBuffer[lastCompletedReceiveBufferSelect][2];
+  fromSPIBufferByte4.asUnsignedChar = receiveBuffer[lastCompletedReceiveBufferSelect][3];
 
   int i; 
-  // fetch bytes 4 thru 7 (param1)     
-  for (i = 3; i <= 6; i++) 
+  // fetch bytes 5 thru 8 (param1)     
+  for (i = 4; i <= 7; i++) 
   {
-    fromSPIBufferLong1.asByte[i-3] = receiveBuffer[lastCompletedReceiveBufferSelect][i];
+    fromSPIBufferLong1.asByte[i-4] = receiveBuffer[lastCompletedReceiveBufferSelect][i];
   }   
 
-  // fetch bytes 8 thru 11 (param2)     
-  for (i = 7; i <= 10; i++) 
+  // fetch bytes 9 thru 12 (param2)     
+  for (i = 8; i <= 11; i++) 
   {
-    fromSPIBufferLong2.asByte[i-7] = receiveBuffer[lastCompletedReceiveBufferSelect][i];
+    fromSPIBufferLong2.asByte[i-8] = receiveBuffer[lastCompletedReceiveBufferSelect][i];
   }   
 
-  // fetch bytes 12 thru 15 (param3)     
-  for (i = 11; i <= 14; i++) 
+  // fetch bytes 13 thru 16 (param3)     
+  for (i = 12; i <= 15; i++) 
   {
-    fromSPIBufferLong3.asByte[i-11] = receiveBuffer[lastCompletedReceiveBufferSelect][i];
+    fromSPIBufferLong3.asByte[i-12] = receiveBuffer[lastCompletedReceiveBufferSelect][i];
   }      
 
   commandFromPi = fromSPIBufferByte1.asChar;
   TurnVelocityFromPi = fromSPIBufferByte2.asSignedChar;
-  ThrottleFromPi = fromSPIBufferByte3.asSignedChar;
+  ForwardThrottleFromPi = fromSPIBufferByte3.asSignedChar;
+  SidewaysThrottleFromPi = fromSPIBufferByte4.asSignedChar;
   param1FromPi = fromSPIBufferLong1.asLong;
   param2FromPi = fromSPIBufferLong2.asLong;
   param3FromPi = fromSPIBufferLong3.asLong;
@@ -211,9 +215,14 @@ signed char spiSlave::getTurnVelocityFromPi()
   return TurnVelocityFromPi;
 };
 
-signed char spiSlave::getThrottleFromPi()
+signed char spiSlave::getForwardThrottleFromPi()
 {
-  return ThrottleFromPi;
+  return ForwardThrottleFromPi;
+};
+
+signed char spiSlave::getSidewaysThrottleFromPi()
+{
+  return SidewaysThrottleFromPi;
 };
 
 long spiSlave::getParam1FromPi()
@@ -327,7 +336,7 @@ void spiSlave::clearMaxDelayBetweenBursts()
         clearMaxBurstDuration();
         clearNumBurstsRejectedTooLong();
         clearMaxDelayBetweenBursts();
-        setDataForPi('!',0,0,0,0,0);  // queue confirmation to Pi that the command was handled
+        setDataForPi('!',0,0,0,0,0,0);  // queue confirmation to Pi that the command was handled
         break;     
       default:
         // clear this flag if no recognized command is detected
@@ -360,9 +369,9 @@ Algorithm & protocol derived from polled example code spiHandler()
    State  -> Meaning & Action
    -2     - wait for to receive start byte
    -1     - once received start byte, send an acknowledge byte
-   0..13  - exchange payoad bytes
-   14     - exchange the last payload byte, queue a final 'end of burst' handshake byte
-   15     - exchange & verify final 'end of burst' handshake byte, 
+   0..14  - exchange payoad bytes
+   15     - exchange the last payload byte, queue a final 'end of burst' handshake byte
+   16     - exchange & verify final 'end of burst' handshake byte, 
             flag new / valid data received or not
             reset the protocol burst state machine
 ****************************************************************/
@@ -427,13 +436,13 @@ void spiSlave::spiISR()
       SPIxferIndex++;
       SPDR = sendBuffer[sendBufferSelect][SPIxferIndex];   // queue the first byte to transfer from Mega slave to Pi master
       break;
-    case 14:   // ie. capture the 15th ie. final payload byte & queue and 'end of burst' acknowledge byte
+    case 15:   // ie. capture the 16th ie. final payload byte & queue and 'end of burst' acknowledge byte
       receiveBuffer[inProgressReceiveBufferSelect][SPIxferIndex] = SPDR;
       SPIxferIndex++; 
       SPDR = 'Z';   // queue an 'end of burst' handshake byte to be sent on the next transfer
                     // => give confidence (albeit not certainty) that the payload bytes transferred between 'a' and 'z' can be trusted
       break;
-    case 15:   // ie. verify that just exchanged what should be a final handshaking byte - 'Z' for 'z'. Reset the state machine.
+    case 16:   // ie. verify that just exchanged what should be a final handshaking byte - 'Z' for 'z'. Reset the state machine.
       if (SPDR == 'z')    // verify that the protocol burst state machines were in sync for both SPI master and slave 
       {
         // The receive buffer should now contain an aligned set of bytes
@@ -465,7 +474,7 @@ void spiSlave::spiISR()
         maxBurstDuration = (unsigned char) currentBurstMillis;
       }
       break;
-    default:   // otherwise, receive index 0..13 (ie. payload bytes 1..14) & advance SPIxferIndex to next state
+    default:   // otherwise, receive index 0..14 (ie. payload bytes 1..15) & advance SPIxferIndex to next state
       receiveBuffer[inProgressReceiveBufferSelect][SPIxferIndex] = SPDR;
       SPIxferIndex++; 
       SPDR = sendBuffer[sendBufferSelect][SPIxferIndex];    // queue the next byte to be transferred

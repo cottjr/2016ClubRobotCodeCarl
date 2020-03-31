@@ -21,7 +21,7 @@ class spiSlave
 
     // Purpose
     //  Fill the SPI transfer buffer with payload data to be sent to the SPI master on the next SPI byte exchange
-    unsigned char setDataForPi (char command, signed char TurnVelocity, signed char Throttle, long param1, long param2, long param3 );
+    unsigned char setDataForPi (char command, signed char TurnVelocity, signed char ForwardThrottle, signed char SidewaysThrottle, long param1, long param2, long param3 );
 
     // ToDo come up with a double buffer scheme to avoid the need to test return values from getLatestDataFromPi()
     // ToDo -> also provide a cleaner return value as a structure instead of separate variables
@@ -40,7 +40,8 @@ class spiSlave
     // public methods to retrieve the latest values received from the Pi SPI master
     char getCommandFromPi();
     signed char getTurnVelocityFromPi();
-    signed char getThrottleFromPi();
+    signed char getForwardThrottleFromPi();
+    signed char getSidewaysThrottleFromPi();    
     long getParam1FromPi();
     long getParam2FromPi();
     long getParam3FromPi();
@@ -91,12 +92,12 @@ class spiSlave
     #define maxAllowedSPIburstDuration 30  // assume that something is wrong if a burst of bytes is started but not completed within this time
 
     // SPI service state machine variables
-    volatile unsigned char receiveBuffer[2][15]; // temporary buffer for bytes coming from the SPI master
+    volatile unsigned char receiveBuffer[2][16]; // temporary buffer for bytes coming from the SPI master
                                             // double buffer allows setting next burst values even if a current burst is in progress
     volatile unsigned char inProgressReceiveBufferSelect = 0;  // index into receiveBuffer for any current / in-progress SPI transfer. start with the 0th receiveBuffer                                                                
     volatile unsigned char lastCompletedReceiveBufferSelect = 1;  // index to most recently captured receiveBuffer
 
-    volatile unsigned char sendBuffer[2][15]; // temporary buffer for bytes to be sent to SPI master in the next burst
+    volatile unsigned char sendBuffer[2][16]; // temporary buffer for bytes to be sent to SPI master in the next burst
                                             // double buffer allows setting next burst values even if a current burst is in progress
     volatile unsigned char sendBufferSelect = 0;  // currently seleted sendBuffer. start with the 0th sendBuffer                                                                
     volatile unsigned char toggleSendBuffer = 0;  // flag to indicate whether to use the other sendBuffer on the next SPI transfer
@@ -122,8 +123,8 @@ class spiSlave
     unsigned char  asByte [4];
     };
 
-    union byteUnion toSPIBufferByte1, toSPIBufferByte2, toSPIBufferByte3;
-    union byteUnion fromSPIBufferByte1, fromSPIBufferByte2, fromSPIBufferByte3;
+    union byteUnion toSPIBufferByte1, toSPIBufferByte2, toSPIBufferByte3, toSPIBufferByte4;
+    union byteUnion fromSPIBufferByte1, fromSPIBufferByte2, fromSPIBufferByte3, fromSPIBufferByte4;
 
     union longUnion toSPIBufferLong1, toSPIBufferLong2, toSPIBufferLong3 ;
     union longUnion fromSPIBufferLong1, fromSPIBufferLong2, fromSPIBufferLong3 ;
@@ -139,7 +140,8 @@ class spiSlave
     //  e.g. -> accept pointers in the constuctor initialize() and bind to working values in the spiSlave class
     char commandFromPi = 0;
     signed char TurnVelocityFromPi = 0;
-    signed char ThrottleFromPi = 0;
+    signed char ForwardThrottleFromPi = 0;
+    signed char SidewaysThrottleFromPi = 0;
     long param1FromPi = 0;
     long param2FromPi = 0;
     long param3FromPi = 0;

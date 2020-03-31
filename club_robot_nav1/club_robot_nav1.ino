@@ -318,8 +318,8 @@ void tasks1000ms () {
         Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
       } else
       {
-        Serial.println("queuing for PI: P, Max burst duration, +13, 248, 399, 425");
-        spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), +13, 248, 399, 425);
+        Serial.println("queuing for PI: P, Max burst duration, -9, +13, 248, 399, 425");
+        spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), -9, +13, 248, 399, 425);
       }
   } else
   {
@@ -328,8 +328,8 @@ void tasks1000ms () {
         Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
       } else
       {
-        Serial.println("queuing for PI: Q, Max burst duration, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
-        spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
+        Serial.println("queuing for PI: Q, Max burst duration, 51, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
+        spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), 51, -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
       }      
   }
   
