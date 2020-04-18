@@ -342,6 +342,22 @@ void tasks1000ms () {
   Serial.print(", ");
   Serial.println(spiSlavePort.getMaxDelayBetweenBursts());      
 
+  Serial.println("Received from Pi: cmd, turn, fwd, sidewys, param1, param2, param3");
+  Serial.print("-> ");
+  Serial.print( spiSlavePort.getCommandFromPi());
+  Serial.print(", ");
+  Serial.print( spiSlavePort.getTurnVelocityFromPi());
+  Serial.print(", ");
+  Serial.print( spiSlavePort.getForwardThrottleFromPi());
+  Serial.print(", ");
+  Serial.print( spiSlavePort.getSidewaysThrottleFromPi());
+  Serial.print(", ");
+  Serial.print( spiSlavePort.getParam1FromPi());
+  Serial.print(", ");
+  Serial.print( spiSlavePort.getParam2FromPi());
+  Serial.print(", ");
+  Serial.println( spiSlavePort.getParam3FromPi());
+
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
       // setMotorVelocityByPWM(0,30);
