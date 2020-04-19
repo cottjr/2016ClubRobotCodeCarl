@@ -108,6 +108,9 @@ void tasks20ms () {
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
   sampleMotorShield();
 
+  spiSlavePort.getLatestDataFromPi();
+  spiSlavePort.handleCommandsFromPi();
+
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
     digitalWrite(digTP26, HIGH);
@@ -256,8 +259,14 @@ void tasks20ms () {
       setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
     }
+  } else
+  {
+    // Set & mix values From Pi SPI master together with operator values, as input to the velocity loops
+    setAutomaticVelocityLoopSetpoints(spiSlavePort.getTurnVelocityFromPi(),spiSlavePort.getForwardThrottleFromPi(),false);
   }
+  
 
+  // ToDo-> clean this up, to write appropriate values even if PS2 controller is not available
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
   if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
   {
@@ -278,7 +287,11 @@ void tasks20ms () {
                                           // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
       if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
 
-      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      // always send operator values To the Pi SPI master
+      spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
+      // Mix operator values together with values From Pi SPI master together, as input to the velocity loops
+      // ToDo- comment out following line to verify loopBack, sending joystick commands to piSPImaster, and looping them back as 'automatic' setpoint commands
+      // setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
     } else  // normally, just use half the values provide by the joystick
     {
       signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
@@ -287,7 +300,11 @@ void tasks20ms () {
                                           // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
       if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
 
-      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      // always send operator values To the Pi SPI master
+      spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
+      // Mix operator values together with values From Pi SPI master together, as input to the velocity loops
+      // ToDo- comment out following line to verify loopBack, sending joystick commands to piSPImaster, and looping them back as 'automatic' setpoint commands
+      // setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
     }   
   }
  
@@ -309,54 +326,56 @@ void tasks1000ms () {
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
   // digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
 
-  spiSlavePort.getLatestDataFromPi();
-  spiSlavePort.handleCommandsFromPi();
-  if (digitalRead(cpuStatusLEDbluePin) ){
+  // Moved following code to 20ms ISR.
+  // -->> ToDo: adapt error detection into 20ms ISR
+  // spiSlavePort.getLatestDataFromPi();
+  // spiSlavePort.handleCommandsFromPi();
+  // if (digitalRead(cpuStatusLEDbluePin) ){
 
-      if (spiSlavePort.getNextSPIxferToPiReserved())
-      {
-        Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
-      } else
-      {
-        Serial.println("queuing for PI: P, Max burst duration, -9, +13, 248, 399, 425");
-        spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), -9, +13, 248, 399, 425);
-      }
-  } else
-  {
-      if (spiSlavePort.getNextSPIxferToPiReserved())
-      {
-        Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
-      } else
-      {
-        Serial.println("queuing for PI: Q, Max burst duration, 51, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
-        spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), 51, -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
-      }      
-  }
+  //     if (spiSlavePort.getNextSPIxferToPiReserved())
+  //     {
+  //       Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
+  //     } else
+  //     {
+  //       Serial.println("queuing for PI: P, Max burst duration, -9, +13, 248, 399, 425");
+  //       spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), -9, +13, 248, 399, 425);
+  //     }
+  // } else
+  // {
+  //     if (spiSlavePort.getNextSPIxferToPiReserved())
+  //     {
+  //       Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
+  //     } else
+  //     {
+  //       Serial.println("queuing for PI: Q, Max burst duration, 51, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
+  //       spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), 51, -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
+  //     }      
+  // }
   
-  Serial.print(" xfer error count, num bursts rejected too long ");
-  Serial.print(spiSlavePort.getErrorCountSPIrx());
-  Serial.print(", ");
-  Serial.println(spiSlavePort.getNumBurstsRejectedTooLong());
-  Serial.print(" max SPI burst duration (ms), max delay between SPI bursts (ms) ");
-  Serial.print(spiSlavePort.getMaxBurstDuration());
-  Serial.print(", ");
-  Serial.println(spiSlavePort.getMaxDelayBetweenBursts());      
+  // Serial.print(" xfer error count, num bursts rejected too long ");
+  // Serial.print(spiSlavePort.getErrorCountSPIrx());
+  // Serial.print(", ");
+  // Serial.println(spiSlavePort.getNumBurstsRejectedTooLong());
+  // Serial.print(" max SPI burst duration (ms), max delay between SPI bursts (ms) ");
+  // Serial.print(spiSlavePort.getMaxBurstDuration());
+  // Serial.print(", ");
+  // Serial.println(spiSlavePort.getMaxDelayBetweenBursts());      
 
-  Serial.println("Received from Pi: cmd, turn, fwd, sidewys, param1, param2, param3");
-  Serial.print("-> ");
-  Serial.print( spiSlavePort.getCommandFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getTurnVelocityFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getForwardThrottleFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getSidewaysThrottleFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getParam1FromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getParam2FromPi());
-  Serial.print(", ");
-  Serial.println( spiSlavePort.getParam3FromPi());
+  // Serial.println("Received from Pi: cmd, turn, fwd, sidewys, param1, param2, param3");
+  // Serial.print("-> ");
+  // Serial.print( spiSlavePort.getCommandFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getTurnVelocityFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getForwardThrottleFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getSidewaysThrottleFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getParam1FromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getParam2FromPi());
+  // Serial.print(", ");
+  // Serial.println( spiSlavePort.getParam3FromPi());
 
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
