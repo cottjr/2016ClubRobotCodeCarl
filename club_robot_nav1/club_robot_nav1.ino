@@ -85,6 +85,8 @@ bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off
 bool runQuickTrip;    // simply go out and back once shortly after power up
 bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
 PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
+bool applyJoystickLocally = true;  // flag to track whether or not to apply Joystick values to motor setpoints
+
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -265,6 +267,20 @@ void tasks20ms () {
     setAutomaticVelocityLoopSetpoints(spiSlavePort.getTurnVelocityFromPi(),spiSlavePort.getForwardThrottleFromPi(),false);
   }
   
+  // Toggle enable/disable apply joystick values locally, versus simply send joystick values to piSPImaster
+  if (ps2ControllerUseable && selectButtonState && L3buttonJustPressed)
+  {
+    applyJoystickLocally = !applyJoystickLocally;
+    if (applyJoystickLocally)
+    {
+      Serial.println("-> Enabled joystick values to local drive.");
+    } else
+    {
+      Serial.println("-> Disabled local drive from joystick values. Auto-drive only.");
+    }
+    
+
+  }
 
   // ToDo-> clean this up, to write appropriate values even if PS2 controller is not available
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
@@ -289,9 +305,11 @@ void tasks20ms () {
 
       // always send operator values To the Pi SPI master
       spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
-      // Mix operator values together with values From Pi SPI master together, as input to the velocity loops
-      // ToDo- comment out following line to verify loopBack, sending joystick commands to piSPImaster, and looping them back as 'automatic' setpoint commands
-      // setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      // apply joystick commands locally if enabled
+      if (applyJoystickLocally)
+      {
+        setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      }
     } else  // normally, just use half the values provide by the joystick
     {
       signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
@@ -302,9 +320,11 @@ void tasks20ms () {
 
       // always send operator values To the Pi SPI master
       spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
-      // Mix operator values together with values From Pi SPI master together, as input to the velocity loops
-      // ToDo- comment out following line to verify loopBack, sending joystick commands to piSPImaster, and looping them back as 'automatic' setpoint commands
-      // setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      // apply joystick commands locally if enabled
+      if (applyJoystickLocally)
+      {
+        setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      }
     }   
   }
  
