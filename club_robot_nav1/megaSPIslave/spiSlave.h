@@ -23,6 +23,11 @@ class spiSlave
     //  Fill the SPI transfer buffer with payload data to be sent to the SPI master on the next SPI byte exchange
     unsigned char setDataForPi (char command, signed char TurnVelocity, signed char ForwardThrottle, signed char SidewaysThrottle, long param1, long param2, long param3 );
 
+    // Purpose
+    //  Allow parent code to initialize the received from SPI values cache
+    //  Intended to allow human operators to quickly top all autonomous command values, e.g. in case the SPI link goes down while active commands are being sent
+    void initializeValuesCacheFromPi();
+
     // ToDo come up with a double buffer scheme to avoid the need to test return values from getLatestDataFromPi()
     // ToDo -> also provide a cleaner return value as a structure instead of separate variables
     // Purpose

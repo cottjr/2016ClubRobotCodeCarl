@@ -136,6 +136,31 @@ unsigned char spiSlave::setDataForPi (char command, signed char TurnVelocity, si
   }
 }
 
+
+// Purpose
+//  Allow parent code to initialize the received from SPI values cache
+//  Intended to allow human operators or error-detecting routines to quickly top all autonomous command values, 
+//  e.g. in case the SPI link goes down while active commands are being sent
+void spiSlave::initializeValuesCacheFromPi()
+{
+  // initialize the receive buffer
+  int i; 
+  for (i = 0; i <= 15; i++) 
+  {
+    receiveBuffer[0][i] = 0;
+    receiveBuffer[1][i] = 0;
+  }  
+
+  commandFromPi = 0;
+  TurnVelocityFromPi = 0;
+  ForwardThrottleFromPi = 0;
+  SidewaysThrottleFromPi = 0;
+  param1FromPi = 0;
+  param2FromPi = 0;
+  param3FromPi = 0;
+
+}
+
 // Purpose
 //  retrieve the latest data received from the SPI master on the most recent SPI byte exchange
 // Output

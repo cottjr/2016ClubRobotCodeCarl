@@ -134,13 +134,18 @@ void tasks20ms () {
   unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
   unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
 
-// quickly stop QuickTrip by RGB button or the PS2 controller select button
-  if ( (!digitalRead(RGBswitchSwitchPin) || selectButtonState) && runQuickTrip)   
+// quickly stop or re-initialize autonomous modes by tapping the RGB button or the PS2 controller select button
+//  This will immediately stop local automous modes like Quick Trip
+//  And although it may not stop remote commanded automonous modes like DonkeyCar,
+//  it will at least re-initialize values for received command buffers.
+//  This can help in cases such as when the SPI link hangs, by allowing you to locally reset the most recent commands to zero.
+  if (!digitalRead(RGBswitchSwitchPin) || selectButtonState) 
   {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
       digitalWrite(RGBswitchBluePin, HIGH);      
+      spiSlavePort.initializeValuesCacheFromPi();
       setAutomaticVelocityLoopSetpoints(0, 0, true);
       setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
