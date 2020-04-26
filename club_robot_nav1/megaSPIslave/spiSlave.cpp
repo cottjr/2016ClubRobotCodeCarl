@@ -32,12 +32,12 @@ spiSlave::spiSlave()
   // queue some initial values to send to the Pi
   spiSlave::setDataForPi('A', 1, 2, 3, 4, 5, 6);
 
-  // initialize the receive buffer with easily recognizeable default values
+  // initialize the receive buffer
   int i; 
   for (i = 0; i <= 15; i++) 
   {
-    receiveBuffer[0][i] = i;
-    receiveBuffer[1][i] = i;
+    receiveBuffer[0][i] = 0;
+    receiveBuffer[1][i] = 0;
   }   
 
 }
