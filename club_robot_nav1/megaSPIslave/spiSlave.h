@@ -94,7 +94,7 @@ class spiSlave
     private:
 
     // time threshold in ms to declare a failed burst transfer attempt
-    #define maxAllowedSPIburstDuration 30  // assume that something is wrong if a burst of bytes is started but not completed within this time
+    #define maxAllowedSPIburstDuration 50  // assume that something is wrong if a burst of bytes is started but not completed within this time
 
     // SPI service state machine variables
     volatile unsigned char receiveBuffer[2][16]; // temporary buffer for bytes coming from the SPI master
