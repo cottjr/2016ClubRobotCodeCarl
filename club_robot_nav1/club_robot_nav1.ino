@@ -115,9 +115,9 @@ void tasks20ms () {
 
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
-    digitalWrite(digTP26, HIGH);
+    // digitalWrite(digTP26, HIGH);
     tasks1000ms();
-    digitalWrite(digTP26, LOW);
+    // digitalWrite(digTP26, LOW);
   } else {
     taskLoopCounter += 1;
   }
@@ -141,6 +141,7 @@ void tasks20ms () {
 //  This can help in cases such as when the SPI link hangs, by allowing you to locally reset the most recent commands to zero.
   if (!digitalRead(RGBswitchSwitchPin) || selectButtonState) 
   {
+      digitalWrite(digTP26, HIGH);
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
@@ -347,6 +348,8 @@ void tasks1000ms () {
   // Serial.print("\n\n---sampleMotorShieldCount ");
   // Serial.println(sampleMotorShieldCount);
   sampleMotorShieldCount += 1;
+
+  digitalWrite(digTP26, LOW);
 
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
   // digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
