@@ -204,12 +204,13 @@ unsigned char spiSlave::getLatestDataFromPi ()
 
   if (newSPIdataAvailable == 1)
   {
-    newSPIdataAvailable == 0;   // indicate that this new SPI data has just been consumed
+    newSPIdataAvailable = 0;   // indicate that this new SPI data has just been consumed
     interrupts();
     return 1;   // indicate that the data just returned has NOT been previously seen
   }
   else
   {
+    newSPIdataAvailable = 0;   // indicate that this new SPI data has just been consumed
     interrupts();
     return 0; // indicate that the data just returned HAS been previously seen
   }

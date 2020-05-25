@@ -31,3 +31,6 @@
 *.db
 *.browse.VC.db-wal
 *.vscode/ipch
+
+# project library files
+libraries/Adafruit_NeoPixel/*

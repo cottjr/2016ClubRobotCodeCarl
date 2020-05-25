@@ -16,6 +16,17 @@
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
+#include <Adafruit_NeoPixel.h>  // using Adafruit NeoPixel by Adafruit Version 1.4.0
+#define NeoPixel_PIN 37    // Groups the NeoPixel LED in the same 'connector grouping' as the RGB LED and Switch
+#define NeoPixel_LEDS 8
+#define Neo_applyJoystickLocally 0            // 1st neoPixel
+#define Neo_applySPIHeadingThrottleLocally 1  // 2nd NeoPixel
+#define Neo_SPIlinkActive 2                   // 3rd NeoPixel
+unsigned int SPIlinkActivityCounter = 0;         // counter to detect a minimum number of received values per second, to declare that the SPI link is active
+
+Adafruit_NeoPixel neoPixelStrip = Adafruit_NeoPixel(NeoPixel_LEDS, NeoPixel_PIN, NEO_GRB + NEO_KHZ800);
+
+
 // Using SPI slave code reference code from https://github.com/cottjr/piMegaSPI
 //  starting with baseline version, commit 00163e8 branch refactorToSpiSlaveClass
 #include "megaSPIslave/spiSlave.h"
@@ -87,6 +98,7 @@ bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller b
 PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
 bool applyJoystickLocally = true;  // flag to track whether or not to apply Joystick values to motor setpoints
 bool applySPIHeadingThrottleLocally = true; // flag to track whether or not to apply Heading and Throttle commands from SPI to motor setpoints
+bool SPIlinkActive = false; // flag to track whether or not the SPI link has active & valid traffic
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -110,7 +122,15 @@ void tasks20ms () {
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
   sampleMotorShield();
 
-  spiSlavePort.getLatestDataFromPi();
+  // Query the SPI slave port receiver to retrieve fresh data if any has been received but not yet examined/handled
+  if (spiSlavePort.getLatestDataFromPi())
+  {
+    SPIlinkActivityCounter += 1;
+    // Serial.println("-----------> fresh data");    
+  } else
+  {
+    // Serial.println("-----------> NO fresh data - Nope - Not at all! The yellow should go out now!...");
+  }
   spiSlavePort.handleCommandsFromPi();
 
   if (taskLoopCounter == 49) {
@@ -281,9 +301,13 @@ void tasks20ms () {
     applyJoystickLocally = !applyJoystickLocally;
     if (applyJoystickLocally)
     {
-      Serial.println("-> Enabled joystick values to local drive.");
+      // Green
+      neoPixelStrip.setPixelColor(Neo_applyJoystickLocally, neoPixelStrip.Color(0,10,0));
+      Serial.println("---------------------> Enabled joystick values to local drive.");
     } else
     {
+      // Red
+      neoPixelStrip.setPixelColor(Neo_applyJoystickLocally, neoPixelStrip.Color(10,0,0));
       Serial.println("-> Disabled local drive from joystick values. Auto-drive only.");
     }
   }
@@ -294,10 +318,14 @@ void tasks20ms () {
     applySPIHeadingThrottleLocally = !applySPIHeadingThrottleLocally;
     if (applySPIHeadingThrottleLocally)
     {
+      // Green
+      neoPixelStrip.setPixelColor(Neo_applySPIHeadingThrottleLocally, neoPixelStrip.Color(0,10,0));
       Serial.println("-> Enabled Auto-drive / SPI commanded Heading and Throttle values to local drive.");
     } else
     {
-      Serial.println("-> Disabled Auto-drive / ignoring SPI commanded Heading and Throttle values.");
+      // Red
+      neoPixelStrip.setPixelColor(Neo_applySPIHeadingThrottleLocally, neoPixelStrip.Color(10,0,0));
+      Serial.println("------> Disabled Auto-drive / ignoring SPI commanded Heading and Throttle values.");
     }
   }
 
@@ -348,7 +376,7 @@ void tasks20ms () {
       }
     }   
   }
- 
+
   tick20msCounter += 1;
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
@@ -427,7 +455,25 @@ void tasks1000ms () {
       // setMotorVelocityByPWM(0,0);
       setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
- 
+
+  if (SPIlinkActivityCounter > 10)
+  {
+    // Redish Yellow
+    neoPixelStrip.setPixelColor(Neo_SPIlinkActive, neoPixelStrip.Color(25,15,0));
+    // Serial.println("-----------> SPI link had solid activity in the last second");    
+  } else
+  {
+    // Off
+    neoPixelStrip.setPixelColor(Neo_SPIlinkActive, neoPixelStrip.Color(0,0,0));    
+  //   Serial.println("-----------> It appears that the SPI link is offline - no solid activity in the last second");
+  }
+  SPIlinkActivityCounter = 0;
+
+  // Always refresh the neoPixel strip once per second with whatever colors have been recently set
+  //  careful - do not refresh much more often, because both NeoPixels and SPI stop interrupts,
+  //  hence, it's easy to see that trying to update the Neopixels every 20ms causes a significant increase in SPI transfer errors
+  neoPixelStrip.show();
+
   RGBswitchPriorSecond = digitalRead(RGBswitchSwitchPin);   // poor mans debouncer, read once per second, hope the switch transtion & bounce doesn't happen on a 1 second boundary.
 
   Serial.println();
@@ -469,9 +515,67 @@ void tasks1000ms () {
 }
 
 
+// make sure all NeoPixels are off
+void NeoPixel_Clear()
+{
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,0));  
+  }  
+  neoPixelStrip.show();
+}
+
+
+// set Neopixels to default values
+void NeoPixel_Initialize()
+{
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,0));  
+  }  
+  // Green
+  neoPixelStrip.setPixelColor(Neo_applyJoystickLocally, neoPixelStrip.Color(0,10,0));
+  // Green
+  neoPixelStrip.setPixelColor(Neo_applySPIHeadingThrottleLocally, neoPixelStrip.Color(0,10,0));
+  neoPixelStrip.show();
+}
+
+// briefly cycle through R G B for all NeoPixels
+void NeoPixel_StripTest()
+{
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(100,0,0));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+  for (uint16_t i = neoPixelStrip.numPixels() -1; i > 0 ; i--)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,100,0));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,100));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,0));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+}
+
 
 void setup()
 {
+
+  // aha- the all important class initializer...
+  neoPixelStrip.begin();
+
   Serial.begin(250000);   // Serial:  0(RX), 1(TX) => use the highest possible rate to minimize drag on the CPU
                           // e.g. https://forum.arduino.cc/index.php?topic=76359.0
                           // e.g. https://www.quora.com/What-is-the-baud-rate-and-why-does-Arduino-have-a-baud-rate-of-9-600
@@ -546,6 +650,16 @@ void setup()
   cpuCycleHeadroom1000msIncrement = 0;
 
   tick20msCounter = 0;
+
+  // turn off all NeoPixels
+  NeoPixel_Clear();
+  delay(750);
+
+  // cycle through R G B for each NeoPixel
+  NeoPixel_StripTest();
+
+// set Neopixels to default values
+  NeoPixel_Initialize();
 
   // Initialize and check for a PS2 Controller
   initPS2xController();
