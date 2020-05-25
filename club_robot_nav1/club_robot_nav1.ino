@@ -86,7 +86,7 @@ bool runQuickTrip;    // simply go out and back once shortly after power up
 bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
 PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
 bool applyJoystickLocally = true;  // flag to track whether or not to apply Joystick values to motor setpoints
-
+bool applySPIHeadingThrottleLocally = true; // flag to track whether or not to apply Heading and Throttle commands from SPI to motor setpoints
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -268,8 +268,11 @@ void tasks20ms () {
     }
   } else
   {
-    // Set & mix values From Pi SPI master together with operator values, as input to the velocity loops
-    setAutomaticVelocityLoopSetpoints(spiSlavePort.getTurnVelocityFromPi(),spiSlavePort.getForwardThrottleFromPi(),false);
+    if (applySPIHeadingThrottleLocally) 
+    {
+      // Set & mix values From Pi SPI master together with operator values, as input to the velocity loops
+      setAutomaticVelocityLoopSetpoints(spiSlavePort.getTurnVelocityFromPi(),spiSlavePort.getForwardThrottleFromPi(),false);
+    }
   }
   
   // Toggle enable/disable apply joystick values locally, versus simply send joystick values to piSPImaster
@@ -283,9 +286,22 @@ void tasks20ms () {
     {
       Serial.println("-> Disabled local drive from joystick values. Auto-drive only.");
     }
-    
-
   }
+
+  // Toggle enable/disable whether or not to apply Heading and Throttle commands from SPI to motor setpoints
+  if (ps2ControllerUseable && selectButtonState && R3buttonJustPressed)
+  {
+    applySPIHeadingThrottleLocally = !applySPIHeadingThrottleLocally;
+    if (applySPIHeadingThrottleLocally)
+    {
+      Serial.println("-> Enabled Auto-drive / SPI commanded Heading and Throttle values to local drive.");
+    } else
+    {
+      Serial.println("-> Disabled Auto-drive / ignoring SPI commanded Heading and Throttle values.");
+    }
+  }
+
+
 
   // ToDo-> clean this up, to write appropriate values even if PS2 controller is not available
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
