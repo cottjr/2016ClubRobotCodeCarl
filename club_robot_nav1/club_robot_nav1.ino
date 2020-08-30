@@ -29,7 +29,7 @@ Adafruit_NeoPixel neoPixelStrip = Adafruit_NeoPixel(NeoPixel_LEDS, NeoPixel_PIN,
 
 // Using SPI slave code reference code from https://github.com/cottjr/piMegaSPI
 //  starting with baseline version, commit 00163e8 branch refactorToSpiSlaveClass
-#include "megaSPIslave/spiSlave.h"
+#include "spiSlave.h"
 
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
 #define cpuStatusLEDredPin 30     // 325 ohm
