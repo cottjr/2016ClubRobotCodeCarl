@@ -27,6 +27,8 @@ void readAllPS2xControllerValues();
 extern bool ps2ControllerUseable;  // flag to determine if appears safe to read values from the ps2 controller
 extern bool startAndTriangle; // true while start button and triangle are both held at the same time
 extern bool L2button; // true while start button and triangle are both held at the same time
+extern bool L3buttonJustPressed; // true when left joystick button just pressed
+extern bool R3buttonJustPressed; // true when right joystick button just pressed
 extern bool selectButtonState;  // true while select button is pressed
 
 extern bool circleButtonState;  // true while circle button is currently being pressed

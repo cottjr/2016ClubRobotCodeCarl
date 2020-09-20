@@ -16,9 +16,20 @@
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
+#include <Adafruit_NeoPixel.h>  // using Adafruit NeoPixel by Adafruit Version 1.4.0
+#define NeoPixel_PIN 37    // Groups the NeoPixel LED in the same 'connector grouping' as the RGB LED and Switch
+#define NeoPixel_LEDS 8
+#define Neo_applyJoystickLocally 0            // 1st neoPixel
+#define Neo_applySPIHeadingThrottleLocally 1  // 2nd NeoPixel
+#define Neo_SPIlinkActive 2                   // 3rd NeoPixel
+unsigned int SPIlinkActivityCounter = 0;         // counter to detect a minimum number of received values per second, to declare that the SPI link is active
+
+Adafruit_NeoPixel neoPixelStrip = Adafruit_NeoPixel(NeoPixel_LEDS, NeoPixel_PIN, NEO_GRB + NEO_KHZ800);
+
+
 // Using SPI slave code reference code from https://github.com/cottjr/piMegaSPI
 //  starting with baseline version, commit 00163e8 branch refactorToSpiSlaveClass
-#include "megaSPIslave/spiSlave.h"
+#include "spiSlave.h"
 
 // attached a SparkFun COM-11120 10mm diffused RGB LED, with common/cathode to ground, and RGB pins as follows with resistors to approximately balance light intensity
 #define cpuStatusLEDredPin 30     // 325 ohm
@@ -85,6 +96,9 @@ bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off
 bool runQuickTrip;    // simply go out and back once shortly after power up
 bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
 PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
+bool applyJoystickLocally = true;  // flag to track whether or not to apply Joystick values to motor setpoints
+bool applySPIHeadingThrottleLocally = true; // flag to track whether or not to apply Heading and Throttle commands from SPI to motor setpoints
+bool SPIlinkActive = false; // flag to track whether or not the SPI link has active & valid traffic
 
 // functions which run every 20ms
 void tasks20ms () {
@@ -108,6 +122,17 @@ void tasks20ms () {
   filterTurnAndThrottleRequestValues(); // lowpass Throttle and Turn Velocity commands to match platform capability
   sampleMotorShield();
 
+  // Query the SPI slave port receiver to retrieve fresh data if any has been received but not yet examined/handled
+  if (spiSlavePort.getLatestDataFromPi())
+  {
+    SPIlinkActivityCounter += 1;
+    // Serial.println("-----------> fresh data");    
+  } else
+  {
+    // Serial.println("-----------> NO fresh data - Nope - Not at all! The yellow should go out now!...");
+  }
+  spiSlavePort.handleCommandsFromPi();
+
   if (taskLoopCounter == 49) {
     taskLoopCounter = 0;
     digitalWrite(digTP26, HIGH);
@@ -129,13 +154,18 @@ void tasks20ms () {
   unsigned char quickTripSpeedHalf = 50;         // kludge (should make part of filters & loop response), start & stop quick trip slowly
   unsigned char quickTripSpeedQuarter = 25;      // kludge (should make part of filters & loop response), start & stop quick trip slowly
 
-// quickly stop QuickTrip by RGB button or the PS2 controller select button
-  if ( (!digitalRead(RGBswitchSwitchPin) || selectButtonState) && runQuickTrip)   
+// quickly stop or re-initialize autonomous modes by tapping the RGB button or the PS2 controller select button
+//  This will immediately stop local automous modes like Quick Trip
+//  And although it may not stop remote commanded automonous modes like DonkeyCar,
+//  it will at least re-initialize values for received command buffers.
+//  This can help in cases such as when the SPI link hangs, by allowing you to locally reset the most recent commands to zero.
+  if (!digitalRead(RGBswitchSwitchPin) || selectButtonState) 
   {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
       digitalWrite(RGBswitchGreenPin, LOW);   // turn green on - indicate ready to run
       digitalWrite(RGBswitchBluePin, HIGH);      
+      spiSlavePort.initializeValuesCacheFromPi();
       setAutomaticVelocityLoopSetpoints(0, 0, true);
       setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
@@ -256,8 +286,52 @@ void tasks20ms () {
       setVelocityLoopLowPassCutoff( -1 , true);    // return the setpoint command lowpass filter to it's default value
       runQuickTrip = false;
     }
+  } else
+  {
+    if (applySPIHeadingThrottleLocally) 
+    {
+      // Set & mix values From Pi SPI master together with operator values, as input to the velocity loops
+      setAutomaticVelocityLoopSetpoints(spiSlavePort.getTurnVelocityFromPi(),spiSlavePort.getForwardThrottleFromPi(),false);
+    }
+  }
+  
+  // Toggle enable/disable apply joystick values locally, versus simply send joystick values to piSPImaster
+  if (ps2ControllerUseable && selectButtonState && L3buttonJustPressed)
+  {
+    applyJoystickLocally = !applyJoystickLocally;
+    if (applyJoystickLocally)
+    {
+      // Green
+      neoPixelStrip.setPixelColor(Neo_applyJoystickLocally, neoPixelStrip.Color(0,10,0));
+      Serial.println("---------------------> Enabled joystick values to local drive.");
+    } else
+    {
+      // Red
+      neoPixelStrip.setPixelColor(Neo_applyJoystickLocally, neoPixelStrip.Color(10,0,0));
+      Serial.println("-> Disabled local drive from joystick values. Auto-drive only.");
+    }
   }
 
+  // Toggle enable/disable whether or not to apply Heading and Throttle commands from SPI to motor setpoints
+  if (ps2ControllerUseable && selectButtonState && R3buttonJustPressed)
+  {
+    applySPIHeadingThrottleLocally = !applySPIHeadingThrottleLocally;
+    if (applySPIHeadingThrottleLocally)
+    {
+      // Green
+      neoPixelStrip.setPixelColor(Neo_applySPIHeadingThrottleLocally, neoPixelStrip.Color(0,10,0));
+      Serial.println("-> Enabled Auto-drive / SPI commanded Heading and Throttle values to local drive.");
+    } else
+    {
+      // Red
+      neoPixelStrip.setPixelColor(Neo_applySPIHeadingThrottleLocally, neoPixelStrip.Color(10,0,0));
+      Serial.println("------> Disabled Auto-drive / ignoring SPI commanded Heading and Throttle values.");
+    }
+  }
+
+
+
+  // ToDo-> clean this up, to write appropriate values even if PS2 controller is not available
   // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
   if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
   {
@@ -278,7 +352,13 @@ void tasks20ms () {
                                           // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
       if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
 
-      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      // always send operator values To the Pi SPI master
+      spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
+      // apply joystick commands locally if enabled
+      if (applyJoystickLocally)
+      {
+        setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      }
     } else  // normally, just use half the values provide by the joystick
     {
       signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
@@ -287,10 +367,16 @@ void tasks20ms () {
                                           // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
       if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
 
-      setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      // always send operator values To the Pi SPI master
+      spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
+      // apply joystick commands locally if enabled
+      if (applyJoystickLocally)
+      {
+        setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
+      }
     }   
   }
- 
+
   tick20msCounter += 1;
 
   cpuCycleHeadroom20ms = cpuCycleHeadroom20msIncrement;
@@ -309,54 +395,56 @@ void tasks1000ms () {
   digitalWrite(cpuStatusLEDbluePin, digitalRead(cpuStatusLEDbluePin) ^ 1);      // toggle the blue pin
   // digitalWrite(RGBswitchBluePin, digitalRead(RGBswitchBluePin) ^ 1);      // toggle the blue pin
 
-  spiSlavePort.getLatestDataFromPi();
-  spiSlavePort.handleCommandsFromPi();
-  if (digitalRead(cpuStatusLEDbluePin) ){
+  // Moved following code to 20ms ISR.
+  // -->> ToDo: adapt error detection into 20ms ISR
+  // spiSlavePort.getLatestDataFromPi();
+  // spiSlavePort.handleCommandsFromPi();
+  // if (digitalRead(cpuStatusLEDbluePin) ){
 
-      if (spiSlavePort.getNextSPIxferToPiReserved())
-      {
-        Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
-      } else
-      {
-        Serial.println("queuing for PI: P, Max burst duration, -9, +13, 248, 399, 425");
-        spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), -9, +13, 248, 399, 425);
-      }
-  } else
-  {
-      if (spiSlavePort.getNextSPIxferToPiReserved())
-      {
-        Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
-      } else
-      {
-        Serial.println("queuing for PI: Q, Max burst duration, 51, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
-        spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), 51, -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
-      }      
-  }
+  //     if (spiSlavePort.getNextSPIxferToPiReserved())
+  //     {
+  //       Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
+  //     } else
+  //     {
+  //       Serial.println("queuing for PI: P, Max burst duration, -9, +13, 248, 399, 425");
+  //       spiSlavePort.setDataForPi('P', spiSlavePort.getMaxBurstDuration(), -9, +13, 248, 399, 425);
+  //     }
+  // } else
+  // {
+  //     if (spiSlavePort.getNextSPIxferToPiReserved())
+  //     {
+  //       Serial.println("Started to queue for Pi, but did not since getNextSPIxferToPiReserved() was true.");
+  //     } else
+  //     {
+  //       Serial.println("queuing for PI: Q, Max burst duration, 51, -87, 13987, 22459, spiSlavePort.getMaxDelayBetweenBursts()");
+  //       spiSlavePort.setDataForPi('Q', spiSlavePort.getMaxBurstDuration(), 51, -87, 13987, 22459, (long) spiSlavePort.getMaxDelayBetweenBursts()); //note: loss of fidelty from casting unsigned long to long...
+  //     }      
+  // }
   
-  Serial.print(" xfer error count, num bursts rejected too long ");
-  Serial.print(spiSlavePort.getErrorCountSPIrx());
-  Serial.print(", ");
-  Serial.println(spiSlavePort.getNumBurstsRejectedTooLong());
-  Serial.print(" max SPI burst duration (ms), max delay between SPI bursts (ms) ");
-  Serial.print(spiSlavePort.getMaxBurstDuration());
-  Serial.print(", ");
-  Serial.println(spiSlavePort.getMaxDelayBetweenBursts());      
+  // Serial.print(" xfer error count, num bursts rejected too long ");
+  // Serial.print(spiSlavePort.getErrorCountSPIrx());
+  // Serial.print(", ");
+  // Serial.println(spiSlavePort.getNumBurstsRejectedTooLong());
+  // Serial.print(" max SPI burst duration (ms), max delay between SPI bursts (ms) ");
+  // Serial.print(spiSlavePort.getMaxBurstDuration());
+  // Serial.print(", ");
+  // Serial.println(spiSlavePort.getMaxDelayBetweenBursts());      
 
-  Serial.println("Received from Pi: cmd, turn, fwd, sidewys, param1, param2, param3");
-  Serial.print("-> ");
-  Serial.print( spiSlavePort.getCommandFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getTurnVelocityFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getForwardThrottleFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getSidewaysThrottleFromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getParam1FromPi());
-  Serial.print(", ");
-  Serial.print( spiSlavePort.getParam2FromPi());
-  Serial.print(", ");
-  Serial.println( spiSlavePort.getParam3FromPi());
+  // Serial.println("Received from Pi: cmd, turn, fwd, sidewys, param1, param2, param3");
+  // Serial.print("-> ");
+  // Serial.print( spiSlavePort.getCommandFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getTurnVelocityFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getForwardThrottleFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getSidewaysThrottleFromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getParam1FromPi());
+  // Serial.print(", ");
+  // Serial.print( spiSlavePort.getParam2FromPi());
+  // Serial.print(", ");
+  // Serial.println( spiSlavePort.getParam3FromPi());
 
 
   if (runContinuousMotorStepResponseTest && digitalRead(cpuStatusLEDbluePin) ){
@@ -367,7 +455,25 @@ void tasks1000ms () {
       // setMotorVelocityByPWM(0,0);
       setAutomaticVelocityLoopSetpoints(0,0,true);
   } 
- 
+
+  if (SPIlinkActivityCounter > 10)
+  {
+    // Redish Yellow
+    neoPixelStrip.setPixelColor(Neo_SPIlinkActive, neoPixelStrip.Color(25,15,0));
+    // Serial.println("-----------> SPI link had solid activity in the last second");    
+  } else
+  {
+    // Off
+    neoPixelStrip.setPixelColor(Neo_SPIlinkActive, neoPixelStrip.Color(0,0,0));    
+  //   Serial.println("-----------> It appears that the SPI link is offline - no solid activity in the last second");
+  }
+  SPIlinkActivityCounter = 0;
+
+  // Always refresh the neoPixel strip once per second with whatever colors have been recently set
+  //  careful - do not refresh much more often, because both NeoPixels and SPI stop interrupts,
+  //  hence, it's easy to see that trying to update the Neopixels every 20ms causes a significant increase in SPI transfer errors
+  neoPixelStrip.show();
+
   RGBswitchPriorSecond = digitalRead(RGBswitchSwitchPin);   // poor mans debouncer, read once per second, hope the switch transtion & bounce doesn't happen on a 1 second boundary.
 
   Serial.println();
@@ -409,9 +515,67 @@ void tasks1000ms () {
 }
 
 
+// make sure all NeoPixels are off
+void NeoPixel_Clear()
+{
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,0));  
+  }  
+  neoPixelStrip.show();
+}
+
+
+// set Neopixels to default values
+void NeoPixel_Initialize()
+{
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,0));  
+  }  
+  // Green
+  neoPixelStrip.setPixelColor(Neo_applyJoystickLocally, neoPixelStrip.Color(0,10,0));
+  // Green
+  neoPixelStrip.setPixelColor(Neo_applySPIHeadingThrottleLocally, neoPixelStrip.Color(0,10,0));
+  neoPixelStrip.show();
+}
+
+// briefly cycle through R G B for all NeoPixels
+void NeoPixel_StripTest()
+{
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(100,0,0));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+  for (uint16_t i = neoPixelStrip.numPixels() -1; i > 0 ; i--)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,100,0));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,100));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+  for (uint16_t i = 0; i < neoPixelStrip.numPixels(); i++)
+  {
+    neoPixelStrip.setPixelColor(i, neoPixelStrip.Color(0,0,0));  
+    neoPixelStrip.show();
+    delay(100);
+  }  
+}
+
 
 void setup()
 {
+
+  // aha- the all important class initializer...
+  neoPixelStrip.begin();
+
   Serial.begin(250000);   // Serial:  0(RX), 1(TX) => use the highest possible rate to minimize drag on the CPU
                           // e.g. https://forum.arduino.cc/index.php?topic=76359.0
                           // e.g. https://www.quora.com/What-is-the-baud-rate-and-why-does-Arduino-have-a-baud-rate-of-9-600
@@ -486,6 +650,16 @@ void setup()
   cpuCycleHeadroom1000msIncrement = 0;
 
   tick20msCounter = 0;
+
+  // turn off all NeoPixels
+  NeoPixel_Clear();
+  delay(750);
+
+  // cycle through R G B for each NeoPixel
+  NeoPixel_StripTest();
+
+// set Neopixels to default values
+  NeoPixel_Initialize();
 
   // Initialize and check for a PS2 Controller
   initPS2xController();

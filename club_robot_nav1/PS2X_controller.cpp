@@ -17,6 +17,8 @@ byte vibrateShake = 0;
 bool ps2ControllerUseable = false;  // flag to determine if appears safe to read values from the ps2 controller
 bool startAndTriangle = false; // true while start button and triangle are both held at the same time
 bool L2button = false;  // true while L2 button is pressed
+bool L3buttonJustPressed; // true when left joystick button just pressed
+bool R3buttonJustPressed; // true when right joystick button just pressed
 bool selectButtonState = false;  // true while select button is pressed
 
 bool circleButtonState = false;  // true while circle button is pressed
@@ -192,7 +194,13 @@ void readAllPS2xControllerValues()
     // this will set the large motor vibrateShake speed based on how hard you press the blue (X) button
     vibrateShake = ps2x.Analog(PSAB_BLUE);
     L2button = ps2x.Button(PSB_L2);
-    
+
+    // true if the left joystick button was just pressed
+    L3buttonJustPressed = ps2x.ButtonPressed(PSB_L3);
+
+    // true if the right joystick button was just pressed
+    R3buttonJustPressed = ps2x.ButtonPressed(PSB_R3);
+
     // will be TRUE if any button changes state (on to off, or off to on)
     if (ps2x.NewButtonState())
     {
