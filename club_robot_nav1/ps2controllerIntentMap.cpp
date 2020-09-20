@@ -99,7 +99,7 @@ void ps2controllerIntentMap::initPS2xController()
     Serial.println("trying to initialize gamepad");
     delayMicroseconds(500000); // delay() causes issues with the serial port, and relies on Mega Timer0.  delayMicroseconds() works on processor cycles  https://forum.arduino.cc/index.php?topic=437411.0
     // // initialize  pins:  GamePad(clock, command, attention, data, Pressures, Rumble)
-    ps2xError = ps2x_cottjr.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
+    ps2xError = ps2x_cottjr.config_gamepad(22,23,24,25, true, true);
 
     Serial.println();
     switch (ps2xError)
@@ -361,7 +361,7 @@ bool ps2controllerIntentMap::readAllPS2xControllerValues(bool showValues)
 
     forward = selectedForward;
     sideways = selectedSideways;
-    turn = -1 * selectedTurnVelocity;
+    turn = selectedTurnVelocity;
 
 
     return true; // assume could successfully read all values

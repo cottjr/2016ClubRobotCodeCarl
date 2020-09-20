@@ -13,6 +13,7 @@
 #include "libtaskMemoryTest.h"
 #include "motorTasks.h"
 #include "PS2X_controller.h"
+#include "ps2controllerIntentMap.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
 
@@ -100,6 +101,10 @@ bool applyJoystickLocally = true;  // flag to track whether or not to apply Joys
 bool applySPIHeadingThrottleLocally = true; // flag to track whether or not to apply Heading and Throttle commands from SPI to motor setpoints
 bool SPIlinkActive = false; // flag to track whether or not the SPI link has active & valid traffic
 
+
+  // construct a single instance of ps2controllerIntentMap
+  ps2controllerIntentMap operatorIntentMap; // note this only constructs an instance -> still need to perform initalization later at a controlled time
+
 // functions which run every 20ms
 void tasks20ms () {
   // cpuStatusLEDisWhite = true;
@@ -159,7 +164,7 @@ void tasks20ms () {
 //  And although it may not stop remote commanded automonous modes like DonkeyCar,
 //  it will at least re-initialize values for received command buffers.
 //  This can help in cases such as when the SPI link hangs, by allowing you to locally reset the most recent commands to zero.
-  if (!digitalRead(RGBswitchSwitchPin) || selectButtonState) 
+  if (!digitalRead(RGBswitchSwitchPin) || operatorIntentMap.selectButtonPressed) 
   {
       // Reset the QuickTrip Routine
       digitalWrite(RGBswitchRedPin, HIGH);       
@@ -183,7 +188,9 @@ void tasks20ms () {
   }
 
 // start a quick trip if requested and not already in progress
-  if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) 
+// start button held and and triangle button pressed
+  // if (ps2ControllerUseable && startAndTriangle && !runQuickTrip) 
+  if (operatorIntentMap.startButtonState && operatorIntentMap.triangleButtonPressed && !runQuickTrip) 
   {
     QuickTripStartCounter = tick20msCounter;
     runQuickTrip = true;
@@ -296,7 +303,8 @@ void tasks20ms () {
   }
   
   // Toggle enable/disable apply joystick values locally, versus simply send joystick values to piSPImaster
-  if (ps2ControllerUseable && selectButtonState && L3buttonJustPressed)
+  // if (ps2ControllerUseable && selectButtonState && L3buttonJustPressed)
+  if (operatorIntentMap.selectButtonState && operatorIntentMap.L3buttonPressed)
   {
     applyJoystickLocally = !applyJoystickLocally;
     if (applyJoystickLocally)
@@ -313,7 +321,8 @@ void tasks20ms () {
   }
 
   // Toggle enable/disable whether or not to apply Heading and Throttle commands from SPI to motor setpoints
-  if (ps2ControllerUseable && selectButtonState && R3buttonJustPressed)
+  // if (ps2ControllerUseable && selectButtonState && R3buttonJustPressed)
+  if (operatorIntentMap.selectButtonState && operatorIntentMap.R3buttonPressed)
   {
     applySPIHeadingThrottleLocally = !applySPIHeadingThrottleLocally;
     if (applySPIHeadingThrottleLocally)
@@ -329,53 +338,11 @@ void tasks20ms () {
     }
   }
 
-
-
-  // ToDo-> clean this up, to write appropriate values even if PS2 controller is not available
-  // readAndViewAllPS2Buttons costs about 2.2ms, plus another 1.1ms to write out values on push
-  if ( ps2ControllerUseable && readAndViewAllPS2Buttons )
-  {
-    readAllPS2xControllerValues();                          // show any PS2 controller events/data if present
-    readPS2Joysticks( &PS2JoystickValues );                 // read the latest PS2 controller joystick values
-    // signed char twoThirdsTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) * (double) 0.66;
-    signed char halfTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 2;
-    // signed char quarterTurnVelocity = (signed char) (double) joystickToTurnVelocity(PS2JoystickValues.rightX) / (double) 4;
-    
-    signed char selectedTurnVelocity = halfTurnVelocity;    // by default select a function of the joystick
-    if (circleButtonState || rightButtonState) { selectedTurnVelocity = +15; }  // override joystick with slight steer to the right
-    if (squareButtonState || leftButtonState) { selectedTurnVelocity = -15; }  // override joystick with slight steer to the left
-
-    if ( L2button ) // "L2button press defines turbo mode, use the closer to actual raw joystick values for maximum speed"
-    {
-      signed char selectedThrottle = joystickToThrottle(PS2JoystickValues.leftY);  // by default, select a function of the joystick
-      if (upButtonState || (triangleButtonState && !startAndTriangle))   { selectedThrottle = +15; }    // override joystick with slight forward
-                                          // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
-      if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
-
-      // always send operator values To the Pi SPI master
-      spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
-      // apply joystick commands locally if enabled
-      if (applyJoystickLocally)
-      {
-        setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
-      }
-    } else  // normally, just use half the values provide by the joystick
-    {
-      signed char halfThrottle = (signed char) (double) joystickToThrottle(PS2JoystickValues.leftY) / (double) 2;
-      signed char selectedThrottle = halfThrottle;        // by default, select a function of the joystick
-      if (upButtonState || (triangleButtonState && !startAndTriangle))   { selectedThrottle = +15; }    // override joystick with slight forward
-                                          // except don't move forward via Triangle button if the start button is also pressed at the same time as Triangle indicating to start Quick Trip
-      if (downButtonState || xButtonState) { selectedThrottle = -15; }    // override joystick with slight backwards
-
-      // always send operator values To the Pi SPI master
-      spiSlavePort.setDataForPi('T', selectedTurnVelocity, selectedThrottle, 0, 0, 0, 0);
-      // apply joystick commands locally if enabled
-      if (applyJoystickLocally)
-      {
-        setManualVelocityLoopSetpoints(selectedTurnVelocity, selectedThrottle, false);
-      }
-    }   
+  // if intend to read PS2 controller values, update turn and forward throttle accordingly
+  if (readAndViewAllPS2Buttons) {
+    interpretManualDrivingIntent(false);
   }
+
 
   tick20msCounter += 1;
 
@@ -512,6 +479,33 @@ void tasks1000ms () {
   // Serial.println(cpuCycleHeadroom1000ms);
 
   cpuCycleHeadroom1000msIncrement = 0;  
+}
+
+// Purpose:
+//  Interpret typical manual driving intent
+//  ie. map combinations of joystick values and command button states into forward and turn throttle command values
+// Note
+//  the ps2controllerIntentMap already handles joystick overrides for up/down/left/right button presses, including turbo button modifiers
+void interpretManualDrivingIntent(bool showValues)
+{
+
+  if (operatorIntentMap.readAllPS2xControllerValues(showValues))
+  {
+    // this branch is expected, all current readings should be updated
+  }
+  else
+  {
+    Serial.println("*** Failed to read PS2X-> operatorIntentMap.readAllPS2xControllerValues(showValues)");
+  }
+
+  // always send operator values To the Pi SPI master
+  spiSlavePort.setDataForPi('T', operatorIntentMap.turn, operatorIntentMap.forward, 0, 0, 0, 0);
+  // apply joystick commands locally if enabled
+  if (applyJoystickLocally)
+  {
+    setManualVelocityLoopSetpoints(operatorIntentMap.turn, operatorIntentMap.forward, false);
+  }
+
 }
 
 
@@ -661,8 +655,13 @@ void setup()
 // set Neopixels to default values
   NeoPixel_Initialize();
 
-  // Initialize and check for a PS2 Controller
-  initPS2xController();
+  // // Initialize and check for a PS2 Controller
+  // initPS2xController();
+
+  delayMicroseconds(300000); //added delay to give wireless ps2 module some time to startup, before configuring it- legacy technique from MoebiusTech
+  operatorIntentMap.initPS2xController();
+
+
 
   // Kludgy switches to run one or another thing when first power up
   runContinuousMotorStepResponseTest = false;  // remember to set velocity_setpoint_lowpass_cutoff_freq to 20 Hz to do a step response test
