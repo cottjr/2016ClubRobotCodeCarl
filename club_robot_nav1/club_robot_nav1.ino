@@ -12,7 +12,6 @@
 
 #include "libtaskMemoryTest.h"
 #include "motorTasks.h"
-#include "PS2X_controller.h"
 #include "ps2controllerIntentMap.h"
 #include <arduino.h>
 #include <avr/io.h>     // per Dale Wheat / Arduino Internals page 35.  Explicitly included to reference Arduion registers, even though Arduino automatically picks it up when not included
@@ -96,7 +95,7 @@ long int QuickTripStartCounter = 0; // track the start time of a Quick Trip run,
 bool runContinuousMotorStepResponseTest;  // simple test turns motors on and off with an impulse runContinuousMotorStepResponseTest. Handy e.g. for PID tuning
 bool runQuickTrip;    // simply go out and back once shortly after power up
 bool readAndViewAllPS2Buttons;  // diagnostics flag to view any PS2 controller button presses - use to figure out which button is which - writes to serial monitor - not intended for normal operation
-PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
+// PS2JoystickValuesType PS2JoystickValues;  // structure to track most recent values from a PS2 controller
 bool applyJoystickLocally = true;  // flag to track whether or not to apply Joystick values to motor setpoints
 bool applySPIHeadingThrottleLocally = true; // flag to track whether or not to apply Heading and Throttle commands from SPI to motor setpoints
 bool SPIlinkActive = false; // flag to track whether or not the SPI link has active & valid traffic
@@ -455,14 +454,14 @@ void tasks1000ms () {
 
   Serial.print("Lx ");
   // Left stick, Y axis. Other options: LX, RY, RX  
-  Serial.print(PS2JoystickValues.leftX, DEC); 
+  Serial.print(operatorIntentMap.joystickLeftX, DEC); 
   Serial.print(" y ");
-  Serial.print(PS2JoystickValues.leftY, DEC);
+  Serial.print(operatorIntentMap.joystickLeftY, DEC);
   
   Serial.print(" Rx ");
-  Serial.print(PS2JoystickValues.rightX, DEC); 
+  Serial.print(operatorIntentMap.joystickRightX, DEC); 
   Serial.print(" y ");
-  Serial.println(PS2JoystickValues.rightY, DEC); 
+  Serial.println(operatorIntentMap.joystickRightY, DEC); 
 
   // printRobotOdometerTicks(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
   // printVelocityLoopValues(); // view initial values, BUT clobbers 1st sampleMotorShield() iteration
