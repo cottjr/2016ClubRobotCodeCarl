@@ -1,7 +1,7 @@
 //ps2ontrollerIntentMap.cpp
 #include "ps2controllerIntentMap.h"
 
-#include "LCDsparkfun10862-RGB16x2.h"
+// #include "LCDsparkfun10862-RGB16x2.h"
 
 #include <arduino.h> // needed to support PS2 library use of alias 'byte'
 
@@ -33,7 +33,7 @@
 // // ToDo- Refactor the PS2X library so that it behaves well as part of a proper class.
 // //  for now, move instantiation to global scope outside of the class, since that seems to work much more consistantly
 // create a single instance of the PS2 Controller Class via PS2X_lib.h
-PS2X ps2x;
+PS2X ps2x_cottjr;
 
 // // create a single instance of this ps2controllerIntentMap
 // ps2controllerIntentMap operatorIntentMap;
@@ -99,7 +99,7 @@ void ps2controllerIntentMap::initPS2xController()
     Serial.println("trying to initialize gamepad");
     delayMicroseconds(500000); // delay() causes issues with the serial port, and relies on Mega Timer0.  delayMicroseconds() works on processor cycles  https://forum.arduino.cc/index.php?topic=437411.0
     // // initialize  pins:  GamePad(clock, command, attention, data, Pressures, Rumble)
-    ps2xError = ps2x.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
+    ps2xError = ps2x_cottjr.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
 
     Serial.println();
     switch (ps2xError)
@@ -107,40 +107,40 @@ void ps2controllerIntentMap::initPS2xController()
     case 0:
         ps2ControllerUseable = true;
         Serial.println("ps2Error 0: all good- Found Controller- PS2 init success");
-        backlight8ColorDigital(0, 0, 255);
-        write16x2toLCD("PS2 cntrl OK (0)", "   Ready to Go  ");
-        delay(2500);
+        // backlight8ColorDigital(0, 0, 255);
+        // write16x2toLCD("PS2 cntrl OK (0)", "   Ready to Go  ");
+        // delay(2500);
         break;
     case 1:
         ps2ControllerUseable = false;
         Serial.println("ps2Error 1: very bad- No controller found, check wiring, readme.txt-> enable PS2 debug");
-        backlight8ColorDigital(255, 0, 0);
-        write16x2toLCD("PS2 cntrl BAD: 1", "Init Fail  :-(  ");
-        delay(2500);
+        // backlight8ColorDigital(255, 0, 0);
+        // write16x2toLCD("PS2 cntrl BAD: 1", "Init Fail  :-(  ");
+        // delay(2500);
         break;
     case 2:
         ps2ControllerUseable = false;
         Serial.println("ps2Error 2: very bad- Controller found but not accepting commands. readme.txt-> enable PS2 debug");
-        backlight8ColorDigital(255, 0, 0);
-        write16x2toLCD("PS2 cntrl BAD: 2", "Init Fail  :-(  ");
-        delay(2500);
+        // backlight8ColorDigital(255, 0, 0);
+        // write16x2toLCD("PS2 cntrl BAD: 2", "Init Fail  :-(  ");
+        // delay(2500);
         break;
     case 3:
         ps2ControllerUseable = true;
         Serial.println("ps2Error 3: partly ok- Controller refusing Pressures mode- may not support it");
-        backlight8ColorDigital(0, 0, 255);
-        write16x2toLCD("PS2 cntrl OK (3)", "   Ready to Go  ");
-        delay(2500);
+        // backlight8ColorDigital(0, 0, 255);
+        // write16x2toLCD("PS2 cntrl OK (3)", "   Ready to Go  ");
+        // delay(2500);
         break;
     default:
         ps2ControllerUseable = false;
         Serial.println("ps2Error unknown: very bad- unexpected PS2 init result");
-        backlight8ColorDigital(255, 0, 0);
-        write16x2toLCD("PS2 cntrl BAD: ?", "Init Fail  :-(  ");
-        delay(2500);
+        // backlight8ColorDigital(255, 0, 0);
+        // write16x2toLCD("PS2 cntrl BAD: ?", "Init Fail  :-(  ");
+        // delay(2500);
     }
 
-    PS2controllerType = ps2x.readType();
+    PS2controllerType = ps2x_cottjr.readType();
     switch (PS2controllerType)
     {
     case 0:
@@ -210,10 +210,10 @@ bool ps2controllerIntentMap::readAllPS2xControllerValues(bool showValues)
     // => read controller and set large motor to spin at 'vibrateShake' speed
 
     // Poll PS2 Controller to get new values and set vibration level
-    // if rumble is disabled, use ps2x.read_gamepad(); with no values
+    // if rumble is disabled, use ps2x_cottjr.read_gamepad(); with no values
     // you should query the PS2 controller at least once a second, else the library will attempt to automatically reconfigure the control
     // Initialize all values & bail from this function if the attempted gamepad read appeared to fail
-    if (!ps2x.read_gamepad(false, vibrateShake))
+    if (!ps2x_cottjr.read_gamepad(false, vibrateShake))
     {
         // NOTE: this branch was intended to catch scenarios like user switching off controller
         //  however, the PS2X_lib library apparently does NOT trap that as an error
@@ -225,56 +225,56 @@ bool ps2controllerIntentMap::readAllPS2xControllerValues(bool showValues)
         return false;
     }
 
-    joystickLeftX = ps2x.Analog(PSS_LX);
-    joystickLeftY = ps2x.Analog(PSS_LY);
-    joystickRightX = ps2x.Analog(PSS_RX);
-    joystickRightY = ps2x.Analog(PSS_RY);
+    joystickLeftX = ps2x_cottjr.Analog(PSS_LX);
+    joystickLeftY = ps2x_cottjr.Analog(PSS_LY);
+    joystickRightX = ps2x_cottjr.Analog(PSS_RX);
+    joystickRightY = ps2x_cottjr.Analog(PSS_RY);
 
     // Buttons currently being pressed
-    selectButtonState = ps2x.Button(PSB_SELECT);
-    startButtonState = ps2x.Button(PSB_START);
+    selectButtonState = ps2x_cottjr.Button(PSB_SELECT);
+    startButtonState = ps2x_cottjr.Button(PSB_START);
     // note: it appears that the mode Button is not exposed
 
-    upButtonState = ps2x.Button(PSB_PAD_UP);       // UP is currently being pressed
-    rightButtonState = ps2x.Button(PSB_PAD_RIGHT); // Square is currently being pressed
-    downButtonState = ps2x.Button(PSB_PAD_DOWN);   // Down is currently being pressed
-    leftButtonState = ps2x.Button(PSB_PAD_LEFT);   // Circle is currently being pressed
+    upButtonState = ps2x_cottjr.Button(PSB_PAD_UP);       // UP is currently being pressed
+    rightButtonState = ps2x_cottjr.Button(PSB_PAD_RIGHT); // Square is currently being pressed
+    downButtonState = ps2x_cottjr.Button(PSB_PAD_DOWN);   // Down is currently being pressed
+    leftButtonState = ps2x_cottjr.Button(PSB_PAD_LEFT);   // Circle is currently being pressed
 
-    triangleButtonState = ps2x.Button(PSB_GREEN); // UP is currently being pressed
-    circleButtonState = ps2x.Button(PSB_RED);     // Circle is currently being pressed
-    xButtonState = ps2x.Button(PSB_BLUE);         // Down is currently being pressed
-    squareButtonState = ps2x.Button(PSB_PINK);    // Square is currently being pressed
+    triangleButtonState = ps2x_cottjr.Button(PSB_GREEN); // UP is currently being pressed
+    circleButtonState = ps2x_cottjr.Button(PSB_RED);     // Circle is currently being pressed
+    xButtonState = ps2x_cottjr.Button(PSB_BLUE);         // Down is currently being pressed
+    squareButtonState = ps2x_cottjr.Button(PSB_PINK);    // Square is currently being pressed
 
-    L1button = ps2x.Button(PSB_L1);
-    L2button = ps2x.Button(PSB_L2);
-    L3button = ps2x.Button(PSB_L3); // left joystick press
+    L1button = ps2x_cottjr.Button(PSB_L1);
+    L2button = ps2x_cottjr.Button(PSB_L2);
+    L3button = ps2x_cottjr.Button(PSB_L3); // left joystick press
 
-    R1button = ps2x.Button(PSB_R1);
-    R2button = ps2x.Button(PSB_R2);
-    R3button = ps2x.Button(PSB_R3); // right joystick press
+    R1button = ps2x_cottjr.Button(PSB_R1);
+    R2button = ps2x_cottjr.Button(PSB_R2);
+    R3button = ps2x_cottjr.Button(PSB_R3); // right joystick press
 
     // Buttons just pressed (ie. pressed since last time were sampled)
-    selectButtonPressed = ps2x.ButtonPressed(PSB_SELECT);
-    startButtonPressed = ps2x.ButtonPressed(PSB_START);
+    selectButtonPressed = ps2x_cottjr.ButtonPressed(PSB_SELECT);
+    startButtonPressed = ps2x_cottjr.ButtonPressed(PSB_START);
     // note: it appears that the mode Button is not exposed
 
-    upButtonPressed = ps2x.ButtonPressed(PSB_PAD_UP);       // UP is currently being pressed
-    rightButtonPressed = ps2x.ButtonPressed(PSB_PAD_RIGHT); // Square is currently being pressed
-    downButtonPressed = ps2x.ButtonPressed(PSB_PAD_DOWN);   // Down is currently being pressed
-    leftButtonPressed = ps2x.ButtonPressed(PSB_PAD_LEFT);   // Circle is currently being pressed
+    upButtonPressed = ps2x_cottjr.ButtonPressed(PSB_PAD_UP);       // UP is currently being pressed
+    rightButtonPressed = ps2x_cottjr.ButtonPressed(PSB_PAD_RIGHT); // Square is currently being pressed
+    downButtonPressed = ps2x_cottjr.ButtonPressed(PSB_PAD_DOWN);   // Down is currently being pressed
+    leftButtonPressed = ps2x_cottjr.ButtonPressed(PSB_PAD_LEFT);   // Circle is currently being pressed
 
-    triangleButtonPressed = ps2x.ButtonPressed(PSB_GREEN); // UP is currently being pressed
-    circleButtonPressed = ps2x.ButtonPressed(PSB_RED);     // Circle is currently being pressed
-    xButtonPressed = ps2x.ButtonPressed(PSB_BLUE);         // Down is currently being pressed
-    squareButtonPressed = ps2x.ButtonPressed(PSB_PINK);    // Square is currently being pressed
+    triangleButtonPressed = ps2x_cottjr.ButtonPressed(PSB_GREEN); // UP is currently being pressed
+    circleButtonPressed = ps2x_cottjr.ButtonPressed(PSB_RED);     // Circle is currently being pressed
+    xButtonPressed = ps2x_cottjr.ButtonPressed(PSB_BLUE);         // Down is currently being pressed
+    squareButtonPressed = ps2x_cottjr.ButtonPressed(PSB_PINK);    // Square is currently being pressed
 
-    L1buttonPressed = ps2x.ButtonPressed(PSB_L1);
-    L2buttonPressed = ps2x.ButtonPressed(PSB_L2);
-    L3buttonPressed = ps2x.ButtonPressed(PSB_L3); // left joystick press
+    L1buttonPressed = ps2x_cottjr.ButtonPressed(PSB_L1);
+    L2buttonPressed = ps2x_cottjr.ButtonPressed(PSB_L2);
+    L3buttonPressed = ps2x_cottjr.ButtonPressed(PSB_L3); // left joystick press
 
-    R1buttonPressed = ps2x.ButtonPressed(PSB_R1);
-    R2buttonPressed = ps2x.ButtonPressed(PSB_R2);
-    R3buttonPressed = ps2x.ButtonPressed(PSB_R3); // right joystick press
+    R1buttonPressed = ps2x_cottjr.ButtonPressed(PSB_R1);
+    R2buttonPressed = ps2x_cottjr.ButtonPressed(PSB_R2);
+    R3buttonPressed = ps2x_cottjr.ButtonPressed(PSB_R3); // right joystick press
 
     // Compute derived values
 
@@ -371,47 +371,47 @@ bool ps2controllerIntentMap::readAllPS2xControllerValues(bool showValues)
 
     // // this will set the large motor vibrateShake speed based on how hard you press the blue (X) button
     // // read through the PS2 libarary code to observe that many buttons are apparently pressure sensitive
-    // vibrateShake = ps2x.Analog(PSAB_BLUE);
+    // vibrateShake = ps2x_cottjr.Analog(PSAB_BLUE);
 
     // // TRUE if button was JUST pressed OR released
-    // if (ps2x.NewButtonState(PSB_BLUE))
+    // if (ps2x_cottjr.NewButtonState(PSB_BLUE))
     //     Serial.println("X changed");
 
     // // TRUE if any button changes state (on to off, or off to on)
-    // if (ps2x.NewButtonState())
+    // if (ps2x_cottjr.NewButtonState())
     // {
-    //     if (ps2x.Button(PSB_L3))
+    //     if (ps2x_cottjr.Button(PSB_L3))
     //         Serial.println("L3");
-    //     if (ps2x.Button(PSB_R3))
+    //     if (ps2x_cottjr.Button(PSB_R3))
     //         Serial.println("R3");
-    //     if (ps2x.Button(PSB_L2))
+    //     if (ps2x_cottjr.Button(PSB_L2))
     //         Serial.println("L2");
-    //     if (ps2x.Button(PSB_R2))
+    //     if (ps2x_cottjr.Button(PSB_R2))
     //         Serial.println("R2");
-    //     if (ps2x.Button(PSB_GREEN))
+    //     if (ps2x_cottjr.Button(PSB_GREEN))
     //         Serial.println("Triangle pressed");
     // }
 
     // // TRUE if button was JUST pressed
-    // if (ps2x.ButtonPressed(PSB_RED))
+    // if (ps2x_cottjr.ButtonPressed(PSB_RED))
     //     Serial.println("Circle pressed");
 
     // // TRUE if button was JUST released
-    // if (ps2x.ButtonReleased(PSB_PINK))
+    // if (ps2x_cottjr.ButtonReleased(PSB_PINK))
     //     Serial.println("Square released");
 
     // // print joystick values if either is TRUE
-    // if (ps2x.Button(PSB_L1) || ps2x.Button(PSB_R1))
+    // if (ps2x_cottjr.Button(PSB_L1) || ps2x_cottjr.Button(PSB_R1))
     // {
     //     Serial.print("Lx ");
     //     // Left stick, Y axis. Other options: LX, RY, RX
-    //     Serial.print(ps2x.Analog(PSS_LX), DEC);
+    //     Serial.print(ps2x_cottjr.Analog(PSS_LX), DEC);
     //     Serial.print(" y ");
-    //     Serial.print(ps2x.Analog(PSS_LY), DEC);
+    //     Serial.print(ps2x_cottjr.Analog(PSS_LY), DEC);
 
     //     Serial.print(" Rx ");
-    //     Serial.print(ps2x.Analog(PSS_RX), DEC);
+    //     Serial.print(ps2x_cottjr.Analog(PSS_RX), DEC);
     //     Serial.print(" y ");
-    //     Serial.println(ps2x.Analog(PSS_RY), DEC);
+    //     Serial.println(ps2x_cottjr.Analog(PSS_RY), DEC);
     // }
 }
